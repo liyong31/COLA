@@ -1,0 +1,17 @@
+HOA: v1
+name: "c & Xa"
+States: 3
+Start: 1
+AP: 2 "c" "a"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc deterministic
+properties: very-weak
+--BODY--
+State: 0 {0}
+[t] 0
+State: 1
+[0] 2
+State: 2
+[1] 0
+--END--

@@ -1,0 +1,10 @@
+0
+0 R b
+F(XG(F!b M Fb) W (b R a))
+F(a R !c)
+G(a | Fb) W (FGb R !b)
+X!(Xa U !c)
+Fc | !(X(c xor Gc) R (b W !Fc))
+XXG((Xb R (a W c)) -> (c R GXa))
+X(0)
+XXF(a R b)
