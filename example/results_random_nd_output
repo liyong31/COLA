@@ -1,0 +1,700 @@
+0
+File:Fa R ((b | c) R (!b R Fc))
+spot: 10
+pldi: 10
+nsbc: 13
+
+
+1
+File:G(Fa U X(b & Fc))
+spot: 52
+pldi: 34
+nsbc: 34
+
+
+2
+File:FG(Ga U X(Ga R b))
+spot: 6
+pldi: 6
+nsbc: 8
+
+
+3
+File:XFa U G(Gc | Fb)
+spot: 4
+pldi: 4
+nsbc: 4
+
+
+4
+File:G((((a & b) | (!a & !b)) & (GF!b U !c)) | (((!a & b) | (a & !b)) & (FGb R c)))
+spot: 14
+pldi: 15
+nsbc: 16
+
+
+5
+File:(a | ((b U (c | Xb)) R Fb)) R Fc
+spot: 5
+pldi: 5
+nsbc: 9
+
+
+6
+File:((a R b) & GF((!b & G!a) | (b & Fa))) | ((!a U !b) & FG((b & G!a) | (!b & Fa)))
+spot: 16
+pldi: 15
+nsbc: 14
+
+
+7
+File:FG(Fa U (Fb R c))
+spot: 183
+pldi: 93
+nsbc: 142
+
+
+8
+File:GF(a & Xb) | (c & Ga)
+spot: 6
+pldi: 6
+nsbc: 6
+
+
+9
+File:FGa R a
+spot: 3
+pldi: 4
+nsbc: 3
+
+
+10
+File:G(a U Xb)
+spot: 5
+pldi: 5
+nsbc: 6
+
+
+11
+File:XXG(Fa | Gb)
+spot: 5
+pldi: 5
+nsbc: 5
+
+
+12
+File:(G!a | FGa) R Fb
+spot: 6
+pldi: 7
+nsbc: 5
+
+
+13
+File:X((!a & GF(!b & Xc)) | (a & FG(b | X!c)))
+spot: 8
+pldi: 8
+nsbc: 9
+
+
+14
+File:X(G(Gb | XFa) R X!a)
+spot: 7
+pldi: 7
+nsbc: 8
+
+
+15
+File:GF((a & Gb) R c)
+spot: 6
+pldi: 7
+nsbc: 9
+
+
+16
+File:GFa R b
+spot: 5
+pldi: 5
+nsbc: 5
+
+
+17
+File:GFa | G(Gb | Xa)
+spot: 7
+pldi: 7
+nsbc: 6
+
+
+18
+File:GF(a | Gb)
+spot: 4
+pldi: 6
+nsbc: 2
+
+
+19
+File:FG((F((a & G!b) | (!a & Fb)) & (!b | F(b R c))) | (b & G((!b U !c) & ((!a & G!b) | (a & Fb)))))
+spot: 44
+pldi: 31
+nsbc: 29
+
+
+
+20
+File:G(a | X(GFa | (a M b))) R !b
+spot: 15
+pldi: 15
+nsbc: 12
+
+
+21
+File:XG(a | (G(b U c) R b))
+spot: 6
+pldi: 6
+nsbc: 7
+
+
+22
+File:X(a & (X((G!b & XGc) | (Fb & XF!c)) R Fc))
+spot: 7
+pldi: 6
+nsbc: 11
+
+
+23
+File:XF(Ga R b)
+spot: 6
+pldi: 6
+nsbc: 8
+
+
+24
+File:(Xa & (b | (GF!c U (!b U d)))) | (!b & X!a & (FGc R (b R !d)))
+spot: 12
+pldi: 13
+nsbc: 12
+
+
+25
+File:F(Xa R (Xb R (a & Gc)))
+spot: 5
+pldi: 5
+nsbc: 5
+
+
+26
+File:Ga | (Ga R Fb)
+spot: 4
+pldi: 4
+nsbc: 3
+
+
+27
+File:XF((Xa & F(!a | b)) R c)
+spot: 5
+pldi: 6
+nsbc: 5
+
+
+28
+File:Fa & ((b | G!a) R XFc)
+spot: 10
+pldi: 10
+nsbc: 14
+
+
+29
+File:X(a U XG(b U (c | X(c M d))))
+spot: 11
+pldi: 11
+nsbc: 21
+
+
+30
+File:X(a & GF(a | Gb))
+spot: 5
+pldi: 7
+nsbc: 5
+
+
+31
+File:FG((a | b) & (a | F(a & Xa)))
+spot: 9
+pldi: 9
+nsbc: 9
+
+
+32
+File:GF((a U Xb) & G(!b | XXc))
+spot: 9
+pldi: 9
+nsbc: 9
+
+
+33
+File:!a R (((b & Xc) | (!b & X!c)) U (d R a))
+spot: 10
+pldi: 10
+nsbc: 10
+
+
+34
+File:G!a R ((G!b & X((a & !c) | (!a & c))) | (Fb & X((!a & !c) | (a & c))))
+spot: 21
+pldi: 21
+nsbc: 31
+
+
+35
+File:F(Fa R (b R !a))
+spot: 1
+pldi: 2
+nsbc: 1
+
+
+36
+File:G(Gc | Fa | Gb)
+spot: 6
+pldi: 6
+nsbc: 5
+
+
+37
+File:(a | G(b U c)) R Fb
+spot: 4
+pldi: 4
+nsbc: 7
+
+
+38
+File:GF((!a & XFb) | (a & XG!b))
+spot: 12
+pldi: 12
+nsbc: 8
+
+
+39
+File:(Xa & F((c | Fb) & G(a | !b))) | (X!a & G((!c & G!b) | F(!a & b)))
+spot: 8
+pldi: 8
+nsbc: 8
+
+
+40
+File:Ga R F(!a | b)
+spot: 3
+pldi: 3
+nsbc: 3
+
+
+41
+File:(a & (!b | (Fc R Fd))) | (!a & b & (G!c U G!d))
+spot: 8
+pldi: 9
+nsbc: 9
+
+
+42
+File:XX((((a & b) | (!a & !b)) R b) R Fc)
+spot: 5
+pldi: 5
+nsbc: 8
+
+
+43
+File:GF((a & b) R (c U a))
+spot: 6
+pldi: 6
+nsbc: 6
+
+
+44
+File:GF((G!a R (!b R (a U b))) R !a)
+spot: 6
+pldi: 7
+nsbc: 6
+
+
+45
+File:(!a & (FG(b & !c & !d) U d)) | (a & (GF(!b | c | d) R !d))
+spot: 7
+pldi: 8
+nsbc: 7
+
+
+46
+File:((!a U b) R c) U (a R d)
+spot: 10
+pldi: 11
+nsbc: 10
+
+
+47
+File:XG(F!a | (b & (!b U Ga)))
+spot: 4
+pldi: 4
+nsbc: 4
+
+
+48
+File:GF((Ga & F((b & G!c) | (!b & Fc))) | (F!a & G((!b & G!c) | (b & Fc))))
+spot: 25
+pldi: 21
+nsbc: 31
+
+
+49
+File:GF(a R b)
+spot: 6
+pldi: 6
+nsbc: 5
+
+
+50
+File:(a R (Xc & Fb)) R (Gc R d)
+spot: 20
+pldi: 27
+nsbc: 14
+
+
+51
+File:GF(GFa | (b & XXc))
+spot: 30
+pldi: 40
+nsbc: 11
+
+
+52
+File:F(a & X(a W Xb))
+spot: 4
+pldi: 4
+nsbc: 4
+
+
+53
+File:GF((a & F(!b | Xc)) | (!a & G(b & X!c)))
+spot: 13
+pldi: 12
+nsbc: 11
+
+
+54
+File:GF!a R (a & b)
+spot: 5
+pldi: 5
+nsbc: 5
+
+
+55
+File:XG(a | Fc | Xb)
+spot: 9
+pldi: 5
+nsbc: 5
+
+
+56
+File:G((Xa & (b | Fc)) | (!b & X!a & G!c))
+spot: 8
+pldi: 8
+nsbc: 11
+
+
+57
+File:G((G!a & FG!b) | (Fa & GFb)) R Xa
+spot: 8
+pldi: 8
+nsbc: 8
+
+
+58
+File:G((F!a & G(b & c)) | (F!b & (F!c | Ga)))
+spot: 28
+pldi: 20
+nsbc: 30
+
+
+59
+File:FG(a | XF(a & XFb))
+spot: 13
+pldi: 13
+nsbc: 14
+
+
+60
+File:XF!a & F(((!a & G!b) | (a & Fb)) R c)
+spot: 11
+pldi: 12
+nsbc: 15
+
+
+61
+File:G(a U b) R c
+spot: 5
+pldi: 5
+nsbc: 6
+
+
+62
+File:((a | Fb) R c) R F(Fd R !d)
+spot: 20
+pldi: 17
+nsbc: 17
+
+
+63
+File:XXX(XFa R Fb)
+spot: 7
+pldi: 7
+nsbc: 8
+
+
+64
+File:G(a U (b & X(a U Xa)))
+spot: 13
+pldi: 13
+nsbc: 13
+
+
+65
+File:FG((a & F!b) | (Gb & (!a | G(a & b))))
+spot: 7
+pldi: 7
+nsbc: 7
+
+
+66
+File:F(Ga | (Gb R c))
+spot: 11
+pldi: 11
+nsbc: 13
+
+
+67
+File:(a & Fb & F((Fa & G!b) | (G!a & Fb))) | ((!a | G!b) & G(G(!a & !b) | (Fa & Fb)))
+spot: 11
+pldi: 11
+nsbc: 19
+
+
+68
+File:F((!a & Fa) R (b | Gc))
+spot: 6
+pldi: 6
+nsbc: 12
+
+
+69
+File:FG((a & (!b | c | Gd | XFb)) | (!a & b & !c & F!d & XG!b))
+spot: 9
+pldi: 9
+nsbc: 4
+
+
+70
+File:G(a & F(b | X(a R c)))
+spot: 4
+pldi: 4
+nsbc: 4
+
+
+71
+File:GF((!a & Xb) | (a & X!b))
+spot: 5
+pldi: 5
+nsbc: 4
+
+
+72
+File:(!a & Fb) R Fa
+spot: 5
+pldi: 5
+nsbc: 5
+
+
+73
+File:XG(a & F((!b & F!c) | (b & Gc)))
+spot: 11
+pldi: 10
+nsbc: 8
+
+
+74
+File:X((a | FGa) R (a | Xb))
+spot: 6
+pldi: 7
+nsbc: 6
+
+
+75
+File:GF(a | G(F!a & Fb))
+spot: 7
+pldi: 7
+nsbc: 4
+
+
+76
+File:Xa & (XGb R Fc)
+spot: 7
+pldi: 7
+nsbc: 7
+
+
+77
+File:(Ga R (b | (!a & Gc) | (a & F!c))) R Xd
+spot: 30
+pldi: 29
+nsbc: 27
+
+
+78
+File:a | (!b R X((Fc & Xb) | (G!c & X!b)))
+spot: 17
+pldi: 17
+nsbc: 20
+
+
+79
+File:G(XGa | (b U c))
+spot: 7
+pldi: 7
+nsbc: 9
+
+
+80
+File:a R (Gb R Fc)
+spot: 6
+pldi: 6
+nsbc: 5
+
+
+81
+File:F(((Fa R (b | c)) & ((c U b) R d)) | ((G!a U (!b & !c)) & ((!c R !b) U !d))) R d
+spot: 12
+pldi: 12
+nsbc: 12
+
+
+82
+File:X(a & GF(b & X(b W c)))
+spot: 10
+pldi: 10
+nsbc: 10
+
+
+83
+File:F(Ga R b)
+spot: 5
+pldi: 5
+nsbc: 7
+
+
+84
+File:G((Fa & G(!b & X!b)) | (G!a & F(b | Xb))) R (b | c)
+spot: 12
+pldi: 18
+nsbc: 13
+
+
+85
+File:(a & F(!a | (a & Gb))) R c
+spot: 6
+pldi: 7
+nsbc: 4
+
+
+86
+File:FGa R XFb
+spot: 4
+pldi: 5
+nsbc: 5
+
+
+87
+File:G((a & (b R X!c)) | (!a & (!b U Xc)))
+spot: 7
+pldi: 7
+nsbc: 11
+
+
+88
+File:((c | (!c & Fc)) & X(FGa U b)) | (!c & (c | G!c) & X(GF!a R !b))
+spot: 9
+pldi: 10
+nsbc: 10
+
+
+89
+File:GF((a & X(b & (FGc U Xc))) | ((!a | X!b) & X(GF!c R X!c)))
+spot: 116
+pldi: 242
+nsbc: 99
+
+
+90
+File:XG(a | XF(a & Fb))
+spot: 6
+pldi: 6
+nsbc: 6
+
+
+91
+File:GF(F!a R Xa)
+spot: 3
+pldi: 3
+nsbc: 2
+
+
+92
+File:F((a & (b R Xc) & X(a W (Gd R c))) | ((!b U X!c) & (!a | X(!a M (F!d U !c)))))
+spot: 22
+pldi: 21
+nsbc: 53
+
+
+93
+File:GF(a & (b | Fc))
+spot: 5
+pldi: 5
+nsbc: 4
+
+
+94
+File:(Xa & ((a U b) | G(!a U X!b))) | (X!a & (!a R !b) & F(a R Xb))
+spot: 12
+pldi: 12
+nsbc: 17
+
+
+95
+File:a | ((b & GF!a) R c)
+spot: 6
+pldi: 6
+nsbc: 6
+
+
+96
+File:FG(Xa | (b & ((c & X!b) | (!c & Xb))))
+spot: 3
+pldi: 3
+nsbc: 5
+
+
+97
+File:F(GF!a R (b & Fa))
+spot: 10
+pldi: 12
+nsbc: 6
+
+
+98
+File:FG(F!a & (b U Xa))
+spot: 7
+pldi: 7
+nsbc: 9
+
+
+99
+File:Xa | (GFb R Xb)
+spot: 5
+pldi: 5
+nsbc: 5
+

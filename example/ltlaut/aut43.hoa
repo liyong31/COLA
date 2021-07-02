@@ -1,17 +1,19 @@
 HOA: v1
-name: "X!c"
-States: 3
-Start: 1
-AP: 1 "c"
-acc-name: Buchi
-Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels state-acc deterministic
-properties: very-weak
+name: "GF((a & b) R (c U a))"
+States: 2
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: generalized-Buchi 2
+Acceptance: 2 Inf(0)&Inf(1)
+properties: trans-labels explicit-labels trans-acc stutter-invariant
 --BODY--
 State: 0
-[!0] 2
+[!0 | !1] 0 {0}
+[0&1] 0 {0 1}
+[!0&2] 1 {1}
+[0&!1] 1 {0 1}
 State: 1
-[t] 0
-State: 2 {0}
-[t] 2
+[0&1] 0 {0 1}
+[!0&2] 1 {1}
+[0&!1] 1 {0 1}
 --END--

@@ -8,3 +8,43 @@ Fc | !(X(c xor Gc) R (b W !Fc))
 XXG((Xb R (a W c)) -> (c R GXa))
 X(0)
 XXF(a R b)
+c & Xa
+c <-> G!(!GXa W ((a xor b) | Gb))
+c & (c W !Xb)
+(b R G!c) | G(b U !a)
+(b W a) U b
+F!G(!Gc W c)
+G!c & (!((b & Fc) M c) U c)
+!X!c <-> (a W (1 U X!c))
+FG(Xa xor !(a W c))
+XX(1 U ((X(b W a) M 1) R c))
+(Xb | X(b & c)) M Ga
+c M ((a & ((a xor Gb) M 1)) | (Fa -> a))
+1
+!XFc
+X(XG(a <-> c) -> (X(0) M (a xor (1 U c))))
+Fc <-> G(X!c M 1)
+(b | GFXb) -> (a xor b)
+!c
+b <-> !(b | FX(0))
+F(!a R c) | (b <-> XX(!Gb R b))
+X!G(0 R (b M (c <-> (c xor X(0)))))
+X!c U a
+Fc & XXGF!X!a
+XF((Fc <-> (!b W c)) <-> (Gc M 1))
+G(F!Gc U (!Gc & Xc))
+F((!b | FGc) -> (b W (!c <-> Xc)))
+(X(a W Fc) -> a) R a
+((a xor b) -> a) U (Ga & (b R c))
+!Xa & (Gb R (Xa W 0))
+F((a M Xc) | FG(Xb <-> X(b | c)))
+G((1 U c) W (b & (1 U b)))
+Gb U !(Fb | XGc)
+!(c U X(0))
+X!c
+!b & (Fb xor (!Fc xor !Fb))
+!(X(0) U Gb)
+((1 U c) -> (!c <-> (c -> b))) U (a <-> Xc)
+F(c U Xa)
+GXFGa <-> G!F!XF!Ga
+Gb

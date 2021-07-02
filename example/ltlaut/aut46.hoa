@@ -1,31 +1,51 @@
 HOA: v1
-name: "(!c | (!b & c)) U ((a & Xc) | (!a & X!c))"
-States: 6
-Start: 3
-AP: 3 "b" "c" "a"
+name: "((!a U b) R c) U (a R d)"
+States: 9
+Start: 0
+AP: 4 "c" "a" "b" "d"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels state-acc deterministic weak
+properties: trans-labels explicit-labels state-acc stutter-invariant
+properties: weak
 --BODY--
-State: 0 {0}
-[t] 0
-State: 1
-[!1] 0
-State: 2
-[1] 0
+State: 0
+[0&!1&2 | 0&2&!3] 0
+[1&3] 1
+[!1&3] 2
+[0&!1&!2&!3] 3
+[0&!1&!2 | 0&!2&!3] 4
+State: 1 {0}
+[t] 1
+State: 2 {0}
+[1&3] 1
+[!1&3] 2
 State: 3
-[0&1&!2] 1
-[0&1&2] 2
-[!0&!2 | !1&!2] 4
-[!0&2 | !1&2] 5
+[!0&1&2&3] 1
+[!0&!1&2&3] 2
+[!0&!1&!2&3] 5
 State: 4
-[!1] 0
-[0&1&!2] 1
-[0&1&2] 2
-[!0&1&!2] 4
-[!0&1&2] 5
+[0&!1&2 | 0&2&!3] 0
+[0&1&2&3] 1
+[0&!1&2&3] 2
+[0&!1&!2] 3
+[0&!1&!2 | 0&!2&!3] 4
+[0&1&!2&3] 6
+[0&!1&!2&3] 7
 State: 5
-[1] 0
-[!1&!2] 4
-[!1&2] 5
+[1&2&3] 1
+[!1&2&3] 2
+[!1&!2&3] 5
+State: 6 {0}
+[0&2] 1
+[0&!2] 6
+[0&!1&!2] 8
+State: 7 {0}
+[0&1&2&3] 1
+[0&!1&2&3] 2
+[0&!1&!2&3] 5
+[0&1&!2&3] 6
+[0&!1&!2&3] 7
+State: 8
+[2] 1
+[!1&!2] 8
 --END--

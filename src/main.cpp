@@ -26,6 +26,8 @@
 #include <spot/twaalgos/complement.hh>
 #include <spot/misc/version.hh>
 #include <fstream>
+#include<ctime>
+#define FWZ_DEBUG 0
 
 void print_usage(std::ostream& os) {
   os << "Usage: seminator [OPTION...] [FILENAME...]\n";
@@ -133,6 +135,9 @@ void check_cout()
 
 int main(int argc, char* argv[])
 {
+    clock_t startTime, endTime;
+    startTime = clock();
+
     // Declaration for input options. The rest is in seminator.hpp
     // as they need to be included in other files.
     bool cd_check = false;
@@ -142,12 +147,9 @@ int main(int argc, char* argv[])
     spot::option_map om;
     bool cut_det = false;
     jobs_type jobs = 0;
-    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCB };
+    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCB, NSBC };
     complement_t complement = NoComplement;
     output_type desired_output = TGBA;
-
-    std::ofstream outfile;
-    outfile.open("com.hoa");
 
     auto match_opt =
       [&](const std::string& arg, const std::string& opt)
@@ -244,7 +246,8 @@ int main(int argc, char* argv[])
           complement = NCSBPLDI;
         else if (arg == "--complement=ncb")
           complement = NCB;
-
+        else if (arg == "--complement=nsbc")
+          complement = NSBC;
         else if (arg == "--ba")
           desired_output = BA;
         else if (arg == "--tba")
@@ -403,7 +406,8 @@ int main(int argc, char* argv[])
                     if (complement == NCSBSpot || complement == NCSBBest)
                       {
                         comp = spot::complement_semidet(aut);
-                        // comp = postprocessor.run(comp);
+                        comp = postprocessor.run(comp);
+                        std::cout << "spot: " << comp->num_states() << '\n';
                       }
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
@@ -412,11 +416,27 @@ int main(int argc, char* argv[])
                         comp2 = postprocessor.run(comp2);
                         if (!comp || comp->num_states() > comp2->num_states())
                           comp = comp2;
+                        std::cout << "pldi: " << comp->num_states() << '\n';
                       }
                     if (complement == NCB)
                     {
+                      // spot::print_hoa(std::cout, aut) << '\n';
+                      // myaut is directly input automata
+                      // aut is semi_determinize(myaut)
                       comp = from_spot::complement_unambiguous(myaut, true);
-                      // comp = postprocessor.run(comp);
+                      comp = postprocessor.run(comp);
+                      // spot::print_hoa(std::cout, comp->num_states()) << '\n';
+                      std::cout << "ncb: " << comp->num_states() << '\n';
+                    }
+                    if (complement == NSBC)
+                    {
+                      // #if FWZ_DEBUG
+                      // spot::print_hoa(std::cout, aut) << '\n';
+                      // #endif
+                      comp = from_spot::new_complement_semidet(aut, true);
+                      comp = postprocessor.run(comp);
+                      // spot::print_hoa(std::cout, comp->num_states()) << '\n';
+                      std::cout << "nsbc: " << comp->num_states() << '\n';
                     }
                     aut = comp;
                   }
@@ -427,14 +447,28 @@ int main(int argc, char* argv[])
                 highlight_components(aut);
                 opts = "1.1";
               }
-      
-            // spot::print_hoa(std::cout, myaut) << '\n';
+
+            std::ofstream outfile;
+            std::string comfile = "com.hoa";
+            if (complement == NCSBSpot)
+              outfile.open("spot/" + comfile);
+            if (complement == NCSBPLDI)
+              outfile.open("pldi/" + comfile);
+            if (complement == NCB)
+              outfile.open("ncb/" + comfile);
+            if (complement == NSBC)
+              outfile.open("nsbc/" + comfile);
+          
             spot::print_hoa(outfile, aut, opts);
             outfile.close();
           }
       }
 
     check_cout();
+
+    endTime = clock();
+    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << std::endl;
+
     return 0;
 }
 

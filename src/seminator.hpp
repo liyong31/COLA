@@ -55,6 +55,8 @@ namespace from_spot {
   spot::twa_graph_ptr
   complement_unambiguous(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
+  spot::twa_graph_ptr
+  new_complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 }
 
 typedef std::set<unsigned> state_set;

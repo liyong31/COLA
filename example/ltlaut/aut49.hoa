@@ -1,13 +1,17 @@
 HOA: v1
-name: "Gb"
-States: 1
+name: "GF(a R b)"
+States: 2
 Start: 0
-AP: 1 "b"
+AP: 2 "b" "a"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels state-acc colored
-properties: deterministic stutter-invariant very-weak
+properties: trans-labels explicit-labels trans-acc stutter-invariant
 --BODY--
-State: 0 {0}
-[0] 0
+State: 0
+[!0 | !1] 0
+[0&1] 0 {0}
+[0&!1] 1 {0}
+State: 1
+[0&1] 0 {0}
+[0&!1] 1 {0}
 --END--

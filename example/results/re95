@@ -1,0 +1,140 @@
+HOA: v1
+States: 6
+Start: 0
+AP: 3 "a" "c" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc very-weak
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+State: 1 {0}
+[t] 1
+State: 2
+[!1] 1
+[1&!2] 2
+[1&2] 3
+State: 3
+[1] 3
+[!1] 4
+[!1] 5
+State: 4
+[t] 4
+[!0] 5
+State: 5 {0}
+[0] 5
+--END--
+HOA: v1
+States: 6
+Start: 0
+AP: 3 "a" "c" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc very-weak
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+State: 1 {0}
+[t] 1
+State: 2
+[!1] 1
+[1&!2] 2
+[1&2] 3
+State: 3
+[1] 3
+[!1] 4
+[!1] 5
+State: 4
+[t] 4
+[!0] 5
+State: 5 {0}
+[0] 5
+--END--
+HOA: v1
+States: 6
+Start: 0
+AP: 3 "a" "c" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc very-weak
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+State: 1 {0}
+[t] 1
+State: 2
+[!1] 1
+[1&!2] 2
+[1&2] 3
+State: 3
+[1] 3
+[!1] 4
+[!1] 5
+State: 4
+[t] 4
+[!0] 5
+State: 5 {0}
+[0] 5
+--END--
+HOA: v1
+States: 6
+Start: 0
+AP: 3 "a" "c" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc very-weak
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+State: 1 {0}
+[t] 1
+State: 2
+[!1] 1
+[1&!2] 2
+[1&2] 3
+State: 3
+[1] 3
+[!1] 4
+[!1] 5
+State: 4
+[t] 4
+[!0] 5
+State: 5 {0}
+[0] 5
+--END--
+HOA: v1
+States: 6
+Start: 0
+AP: 3 "a" "c" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels state-acc very-weak
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1&!2] 2
+[!0&1&2] 3
+State: 1 {0}
+[t] 1
+State: 2
+[!1] 1
+[1&!2] 2
+[1&2] 3
+State: 3
+[1] 3
+[!1] 4
+[!1] 5
+State: 4
+[t] 4
+[!0] 5
+State: 5 {0}
+[0] 5
+--END--

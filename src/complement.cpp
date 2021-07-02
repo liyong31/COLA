@@ -53,11 +53,25 @@ namespace from_spot
             ncb_m = 0,
         };
 
+        // N S B C do not intersect each other 
+        enum nsbc
+        {
+            nsbc_n = 1,       // non deterministic
+            nsbc_s = 4,       // safe
+            nsbc_b = 3,       // needs check AND in breakpoint
+            nsbc_c = 2 ,      // needs check 
+            nsbc_m = -1,       // missing
+            nsbc_i = 0,
+        };
+
         typedef std::vector<ncsb> mstate;
         typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
 
         typedef std::vector<ncb> macrostate;
         typedef std::vector<std::pair<unsigned, ncb>> small_macrostate;
+
+        typedef std::vector<nsbc> mcstate;
+        typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
 
         struct small_mstate_hash
         {
@@ -78,6 +92,21 @@ namespace from_spot
         {
             size_t
             operator()(small_macrostate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+        // new semi complement
+        struct small_mcstate_hash
+        {
+            size_t
+            operator()(small_mcstate s) const noexcept
             {
               size_t hash = 0;
               for (const auto& p: s)
@@ -783,6 +812,8 @@ namespace from_spot
                 #endif
 
                 // accepting state
+                // new edge: origin to dst
+                // if b set in dst is empty, label this edge as an accepting edge
                 if (b_empty)
                 {
                   unsigned dst = new_state(std::move(succ));
@@ -844,6 +875,9 @@ namespace from_spot
 
               // subset to (N, C, B)
               // succs.push_back(nb_states_, ncb_m);
+              // std::vector<macrostate> tmpStates;
+              // tmpStates.emplace_back(nb_states_, ncb_m);
+              // std::vector<bool> visit(nb_states_, false);
               macrostate tmpState(nb_states_, ncb_m);
 
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -851,17 +885,6 @@ namespace from_spot
                 if (ms[i] != ncb_i)
                   continue;
                 tmpState[i] = ncb_n;
-                for (auto& t: aut_->out(i))
-                {
-                  // for state i, if one of out(i) = letter and out(i) is accepting
-                  // label state i as ncb_b 
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-                  if (t.acc)
-                  {
-                    tmpState[i] = ncb_b;
-                  }
-                }
               }
 
               #if FWZ_DEBUG
@@ -1012,6 +1035,10 @@ namespace from_spot
 
                 bdd all;
                 all = n_s_compat;
+
+                // Get a mstate from todo_
+                // 1. mstate -> (letter that not appears) empty set
+                // 2. mstate -> (appearing letter) other mstate 
                 if (all != bddtrue)
                 {
                   macrostate empty_state(nb_states_, ncb_m);
@@ -1028,6 +1055,517 @@ namespace from_spot
 
                   // Compute all new states available from the generated letter.
                   ncb_successors(std::move(ms), top.second, one);
+                }
+              }
+
+              res_->merge_edges();
+              return res_;
+            }
+        };
+
+        class nsbc_complementation
+        {
+        private:
+            // The source automaton.
+            const spot::const_twa_graph_ptr aut_;
+
+            // SCCs information of the source automaton.
+            spot::scc_info si_;
+
+            // Number of states in the input automaton.
+            unsigned nb_states_;
+
+            // The complement being built.
+            spot::twa_graph_ptr res_;
+
+            // Association between NCSB states and state numbers of the
+            // complement.
+            std::unordered_map<small_mcstate, unsigned, small_mcstate_hash> nsbc2n_;
+
+            // States to process.
+            std::deque<std::pair<mcstate, unsigned>> todo_;
+
+            // Support for each state of the source automaton.
+            std::vector<bdd> support_;
+
+            // Propositions compatible with all transitions of a state.
+            std::vector<bdd> compat_;
+
+            // Whether a SCC is deterministic or not
+            std::vector<bool> is_deter_;
+
+            // Whether a state only has accepting transitions
+            std::vector<bool> is_accepting_;
+
+            // State names for graphviz display
+            std::vector<std::string>* names_;
+
+            // Show NCSB states in state name to help debug
+            bool show_names_;
+
+            std::string
+            get_name(const small_mcstate& ms)
+            {
+              std::string res = "{";
+
+              // init phase
+              bool first_state = true;
+              for (const auto& p: ms)
+                if (p.second == nsbc_i)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += ("i" + std::to_string(p.first));
+                }
+
+              res += "},{";
+
+              // N set
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second == nsbc_n)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += std::to_string(p.first);
+                }
+
+              res += "},{";
+              
+              // S set
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second == nsbc_s)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += std::to_string(p.first);
+                }
+
+              res += "},{";
+
+              // B set
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second == nsbc_b)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += std::to_string(p.first);
+                }
+
+              res += "},{";
+
+              // C set
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second == nsbc_c)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += std::to_string(p.first);
+                }
+
+              return res + "}";
+            }
+
+            small_mcstate
+            to_small_mcstate(const mcstate& ms)
+            {
+              unsigned count = 0;
+              for (unsigned i = 0; i < nb_states_; ++i)
+                count+= (ms[i] != nsbc_m);
+              small_mcstate small;
+              small.reserve(count);
+              for (unsigned i = 0; i < nb_states_; ++i)
+                if (ms[i] != nsbc_m)
+                  small.emplace_back(i, ms[i]);
+              return small;
+            }
+
+            // looks for a duplicate in the map before
+            // creating a new state if needed.
+            unsigned
+            new_state(mcstate&& s)
+            {
+              auto p = nsbc2n_.emplace(to_small_mcstate(s), 0);
+              if (p.second) // This is a new state
+              {
+                p.first->second = res_->new_state();
+                if (show_names_)
+                  names_->push_back(get_name(p.first->first));
+                todo_.emplace_back(std::move(s), p.first->second);
+              }
+              return p.first->second;
+            }
+
+            void
+            acc_successors(mcstate&& ms, unsigned origin, bdd letter)
+            {
+              // Here if we just define a mcstate succ is also ok 
+              // It remains to be optimized
+              std::vector <mcstate> succs;
+              succs.emplace_back(nb_states_, nsbc_m);
+
+              #if FWZ_DEBUG
+              std::cout << "letter: " << letter << '\n';
+              std::cout << "input: " << get_name(to_small_mcstate(ms)) << '\n';
+              #endif
+
+              // Handle N states.
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_n)
+                  continue;
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  // t.dst is in Q2
+                  if (is_deter_[si_.scc_of(t.dst)])
+                  {
+                    if ((succs[0][t.dst] != nsbc_s) && (succs[0][t.dst] != nsbc_b))
+                      succs[0][t.dst] = nsbc_c;
+                  } 
+                  else
+                  {
+                    succs[0][t.dst] = nsbc_n;
+                  }
+                }
+              }
+
+              std::vector<bool> visit(nb_states_, false);
+              // Handle S states. 
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_s)
+                  continue;
+
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  if (visit[t.dst] == true)
+                  {
+                    succs.push_back(succs[0]);
+                  }
+                  if (t.acc)
+                  {
+                    succs.back()[t.dst] = nsbc_c;
+                  }
+                  else
+                  {
+                    succs.back()[t.dst] = nsbc_s;
+                  }
+                  visit[t.dst] = true;
+                }     
+              }
+              #if FWZ_DEBUG
+              std::cout << "after handle s states: " << get_name(to_small_mcstate(succs[0])) << '\n';
+              #endif
+            
+              // Handle B states
+              bool b_empty = true;
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_b)
+                  continue;
+                
+                // B set is not empty
+                b_empty = false;
+
+                for (const auto& t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+                  for (auto& succ : succs)
+                  {
+                    if (succ[t.dst] != nsbc_s)
+                      succ[t.dst] = nsbc_b;
+                  }      
+                  break;
+                }
+              }
+
+              // Handle C states.
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_c)
+                  continue;
+
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  for (auto& succ : succs)
+                  {
+                    // remove S' and B' (if a state is labeled as S' or B', we skip it)
+                    if ((succ[t.dst] != nsbc_s) && (succ[t.dst] != nsbc_b))
+                      succ[t.dst] = nsbc_c;
+                  }      
+                 
+                  break;
+                }
+              }
+
+              // if B set is empty, move C' to B'
+              if (b_empty)
+              {
+                for (unsigned i = 0; i < nb_states_; ++i)
+                {
+                  for (auto& succ : succs)
+                  {
+                    if(succ[i] == nsbc_c)
+                      succ[i] = nsbc_b;
+                  }
+                  
+                }
+              }
+      
+              // Create the automaton states
+              for (auto& succ: succs)
+              {
+                bool b_empty = true;
+                for (const auto& state: succ)
+                {
+                  if (state == nsbc_b)
+                  {
+                    b_empty = false;
+                    break;
+                  }
+                }
+
+                // accepting state
+                // new edge: origin to dst
+                // if b set in dst is empty, label this edge as an accepting edge
+                if (b_empty)
+                {
+                  unsigned dst = new_state(std::move(succ));
+                  res_->new_edge(origin, dst, letter, {0});
+                }
+                else
+                {
+                  unsigned dst = new_state(std::move(succ));
+                  res_->new_edge(origin, dst, letter);
+                }
+              }
+            }
+
+            void 
+            init_successors(mcstate&& ms, unsigned origin, bdd letter)
+            {
+              std::vector<mcstate> succs;
+              succs.emplace_back(nb_states_, nsbc_m);
+
+              // subset to subset
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                // some states == ncb_m, missing them.
+                if (ms[i] != nsbc_i)
+                  continue;
+                
+                for (const auto& t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+                  succs[0][t.dst] = nsbc_i;
+                }
+              }
+
+              for (auto& succ: succs)
+              {
+                unsigned dst = new_state(std::move(succ));
+                res_->new_edge(origin, dst, letter);
+              }
+
+              // subset to (N, C, B)
+              // succs.push_back(nb_states_, ncb_m);
+              mcstate tmpState(nb_states_, nsbc_m);
+
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_i)
+                  continue;
+
+                // i is in Q2 
+                if (is_deter_[si_.scc_of(i)])
+                {
+                  for (const auto& t : aut_->out(i))
+                  {
+                    // i->(t) t.dst
+                    // if the outgoing edge t is accepting
+                    // put i into B set
+                    if (!bdd_implies(letter, t.cond))
+                      continue;
+
+                    if (t.acc) 
+                      tmpState[i] = nsbc_b;
+                    else
+                      tmpState[i] = nsbc_s;
+                  }
+                }
+                else // i is in Q1
+                  tmpState[i] = nsbc_n;
+              }
+
+              #if FWZ_DEBUG
+               // print current NCB state
+              std::cout << "\nequiv NSBC: ";
+              std::cout << get_name(to_small_mcstate(ms)) << " == " << get_name(to_small_mcstate(tmpState)) << '\n';
+              #endif
+              acc_successors(std::move(tmpState), origin, letter);
+            }
+
+            void
+            nsbc_successors(mcstate&& ms, unsigned origin, bdd letter)
+            {
+
+              int flag = 1;
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                // initial phase
+                if (ms[i] == nsbc_i)
+                  break;
+
+                // NCB
+                if (ms[i] > 0)
+                {
+                  flag = 0;
+                  break;
+                }
+              }
+
+              // #if FWZ_DEBUG
+              // // print current mstate
+              // std::cout << "current: ";
+              // for (unsigned i = 0; i < nb_states_; ++i)
+              // {
+              //   std::cout << "state " << i << " ncb: " << ms[i] << " ";
+              // }
+              // std::cout << "\n";
+              // #endif
+
+              if (flag == 1)
+              {
+                init_successors(std::move(ms), origin, letter);
+              }
+              else
+              {
+                acc_successors(std::move(ms), origin, letter);
+              }
+            }
+
+        public:
+            nsbc_complementation(const spot::const_twa_graph_ptr& aut, bool show_names)
+                    : aut_(aut),
+                      si_(aut),
+                      nb_states_(aut->num_states()),
+                      support_(nb_states_),
+                      compat_(nb_states_),
+                      is_accepting_(nb_states_),
+                      show_names_(show_names)
+            {
+              res_ = spot::make_twa_graph(aut->get_dict());
+              res_->copy_ap_of(aut);
+              res_->set_buchi();
+
+              // Generate bdd supports and compatible options for each state.
+              // Also check if all its transitions are accepting.
+              // fengwz: check if exists a transition that is accepting
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                bdd res_support = bddtrue;
+                bdd res_compat = bddfalse;
+                
+                bool accepting = true;
+                bool has_transitions = false;
+                for (const auto& out: aut->out(i))
+                {
+                  has_transitions = true;
+                  res_support &= bdd_support(out.cond);
+                  res_compat |= out.cond;
+                  if (!out.acc)
+                    accepting = false;
+                }
+                support_[i] = res_support;
+                compat_[i] = res_compat;
+                is_accepting_[i] = accepting && has_transitions;
+              }
+
+
+
+              // Compute which SCCs are part of the deterministic set.
+              is_deter_ = spot::semidet_sccs(si_);
+
+              if (show_names_)
+              {
+                names_ = new std::vector<std::string>();
+                res_->set_named_prop("state-names", names_);
+              }
+
+              // Because we only handle one initial state, we assume it
+              // belongs to the N set. (otherwise the automaton would be
+              // deterministic)
+              unsigned init_state = aut->get_init_state_number();
+              mcstate new_init_state(nb_states_, nsbc_m);
+              new_init_state[init_state] = nsbc_i;
+              res_->set_init_state(new_state(std::move(new_init_state)));
+            }
+
+            spot::twa_graph_ptr
+            run()
+            {
+              // Main stuff happens here
+
+              while (!todo_.empty())
+              {
+                auto top = todo_.front();
+                todo_.pop_front();
+
+                mcstate ms = top.first;
+
+                // Compute support of all available states.
+                bdd msupport = bddtrue;
+                bdd n_s_compat = bddfalse;
+                bdd c_compat = bddtrue;
+                bool c_empty = true;
+                for (unsigned i = 0; i < nb_states_; ++i)
+                  if (ms[i] != nsbc_m)
+                  {
+                    msupport &= support_[i];                
+                    n_s_compat |= compat_[i];
+                  }
+
+                bdd all;
+                all = n_s_compat;
+
+                // Get a mstate from todo_
+                // 1. mstate -> (letter that not appears) empty set
+                // 2. mstate -> (appearing letter) other mstate 
+                if (all != bddtrue)
+                {
+                  mcstate empty_state(nb_states_, nsbc_m);
+                  res_->new_edge(top.second,
+                                  new_state(std::move(empty_state)),
+                                  !all,
+                                  {0});
+                }
+                
+                while (all != bddfalse)
+                {
+                  bdd one = bdd_satoneset(all, msupport, bddfalse);
+                  all -= one;
+
+                  // Compute all new states available from the generated letter.
+                  nsbc_successors(std::move(ms), top.second, one);
                 }
               }
 
@@ -1059,6 +1597,18 @@ namespace from_spot
 
       auto ncb = ncb_complementation(aut, show_names);
       return ncb.run();
+    }
+
+    // new complement_semidet
+    spot::twa_graph_ptr
+    new_complement_semidet(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+
+      auto nsbc = nsbc_complementation(aut, show_names);
+      return nsbc.run();
     }
 }
 

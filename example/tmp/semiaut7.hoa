@@ -1,0 +1,52 @@
+HOA: v1
+name: "sDBA for XXG((X!b U (!a M !c)) | XGa)"
+States: 11
+Start: 0
+AP: 3 "c" "a" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels trans-acc semi-deterministic
+--BODY--
+State: 0
+[t] 1
+State: 1
+[t] 2
+[t] 6
+State: 2
+[!0&!1] 2
+[0] 3
+[!0&1] 4
+[!0&1] 5
+[0 | 1] 8
+State: 3
+[!0&!1&!2] 2
+[0&!2] 3
+[!0&1&!2] 4
+[!0&1&!2] 5
+State: 4
+[0&!2] 3
+[!0&1&!2] 4
+State: 5
+[!0&!1] 2
+[!0&1] 5
+[!0&!1] 6
+[!0&1] 10
+State: 6
+[!0&!1] 6 {0}
+[0] 7
+[!0&1] 9
+State: 7
+[!0&!1&!2] 6 {0}
+[0&!2] 7
+[!0&1&!2] 9
+State: 8
+[1] 8 {0}
+State: 9
+[!0&!1] 6 {0}
+[0&!2] 7
+[!0&1&!2] 9
+[!0&1&2] 10
+State: 10
+[!0&!1] 6 {0}
+[!0&1] 10
+--END--

@@ -1,15 +1,53 @@
 HOA: v1
-States: 2
-Start: 1
-AP: 1 "c"
-acc-name: co-Buchi
-Acceptance: 1 Fin(0)
-properties: trans-labels explicit-labels state-acc complete
-properties: deterministic stutter-invariant very-weak
+States: 9
+Start: 0
+AP: 2 "b" "a"
+acc-name: parity min odd 3
+Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic stutter-invariant
 --BODY--
-State: 0 {0}
-[t] 0
+State: 0
+[0&!1] 0
+[!0&!1] 1
+[!0&1] 2
+[0&1] 3
 State: 1
-[0] 0
-[!0] 1
+[!0&!1] 1
+[!0&1] 2 {2}
+[0&!1] 4 {1}
+[0&1] 5 {1}
+State: 2
+[!0&!1] 1
+[!0&1] 2 {2}
+[0&!1] 4 {1}
+[0&1] 5 {1}
+State: 3
+[!0&1] 3
+[0&1] 3 {0}
+[!0&!1] 6
+[0&!1] 7
+State: 4
+[!0&!1] 1 {1}
+[!0&1] 2 {1}
+[0&!1] 4 {2}
+[0&1] 5 {1}
+State: 5
+[!0&!1] 1
+[!0&1] 2
+[0&!1] 4
+[0&1] 5
+State: 6
+[0&1] 3 {0}
+[!0&1] 3 {1}
+[!0&!1] 6 {2}
+[0&!1] 8
+State: 7
+[1] 3 {0}
+[0&!1] 7
+[!0&!1] 8
+State: 8
+[1] 3 {0}
+[0&!1] 8
+[!0&!1] 8 {2}
 --END--
