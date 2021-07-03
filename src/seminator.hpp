@@ -52,9 +52,19 @@ namespace from_spot {
   spot::twa_graph_ptr
   complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
+  /// \brief Complement a unambiguous TωA
+  ///
+  /// The automaton \a aut should be unambiguous.
+  ///
+  /// Uses the NCSB algorithm described by Y. Li, M.Y. Vardi, and L. Zhang (GandALF'20)
   spot::twa_graph_ptr
   complement_unambiguous(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
+  /// \brief Complement a semideterministic TωA
+  ///
+  /// The automaton \a aut should be semideterministic.
+  ///
+  /// Uses the NCB algorithm described by Y. Li
   spot::twa_graph_ptr
   new_complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 }
