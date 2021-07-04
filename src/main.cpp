@@ -415,7 +415,6 @@ int main(int argc, char* argv[])
                     {
                         spot::twa_graph_ptr comp1 =
                           from_spot::complement_semidet_opt(aut);
-                        
                         comp1 = postprocessor.run(comp1);
                         if (!comp || comp->num_states() > comp1->num_states())
                           comp = comp1;
