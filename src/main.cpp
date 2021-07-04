@@ -466,6 +466,8 @@ int main(int argc, char* argv[])
               outfile.open("spot/" + comfile);
             if (complement == NCSBPLDI)
               outfile.open("pldi/" + comfile);
+            if (complement == NCSBPLDIB)
+              outfile.open("pldib/" + comfile);
             if (complement == NCB)
               outfile.open("ncb/" + comfile);
             if (complement == NSBC)

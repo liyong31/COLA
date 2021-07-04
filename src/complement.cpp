@@ -214,11 +214,6 @@ namespace from_spot
                       return res + "}";
                     }
 
-                    void set_opt() 
-                    {
-                      optb = true;
-                    }
-
                     small_mstate
                     to_small_mstate(const mstate& ms)
                     {
@@ -545,6 +540,11 @@ namespace from_spot
                       mstate new_init_state(nb_states_, ncsb_m);
                       new_init_state[init_state] = ncsb_n;
                       res_->set_init_state(new_state(std::move(new_init_state)));
+                    }
+
+                    void set_opt() 
+                    {
+                      optb = true;
                     }
 
                     spot::twa_graph_ptr
