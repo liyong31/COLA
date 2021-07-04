@@ -50,7 +50,7 @@ Input options:
 Output options:
     --cd        cut-deterministic automaton
     --sd        semi-deterministic automaton (default)
-    --complement[=best|spot|pldi]
+    --complement[=best|spot|pldi|pldib]
                 build a semi-deterministic automaton to complement it using
                 the NCSB implementation of Spot, or the PLDI'18 variant
                 implemented in Seminator
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     spot::option_map om;
     bool cut_det = false;
     jobs_type jobs = 0;
-    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCB, NSBC };
+    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCSBPLDIB, NCB, NSBC };
     complement_t complement = NoComplement;
     output_type desired_output = TGBA;
 
@@ -244,6 +244,8 @@ int main(int argc, char* argv[])
           complement = NCSBSpot;
         else if (arg == "--complement=pldi")
           complement = NCSBPLDI;
+        else if(arg == "--complement=pldib")
+          complement = NCSBPLDIB;
         else if (arg == "--complement=ncb")
           complement = NCB;
         else if (arg == "--complement=nsbc")
@@ -409,6 +411,16 @@ int main(int argc, char* argv[])
                         comp = postprocessor.run(comp);
                         std::cout << "spot: " << comp->num_states() << '\n';
                       }
+                    if(complement == NCSBPLDIB || complement == NCSBBest) 
+                    {
+                        spot::twa_graph_ptr comp1 =
+                          from_spot::complement_semidet_opt(aut);
+                        
+                        comp1 = postprocessor.run(comp1);
+                        if (!comp || comp->num_states() > comp1->num_states())
+                          comp = comp1;
+                        std::cout << "pldib: " << comp->num_states() << '\n';
+                    }
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
                         spot::twa_graph_ptr comp2 =

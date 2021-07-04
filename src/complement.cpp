@@ -157,6 +157,9 @@ namespace from_spot
                     // Show NCSB states in state name to help debug
                     bool show_names_;
 
+                    // opt 
+                    bool optb;
+
                     std::string
                     get_name(const small_mstate& ms)
                     {
@@ -209,6 +212,11 @@ namespace from_spot
                         }
 
                       return res + "}";
+                    }
+
+                    void set_opt() 
+                    {
+                      optb = true;
                     }
 
                     small_mstate
@@ -277,7 +285,8 @@ namespace from_spot
                           break;
                         }
                       }
-
+                      // record the set of states that come via accepting transitions
+                      std::vector<ncsb> c_succs (nb_states_, ncsb_m);
                       // Handle C states.
                       for (unsigned i = 0; i < nb_states_; ++i)
                       {
@@ -292,9 +301,11 @@ namespace from_spot
                           // PLDI optimization:
                           // Compute C' and remove states that are already in S'
                           // We have still only unique successor
-                          if (succs[0][t.dst] == ncsb_m)
+                          if (succs[0][t.dst] == ncsb_m) 
+                          {
                             succs[0][t.dst] = ncsb_c;
-
+                            if(optb) c_succs[t.dst] = ncsb_c;
+                          }
                           // No need to look for other compatible transitions
                           // for this state; it's in the deterministic part of
                           // the automaton
@@ -407,8 +418,16 @@ namespace from_spot
                             // if s is not accepting make a clone
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
-                              if (succs[j][i] != ncsb_c) {
-                                continue;
+                              // without lazyOpt
+                              if(! optb) {
+                                if (succs[j][i] != ncsb_c) {
+                                  continue;
+                                }
+                              }else {
+                                  // only move C' (excluding new states from N) to B'
+                                  if (succs[j][i] != c_succs[i]) {
+                                    continue;
+                                  }
                               }
                               succs[j][i] = ncsb_cb;
                             }
@@ -422,10 +441,17 @@ namespace from_spot
                             // if s is not accepting make a clone
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
-                              if (succs[j][i] != ncsb_cb) {
-                                continue;
+                              // these are all states in C', also in B'
+                              if(optb) {
+                                if (succs[j][i] != ncsb_c || succs[j][i] != ncsb_cb) {
+                                  continue;
+                                }
+                              }else {
+                                if(succs[j][i] != ncsb_cb) {
+                                  continue;
+                                }
                               }
-
+                              
                               {
                                 unsigned k_length = new_succs.size();
                                 for (unsigned k = 0; k < k_length; ++k) {
@@ -1582,8 +1608,18 @@ namespace from_spot
       if (!is_semi_deterministic(aut))
         throw std::runtime_error
                 ("complement_semidet() requires a semi-deterministic input");
-
       auto ncsb = ncsb_complementation(aut, show_names);
+      return ncsb.run();
+    }
+
+    spot::twa_graph_ptr
+    complement_semidet_opt(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+      auto ncsb = ncsb_complementation(aut, show_names);
+      ncsb.set_opt();
       return ncsb.run();
     }
 
