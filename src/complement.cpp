@@ -158,7 +158,7 @@ namespace from_spot
                     bool show_names_;
 
                     // opt 
-                    bool optb;
+                    bool optb_;
 
                     std::string
                     get_name(const small_mstate& ms)
@@ -299,7 +299,7 @@ namespace from_spot
                           if (succs[0][t.dst] == ncsb_m) 
                           {
                             succs[0][t.dst] = ncsb_c;
-                            if(optb) c_succs[t.dst] = ncsb_c;
+                            if(optb_) c_succs[t.dst] = ncsb_c;
                           }
                           // No need to look for other compatible transitions
                           // for this state; it's in the deterministic part of
@@ -414,7 +414,7 @@ namespace from_spot
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
                               // without lazyOpt
-                              if(! optb) {
+                              if(! optb_) {
                                 if (succs[j][i] != ncsb_c) {
                                   continue;
                                 }
@@ -437,7 +437,7 @@ namespace from_spot
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
                               // these are all states in C', also in B'
-                              if(optb) {
+                              if(optb_) {
                                 if (succs[j][i] != ncsb_c || succs[j][i] != ncsb_cb) {
                                   continue;
                                 }
@@ -522,7 +522,7 @@ namespace from_spot
                         is_accepting_[i] = accepting && has_transitions;
                       }
 
-
+                      optb_ = false;
 
                       // Compute which SCCs are part of the deterministic set.
                       is_deter_ = spot::semidet_sccs(si_);
@@ -544,7 +544,7 @@ namespace from_spot
 
                     void set_opt() 
                     {
-                      optb = true;
+                      optb_ = true;
                     }
 
                     spot::twa_graph_ptr
