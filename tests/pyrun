@@ -1,0 +1,48 @@
+# -*- mode: shell-script; coding: utf-8 -*-
+#
+# This file is used by the test suite to run Python script while
+# ensuring they use the local version of seminator and its Python
+# bindings.  You can also use it to start a jupyter notebook with the
+# local version by typing:
+#
+#     % tests/pyrun jupyter notebook
+
+# Python needs to now where to find the *.py and *.so
+pypath='/home/fengwz/Desktop/seminator/python:/home/fengwz/Desktop/seminator/python/spot-extra/.libs'
+if test -n "$PYTHONPATH"; then
+    pypath="$pypath:$PYTHONPATH"
+fi
+# Darwin needs some help in figuring out where non-installed libtool
+# libraries are (on this platform libtool encodes the expected final
+# path of dependent libraries in each library).
+modpath='/home/fengwz/Desktop/seminator/python/spot-extra/.libs'
+modpath="$modpath:/home/fengwz/Desktop/seminator/src/.libs"
+
+
+PATH="/home/fengwz/Desktop/seminator:$PATH"
+export PATH
+
+top_srcdir='/home/fengwz/Desktop/seminator'
+export top_srcdir
+
+test -z "$1" &&
+    PYTHONPATH=$pypath DYLD_LIBRARY_PATH=$modpath exec $PREFIXCMD 
+srcdir="."
+
+case $1 in
+  *.test)
+    exec sh -x "$@";;
+  *.ipynb)
+    PYTHONPATH=$pypath DYLD_LIBRARY_PATH=$modpath \
+    PYTHONIOENCODING=utf-8:surrogateescape \
+    exec $PREFIXCMD  /home/fengwz/Desktop/seminator/tests/ipnbdoctest.py "$@";;
+  *.py)
+    PYTHONPATH=$pypath DYLD_LIBRARY_PATH=$modpath \
+    exec $PREFIXCMD  "$@";;
+  *python*|*jupyter*)
+    PYTHONPATH=$pypath DYLD_LIBRARY_PATH=$modpath \
+    exec $PREFIXCMD "$@";;
+  *)
+    echo "Unknown extension" >&2
+    exit 2;;
+esac

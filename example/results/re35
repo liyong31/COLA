@@ -264,3 +264,52 @@ State: 9
 [!0&1] 7 {0}
 [0&1] 9
 --END--
+HOA: v1
+States: 10
+Start: 0
+AP: 2 "b" "c"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[!0&!1] 1
+[!0&1] 2
+[0&!1] 3
+[0&1] 4
+State: 1
+[!0&!1] 1 {0}
+[0&!1] 3
+[1] 5
+State: 2
+[!0&1] 2 {0}
+[0&1] 4
+[!1] 5
+State: 3
+[0&!1] 3
+[1] 5
+[!0&!1] 6
+State: 4
+[0&1] 4
+[!1] 5
+[!0&1] 7
+State: 5
+[t] 5
+State: 6
+[1] 5
+[!0&!1] 6
+[0&!1] 8
+State: 7
+[!1] 5
+[!0&1] 7 {0}
+[0&1] 9
+State: 8
+[1] 5
+[!0&!1] 6
+[0&!1] 8
+State: 9
+[!1] 5
+[!0&1] 7 {0}
+[0&1] 9
+--END--

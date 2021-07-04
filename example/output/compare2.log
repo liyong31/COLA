@@ -1,0 +1,455 @@
+input:randltl -n50 a b c --output=aut 
+-> unambiguous tgba
+unambiguous -> ncb
+unambiguous -> semi -> spot / pldi
+
+File0: 0
+spot: 1
+Run time: 0.004442s
+pldi: 1
+Run time: 0.004489s
+nsbc: 1
+Run time: 0.004208s
+
+
+File1: 0 R b
+spot: 2
+Run time: 0.004446s
+pldi: 2
+Run time: 0.004694s
+nsbc: 2
+Run time: 0.004972s
+
+
+File2: F(XG(F!b M Fb) W (b R a))
+spot: 5
+Run time: 0.00939s
+pldi: 6
+Run time: 0.010211s
+nsbc: 5
+Run time: 0.009415s
+
+
+File3: F(a R !c)
+spot: 1
+Run time: 0.00524s
+pldi: 2
+Run time: 0.004899s
+nsbc: 1
+Run time: 0.005331s
+
+
+File4: G(a | Fb) W (FGb R !b)
+spot: 3
+Run time: 0.006922s
+pldi: 3
+Run time: 0.006495s
+nsbc: 3
+Run time: 0.005761s
+
+
+File5: X!(Xa U !c)
+spot: 4
+Run time: 0.004792s
+pldi: 4
+Run time: 0.004533s
+nsbc: 4
+Run time: 0.004487s
+
+
+File6: Fc | !(X(c xor Gc) R (b W !Fc))
+spot: 1
+Run time: 0.006137s
+pldi: 1
+Run time: 0.005275s
+nsbc: 1
+Run time: 0.004373s
+
+
+File7: XXG((Xb R (a W c)) -> (c R GXa))
+spot: 15
+Run time: 0.010716s
+pldi: 14
+Run time: 0.010789s
+nsbc: 23
+Run time: 0.01232s
+
+
+File8: X(0)
+spot: 1
+Run time: 0.004832s
+pldi: 1
+Run time: 0.004087s
+nsbc: 1
+Run time: 0.004098s
+
+
+File9: XXF(a R b)
+spot: 3
+Run time: 0.005902s
+pldi: 4
+Run time: 0.006264s
+nsbc: 3
+Run time: 0.005589s
+
+
+File10: c & Xa
+spot: 3
+Run time: 0.005674s
+pldi: 3
+Run time: 0.004269s
+nsbc: 3
+Run time: 0.004675s
+
+
+File11: c <-> G!(!GXa W ((a xor b) | Gb))
+spot: 2
+Run time: 0.004574s
+pldi: 2
+Run time: 0.004474s
+nsbc: 2
+Run time: 0.004121s
+
+
+File12: c & (c W !Xb)
+spot: 4
+Run time: 0.004992s
+pldi: 4
+Run time: 0.004314s
+nsbc: 4
+Run time: 0.005232s
+
+
+File13: (b R G!c) | G(b U !a)
+spot: 5
+Run time: 0.007823s
+pldi: 5
+Run time: 0.007121s
+nsbc: 6
+Run time: 0.00717s
+
+
+File14: (b W a) U b
+spot: 2
+Run time: 0.005243s
+pldi: 2
+Run time: 0.004209s
+nsbc: 2
+Run time: 0.004691s
+
+
+File15: F!G(!Gc W c)
+spot: 1
+Run time: 0.004494s
+pldi: 1
+Run time: 0.004307s
+nsbc: 1
+Run time: 0.004533s
+
+
+File16: G!c & (!((b & Fc) M c) U c)
+spot: 1
+Run time: 0.004997s
+pldi: 1
+Run time: 0.004342s
+nsbc: 1
+Run time: 0.004762s
+
+
+File17: !X!c <-> (a W (1 U X!c))
+spot: 6
+Run time: 0.006519s
+pldi: 6
+Run time: 0.005991s
+nsbc: 6
+Run time: 0.006295s
+
+
+File18: FG(Xa xor !(a W c))
+spot: 5
+Run time: 0.008598s
+pldi: 5
+Run time: 0.008412s
+nsbc: 9
+Run time: 0.008667s
+
+
+File19: XX(1 U ((X(b W a) M 1) R c))
+spot: 13
+Run time: 0.008839s
+pldi: 12
+Run time: 0.008873s
+nsbc: 9
+Run time: 0.009191s
+
+
+File20: (Xb | X(b & c)) M Ga
+spot: 4
+Run time: 0.00497s
+pldi: 4
+Run time: 0.004635s
+nsbc: 4
+Run time: 0.004994s
+
+
+File21: c M ((a & ((a xor Gb) M 1)) | (Fa -> a))
+spot: 4
+Run time: 0.004898s
+pldi: 4
+Run time: 0.004534s
+nsbc: 4
+Run time: 0.005027s
+
+
+File22: 1
+spot: 1
+Run time: 0.004953s
+pldi: 1
+Run time: 0.004092s
+nsbc: 1
+Run time: 0.004084s
+
+
+File23: !XFc
+spot: 3
+Run time: 0.004213s
+pldi: 3
+Run time: 0.00694s
+nsbc: 3
+Run time: 0.004276s
+
+
+File24: X(XG(a <-> c) -> (X(0) M (a xor (1 U c))))
+spot: 3
+Run time: 0.00468s
+pldi: 3
+Run time: 0.004396s
+nsbc: 3
+Run time: 0.0051s
+
+
+File25: Fc <-> G(X!c M 1)
+spot: 3
+Run time: 0.004975s
+pldi: 3
+Run time: 0.004616s
+nsbc: 4
+Run time: 0.005131s
+
+
+File26: (b | GFXb) -> (a xor b)
+spot: 3
+Run time: 0.005554s
+pldi: 4
+Run time: 0.005464s
+nsbc: 3
+Run time: 0.005356s
+
+
+File27: !c
+spot: 2
+Run time: 0.004829s
+pldi: 2
+Run time: 0.005037s
+nsbc: 2
+Run time: 0.004323s
+
+
+File28: b <-> !(b | FX(0))
+spot: 1
+Run time: 0.004709s
+pldi: 1
+Run time: 0.004826s
+nsbc: 1
+Run time: 0.004394s
+
+
+File29: F(!a R c) | (b <-> XX(!Gb R b))
+spot: 8
+Run time: 0.009048s
+pldi: 10
+Run time: 0.008574s
+nsbc: 6
+Run time: 0.008831s
+
+
+File30: X!G(0 R (b M (c <-> (c xor X(0)))))
+spot: 1
+Run time: 0.004875s
+pldi: 2
+Run time: 0.004543s
+nsbc: 1
+Run time: 0.004373s
+
+
+File31: X!c U a
+spot: 3
+Run time: 0.005075s
+pldi: 3
+Run time: 0.00437s
+nsbc: 3
+Run time: 0.005215s
+
+
+File32: Fc & XXGF!X!a
+spot: 3
+Run time: 0.004876s
+pldi: 3
+Run time: 0.005112s
+nsbc: 4
+Run time: 0.004576s
+
+
+File33: XF((Fc <-> (!b W c)) <-> (Gc M 1))
+spot: 4
+Run time: 0.007993s
+pldi: 5
+Run time: 0.008442s
+nsbc: 6
+Run time: 0.008905s
+
+
+File34: G(F!Gc U (!Gc & Xc))
+spot: 5
+Run time: 0.004881s
+pldi: 5
+Run time: 0.004762s
+nsbc: 4
+Run time: 0.004983s
+
+
+File35: F((!b | FGc) -> (b W (!c <-> Xc)))
+spot: 5
+Run time: 0.014256s
+pldi: 6
+Run time: 0.014443s
+nsbc: 6
+Run time: 0.013655s
+
+
+File36: (X(a W Fc) -> a) R a
+spot: 2
+Run time: 0.004145s
+pldi: 2
+Run time: 0.004181s
+nsbc: 2
+Run time: 0.004157s
+
+
+File37: ((a xor b) -> a) U (Ga & (b R c))
+spot: 3
+Run time: 0.007842s
+pldi: 4
+Run time: 0.007336s
+nsbc: 3
+Run time: 0.007019s
+
+
+File38: !Xa & (Gb R (Xa W 0))
+spot: 1
+Run time: 0.004881s
+pldi: 1
+Run time: 0.004086s
+nsbc: 1
+Run time: 0.004047s
+
+
+File39: F((a M Xc) | FG(Xb <-> X(b | c)))
+spot: 5
+Run time: 0.011384s
+pldi: 6
+Run time: 0.010669s
+nsbc: 5
+Run time: 0.011939s
+
+
+File40: G((1 U c) W (b & (1 U b)))
+spot: 3
+Run time: 0.005728s
+pldi: 3
+Run time: 0.005318s
+nsbc: 3
+Run time: 0.004989s
+
+
+File41: Gb U !(Fb | XGc)
+spot: 4
+Run time: 0.004406s
+pldi: 4
+Run time: 0.004809s
+nsbc: 4
+Run time: 0.004621s
+
+
+File42: !(c U X(0))
+spot: 1
+Run time: 0.004255s
+pldi: 1
+Run time: 0.004123s
+nsbc: 1
+Run time: 0.004399s
+
+
+File43: X!c
+spot: 3
+Run time: 0.004797s
+pldi: 3
+Run time: 0.004145s
+nsbc: 3
+Run time: 0.004196s
+
+
+File44: !b & (Fb xor (!Fc xor !Fb))
+spot: 3
+Run time: 0.004437s
+pldi: 3
+Run time: 0.004654s
+nsbc: 3
+Run time: 0.004621s
+
+
+File45: !(X(0) U Gb)
+spot: 1
+Run time: 0.005305s
+pldi: 1
+Run time: 0.004367s
+nsbc: 1
+Run time: 0.004791s
+
+
+File46: ((1 U c) -> (!c <-> (c -> b))) U (a <-> Xc)
+spot: 6
+Run time: 0.005479s
+pldi: 6
+Run time: 0.004955s
+nsbc: 6
+Run time: 0.005537s
+
+
+File47: F(c U Xa)
+spot: 2
+Run time: 0.004923s
+pldi: 2
+Run time: 0.004656s
+nsbc: 2
+Run time: 0.004477s
+
+
+File48: GXFGa <-> G!F!XF!Ga
+spot: 1
+Run time: 0.004285s
+pldi: 1
+Run time: 0.004267s
+nsbc: 1
+Run time: 0.004696s
+
+
+File49: Gb
+spot: 2
+Run time: 0.005272s
+pldi: 2
+Run time: 0.00428s
+nsbc: 2
+Run time: 0.004856s
+
+

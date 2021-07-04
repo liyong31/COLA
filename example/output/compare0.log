@@ -1,0 +1,905 @@
+input:random_nd.ltl -> unambiguous tgba
+unambiguous -> semi -> nsbc
+unambiguous -> semi -> spot / pldi
+84 wrong
+
+File0: Fa R ((b | c) R (!b R Fc))
+spot: 10
+Run time: 0.009275s
+pldi: 10
+Run time: 0.010207s
+ncb: 13
+Run time: 0.010443s
+
+
+File1: G(Fa U X(b & Fc))
+spot: 17
+Run time: 0.017268s
+pldi: 17
+Run time: 0.014492s
+ncb: 5
+Run time: 0.012319s
+
+
+File2: FG(Ga U X(Ga R b))
+spot: 9
+Run time: 0.00899s
+pldi: 9
+Run time: 0.009298s
+ncb: 12
+Run time: 0.009345s
+
+
+File3: XFa U G(Gc | Fb)
+spot: 5
+Run time: 0.012847s
+pldi: 5
+Run time: 0.013427s
+ncb: 3
+Run time: 0.013573s
+
+
+File4: G((((a & b) | (!a & !b)) & (GF!b U !c)) | (((!a & b) | (a & !b)) & (FGb R c)))
+spot: 13
+Run time: 0.010738s
+pldi: 14
+Run time: 0.010852s
+ncb: 12
+Run time: 0.011147s
+
+
+File5: (a | ((b U (c | Xb)) R Fb)) R Fc
+spot: 5
+Run time: 0.008436s
+pldi: 5
+Run time: 0.008349s
+ncb: 6
+Run time: 0.008408s
+
+
+File6: ((a R b) & GF((!b & G!a) | (b & Fa))) | ((!a U !b) & FG((b & G!a) | (!b & Fa)))
+spot: 13
+Run time: 0.016365s
+pldi: 13
+Run time: 0.015016s
+ncb: 8
+Run time: 0.01485s
+
+
+File7: FG(Fa U (Fb R c))
+spot: 17
+Run time: 0.053131s
+pldi: 16
+Run time: 0.053633s
+ncb: 3
+Run time: 0.052765s
+
+
+File8: GF(a & Xb) | (c & Ga)
+spot: 6
+Run time: 0.007425s
+pldi: 6
+Run time: 0.008414s
+ncb: 6
+Run time: 0.007707s
+
+
+File9: FGa R a
+spot: 3
+Run time: 0.004755s
+pldi: 4
+Run time: 0.005224s
+ncb: 4
+Run time: 0.005103s
+
+
+File10: G(a U Xb)
+spot: 5
+Run time: 0.006734s
+pldi: 5
+Run time: 0.00661s
+ncb: 8
+Run time: 0.00698s
+
+
+File11: XXG(Fa | Gb)
+spot: 5
+Run time: 0.006604s
+pldi: 5
+Run time: 0.006697s
+ncb: 5
+Run time: 0.006632s
+
+
+File12: (G!a | FGa) R Fb
+spot: 6
+Run time: 0.012141s
+pldi: 8
+Run time: 0.013015s
+ncb: 1
+Run time: 0.013202s
+
+
+File13: X((!a & GF(!b & Xc)) | (a & FG(b | X!c)))
+spot: 8
+Run time: 0.008358s
+pldi: 8
+Run time: 0.008254s
+ncb: 8
+Run time: 0.008766s
+
+
+File14: X(G(Gb | XFa) R X!a)
+spot: 12
+Run time: 0.013271s
+pldi: 10
+Run time: 0.012642s
+ncb: 8
+Run time: 0.01233s
+
+
+File15: GF((a & Gb) R c)
+spot: 13
+Run time: 0.012837s
+pldi: 13
+Run time: 0.012177s
+ncb: 13
+Run time: 0.01327s
+
+
+File16: GFa R b
+spot: 5
+Run time: 0.007371s
+pldi: 5
+Run time: 0.007281s
+ncb: 5
+Run time: 0.007045s
+
+
+File17: GFa | G(Gb | Xa)
+spot: 7
+Run time: 0.007984s
+pldi: 7
+Run time: 0.008312s
+ncb: 6
+Run time: 0.007984s
+
+
+File18: GF(a | Gb)
+spot: 5
+Run time: 0.009215s
+pldi: 6
+Run time: 0.008892s
+ncb: 1
+Run time: 0.008544s
+
+
+File19: FG((F((a & G!b) | (!a & Fb)) & (!b | F(b R c))) | (b & G((!b U !c) & ((!a & G!b) | (a & Fb)))))
+spot: 73
+Run time: 16.7683s
+pldi: 61
+Run time: 0.133652s
+ncb: 1
+Run time: 0.0745s
+
+
+File20: G(a | X(GFa | (a M b))) R !b
+spot: 5
+Run time: 0.006228s
+pldi: 5
+Run time: 0.006522s
+ncb: 5
+Run time: 0.006086s
+
+
+File21: XG(a | (G(b U c) R b))
+spot: 6
+Run time: 0.007932s
+pldi: 6
+Run time: 0.008017s
+ncb: 7
+Run time: 0.008079s
+
+
+File22: X(a & (X((G!b & XGc) | (Fb & XF!c)) R Fc))
+spot: 8
+Run time: 0.01432s
+pldi: 9
+Run time: 0.014622s
+ncb: 5
+Run time: 0.014483s
+
+
+File23: XF(Ga R b)
+spot: 6
+Run time: 0.008175s
+pldi: 6
+Run time: 0.007814s
+ncb: 12
+Run time: 0.008537s
+
+
+File24: (Xa & (b | (GF!c U (!b U d)))) | (!b & X!a & (FGc R (b R !d)))
+spot: 11
+Run time: 0.010318s
+pldi: 12
+Run time: 0.010661s
+ncb: 15
+Run time: 0.010533s
+
+
+File25: F(Xa R (Xb R (a & Gc)))
+spot: 4
+Run time: 0.007378s
+pldi: 4
+Run time: 0.007241s
+ncb: 9
+Run time: 0.008202s
+
+
+File26: Ga | (Ga R Fb)
+spot: 5
+Run time: 0.009399s
+pldi: 5
+Run time: 0.009133s
+ncb: 3
+Run time: 0.008733s
+
+
+File27: XF((Xa & F(!a | b)) R c)
+spot: 5
+Run time: 0.008058s
+pldi: 6
+Run time: 0.007974s
+ncb: 6
+Run time: 0.008497s
+
+
+File28: Fa & ((b | G!a) R XFc)
+spot: 16
+Run time: 0.011173s
+pldi: 15
+Run time: 0.011327s
+ncb: 10
+Run time: 0.011237s
+
+
+File29: X(a U XG(b U (c | X(c M d))))
+spot: 11
+Run time: 0.011138s
+pldi: 11
+Run time: 0.011289s
+ncb: 8
+Run time: 0.010639s
+
+
+File30: X(a & GF(a | Gb))
+spot: 7
+Run time: 0.008636s
+pldi: 8
+Run time: 0.00842s
+ncb: 3
+Run time: 0.008169s
+
+
+File31: FG((a | b) & (a | F(a & Xa)))
+spot: 5
+Run time: 0.007109s
+pldi: 5
+Run time: 0.007139s
+ncb: 6
+Run time: 0.007557s
+
+
+File32: GF((a U Xb) & G(!b | XXc))
+spot: 9
+Run time: 0.007493s
+pldi: 9
+Run time: 0.009875s
+ncb: 12
+Run time: 0.008849s
+
+
+File33: !a R (((b & Xc) | (!b & X!c)) U (d R a))
+spot: 10
+Run time: 0.009924s
+pldi: 10
+Run time: 0.009483s
+ncb: 10
+Run time: 0.00939s
+
+
+File34: G!a R ((G!b & X((a & !c) | (!a & c))) | (Fb & X((!a & !c) | (a & c))))
+spot: 29
+Run time: 0.019099s
+pldi: 31
+Run time: 0.020032s
+ncb: 29
+Run time: 0.019229s
+
+
+File35: F(Fa R (b R !a))
+spot: 1
+Run time: 0.005309s
+pldi: 2
+Run time: 0.005025s
+ncb: 2
+Run time: 0.004982s
+
+
+File36: G(Gc | Fa | Gb)
+spot: 11
+Run time: 0.013886s
+pldi: 8
+Run time: 0.013726s
+ncb: 5
+Run time: 0.014457s
+
+
+File37: (a | G(b U c)) R Fb
+spot: 8
+Run time: 0.019179s
+pldi: 9
+Run time: 0.017432s
+ncb: 5
+Run time: 0.015307s
+
+
+File38: GF((!a & XFb) | (a & XG!b))
+spot: 11
+Run time: 0.009017s
+pldi: 9
+Run time: 0.008647s
+ncb: 1
+Run time: 0.007029s
+
+
+File39: (Xa & F((c | Fb) & G(a | !b))) | (X!a & G((!c & G!b) | F(!a & b)))
+spot: 11
+Run time: 0.010813s
+pldi: 11
+Run time: 0.010997s
+ncb: 11
+Run time: 0.010855s
+
+
+File40: Ga R F(!a | b)
+spot: 3
+Run time: 0.006246s
+pldi: 3
+Run time: 0.006217s
+ncb: 3
+Run time: 0.00656s
+
+
+File41: (a & (!b | (Fc R Fd))) | (!a & b & (G!c U G!d))
+spot: 8
+Run time: 0.008315s
+pldi: 9
+Run time: 0.008362s
+ncb: 10
+Run time: 0.008548s
+
+
+File42: XX((((a & b) | (!a & !b)) R b) R Fc)
+spot: 6
+Run time: 0.01154s
+pldi: 6
+Run time: 0.011247s
+ncb: 6
+Run time: 0.010906s
+
+
+File43: GF((a & b) R (c U a))
+spot: 6
+Run time: 0.012465s
+pldi: 6
+Run time: 0.010984s
+ncb: 1
+Run time: 0.010704s
+
+
+File44: GF((G!a R (!b R (a U b))) R !a)
+spot: 9
+Run time: 0.013513s
+pldi: 9
+Run time: 0.013052s
+ncb: 11
+Run time: 0.013367s
+
+
+File45: (!a & (FG(b & !c & !d) U d)) | (a & (GF(!b | c | d) R !d))
+spot: 7
+Run time: 0.00877s
+pldi: 8
+Run time: 0.008803s
+ncb: 8
+Run time: 0.00822s
+
+
+File46: ((!a U b) R c) U (a R d)
+spot: 10
+Run time: 0.010537s
+pldi: 11
+Run time: 0.00977s
+ncb: 21
+Run time: 0.014433s
+
+
+File47: XG(F!a | (b & (!b U Ga)))
+spot: 4
+Run time: 0.006057s
+pldi: 4
+Run time: 0.00591s
+ncb: 4
+Run time: 0.006202s
+
+
+File48: GF((Ga & F((b & G!c) | (!b & Fc))) | (F!a & G((!b & G!c) | (b & Fc))))
+spot: 48
+Run time: 0.046496s
+pldi: 43
+Run time: 0.040532s
+ncb: 33
+Run time: 0.032202s
+
+
+File49: GF(a R b)
+spot: 6
+Run time: 0.00792s
+pldi: 6
+Run time: 0.007706s
+ncb: 2
+Run time: 0.007304s
+
+
+File50: (a R (Xc & Fb)) R (Gc R d)
+spot: 31
+Run time: 0.070442s
+pldi: 57
+Run time: 0.089902s
+ncb: 14
+Run time: 0.066044s
+
+
+File51: GF(GFa | (b & XXc))
+spot: 21
+Run time: 0.012112s
+pldi: 13
+Run time: 0.011781s
+ncb: 12
+Run time: 0.010384s
+
+
+File52: F(a & X(a W Xb))
+spot: 4
+Run time: 0.006349s
+pldi: 4
+Run time: 0.006255s
+ncb: 9
+Run time: 0.00694s
+
+
+File53: GF((a & F(!b | Xc)) | (!a & G(b & X!c)))
+spot: 8
+Run time: 0.011375s
+pldi: 8
+Run time: 0.011465s
+ncb: 1
+Run time: 0.010899s
+
+
+File54: GF!a R (a & b)
+spot: 5
+Run time: 0.005722s
+pldi: 5
+Run time: 0.005997s
+ncb: 5
+Run time: 0.005771s
+
+
+File55: XG(a | Fc | Xb)
+spot: 6
+Run time: 0.007133s
+pldi: 6
+Run time: 0.007018s
+ncb: 5
+Run time: 0.007119s
+
+
+File56: G((Xa & (b | Fc)) | (!b & X!a & G!c))
+spot: 8
+Run time: 0.008412s
+pldi: 8
+Run time: 0.008582s
+ncb: 11
+Run time: 0.008698s
+
+
+File57: G((G!a & FG!b) | (Fa & GFb)) R Xa
+spot: 9
+Run time: 0.00817s
+pldi: 9
+Run time: 0.008882s
+ncb: 5
+Run time: 0.008448s
+
+
+File58: G((F!a & G(b & c)) | (F!b & (F!c | Ga)))
+spot: 110
+Run time: 426.519s
+pldi: 74
+Run time: 0.106474s
+ncb: 4
+Run time: 0.025748s
+
+
+File59: FG(a | XF(a & XFb))
+spot: 7
+Run time: 0.010463s
+pldi: 7
+Run time: 0.010916s
+ncb: 5
+Run time: 0.010017s
+
+
+File60: XF!a & F(((!a & G!b) | (a & Fb)) R c)
+spot: 13
+Run time: 0.014611s
+pldi: 13
+Run time: 0.014376s
+ncb: 19
+Run time: 0.01615s
+
+
+File61: G(a U b) R c
+spot: 5
+Run time: 0.009086s
+pldi: 7
+Run time: 0.009164s
+ncb: 6
+Run time: 0.008454s
+
+
+File62: ((a | Fb) R c) R F(Fd R !d)
+spot: 15
+Run time: 0.041842s
+pldi: 22
+Run time: 0.041066s
+ncb: 6
+Run time: 0.03541s
+
+
+File63: XXX(XFa R Fb)
+spot: 7
+Run time: 0.007203s
+pldi: 7
+Run time: 0.006908s
+ncb: 8
+Run time: 0.00797s
+
+
+File64: G(a U (b & X(a U Xa)))
+spot: 8
+Run time: 0.010493s
+pldi: 8
+Run time: 0.011167s
+ncb: 5
+Run time: 0.010083s
+
+
+File65: FG((a & F!b) | (Gb & (!a | G(a & b))))
+spot: 7
+Run time: 0.007994s
+pldi: 7
+Run time: 0.007794s
+ncb: 12
+Run time: 0.008322s
+
+
+File66: F(Ga | (Gb R c))
+spot: 8
+Run time: 0.014568s
+pldi: 8
+Run time: 0.014317s
+ncb: 15
+Run time: 0.015684s
+
+
+File67: (a & Fb & F((Fa & G!b) | (G!a & Fb))) | ((!a | G!b) & G(G(!a & !b) | (Fa & Fb)))
+spot: 11
+Run time: 0.011316s
+pldi: 11
+Run time: 0.011431s
+ncb: 8
+Run time: 0.011162s
+
+
+File68: F((!a & Fa) R (b | Gc))
+spot: 7
+Run time: 0.011603s
+pldi: 8
+Run time: 0.012487s
+ncb: 17
+Run time: 0.014867s
+
+
+File69: FG((a & (!b | c | Gd | XFb)) | (!a & b & !c & F!d & XG!b))
+spot: 17
+Run time: 0.036478s
+pldi: 17
+Run time: 0.035354s
+ncb: 19
+Run time: 0.040938s
+
+
+File70: G(a & F(b | X(a R c)))
+spot: 4
+Run time: 0.005189s
+pldi: 4
+Run time: 0.005041s
+ncb: 4
+Run time: 0.005422s
+
+
+File71: GF((!a & Xb) | (a & X!b))
+spot: 5
+Run time: 0.005115s
+pldi: 5
+Run time: 0.004994s
+ncb: 4
+Run time: 0.004749s
+
+
+File72: (!a & Fb) R Fa
+spot: 4
+Run time: 0.006835s
+pldi: 4
+Run time: 0.007371s
+ncb: 5
+Run time: 0.006871s
+
+
+File73: XG(a & F((!b & F!c) | (b & Gc)))
+spot: 8
+Run time: 0.009608s
+pldi: 9
+Run time: 0.009225s
+ncb: 3
+Run time: 0.008469s
+
+
+File74: X((a | FGa) R (a | Xb))
+spot: 7
+Run time: 0.006728s
+pldi: 8
+Run time: 0.006761s
+ncb: 7
+Run time: 0.006625s
+
+
+File75: GF(a | G(F!a & Fb))
+spot: 4
+Run time: 0.010377s
+pldi: 5
+Run time: 0.010635s
+ncb: 1
+Run time: 0.010746s
+
+
+File76: Xa & (XGb R Fc)
+spot: 7
+Run time: 0.009803s
+pldi: 8
+Run time: 0.009546s
+ncb: 7
+Run time: 0.009667s
+
+
+File77: (Ga R (b | (!a & Gc) | (a & F!c))) R Xd
+spot: 149
+Run time: 3.04953s
+pldi: 129
+Run time: 0.190104s
+ncb: 27
+Run time: 0.063918s
+
+
+File78: a | (!b R X((Fc & Xb) | (G!c & X!b)))
+spot: 17
+Run time: 0.009894s
+pldi: 17
+Run time: 0.01006s
+ncb: 20
+Run time: 0.011071s
+
+
+File79: G(XGa | (b U c))
+spot: 7
+Run time: 0.011084s
+pldi: 15
+Run time: 0.011014s
+ncb: 9
+Run time: 0.010747s
+
+
+File80: a R (Gb R Fc)
+spot: 20
+Run time: 0.019166s
+pldi: 20
+Run time: 0.018065s
+ncb: 4
+Run time: 0.014567s
+
+
+File81: F(((Fa R (b | c)) & ((c U b) R d)) | ((G!a U (!b & !c)) & ((!c R !b) U !d))) R d
+spot: 12
+Run time: 0.031199s
+pldi: 12
+Run time: 0.032464s
+ncb: 12
+Run time: 0.032948s
+
+
+File82: X(a & GF(b & X(b W c)))
+spot: 10
+Run time: 0.008571s
+pldi: 10
+Run time: 0.008028s
+ncb: 6
+Run time: 0.00789s
+
+
+File83: F(Ga R b)
+spot: 5
+Run time: 0.007464s
+pldi: 5
+Run time: 0.007287s
+ncb: 11
+Run time: 0.008145s
+
+
+File84: G((Fa & G(!b & X!b)) | (G!a & F(b | Xb))) R (b | c)
+spot: 20
+Run time: 0.020478s
+pldi: 19
+Run time: 0.021434s
+ncb: 8
+Run time: 0.018418s
+
+
+File85: (a & F(!a | (a & Gb))) R c
+spot: 4
+Run time: 0.007461s
+pldi: 5
+Run time: 0.007773s
+ncb: 6
+Run time: 0.007513s
+
+
+File86: FGa R XFb
+spot: 8
+Run time: 0.007663s
+pldi: 9
+Run time: 0.007851s
+ncb: 3
+Run time: 0.007571s
+
+
+File87: G((a & (b R X!c)) | (!a & (!b U Xc)))
+spot: 7
+Run time: 0.007385s
+pldi: 7
+Run time: 0.007268s
+ncb: 12
+Run time: 0.007767s
+
+
+File88: ((c | (!c & Fc)) & X(FGa U b)) | (!c & (c | G!c) & X(GF!a R !b))
+spot: 9
+Run time: 0.00905s
+pldi: 10
+Run time: 0.009149s
+ncb: 11
+Run time: 0.009204s
+
+
+File89: GF((a & X(b & (FGc U Xc))) | ((!a | X!b) & X(GF!c R X!c)))
+spot: 36
+Run time: 0.062337s
+pldi: 38
+Run time: 0.065671s
+ncb: 1
+Run time: 0.056259s
+
+
+File90: XG(a | XF(a & Fb))
+spot: 6
+Run time: 0.005967s
+pldi: 6
+Run time: 0.005979s
+ncb: 6
+Run time: 0.005616s
+
+
+File91: GF(F!a R Xa)
+spot: 3
+Run time: 0.004383s
+pldi: 3
+Run time: 0.004565s
+ncb: 2
+Run time: 0.004456s
+
+
+File92: F((a & (b R Xc) & X(a W (Gd R c))) | ((!b U X!c) & (!a | X(!a M (F!d U !c)))))
+spot: 30
+Run time: 0.108618s
+pldi: 44
+Run time: 0.114305s
+ncb: 42
+Run time: 0.121085s
+
+
+File93: GF(a & (b | Fc))
+spot: 5
+Run time: 0.005717s
+pldi: 5
+Run time: 0.005864s
+ncb: 4
+Run time: 0.005804s
+
+
+File94: (Xa & ((a U b) | G(!a U X!b))) | (X!a & (!a R !b) & F(a R Xb))
+spot: 12
+Run time: 0.00872s
+pldi: 12
+Run time: 0.008652s
+ncb: 17
+Run time: 0.009348s
+
+
+File95: a | ((b & GF!a) R c)
+spot: 6
+Run time: 0.008139s
+pldi: 6
+Run time: 0.009623s
+ncb: 6
+Run time: 0.00829s
+
+
+File96: FG(Xa | (b & ((c & X!b) | (!c & Xb))))
+spot: 3
+Run time: 0.008598s
+pldi: 3
+Run time: 0.007923s
+ncb: 3
+Run time: 0.008095s
+
+
+File97: F(GF!a R (b & Fa))
+spot: 4
+Run time: 0.007352s
+pldi: 5
+Run time: 0.006928s
+ncb: 8
+Run time: 0.007166s
+
+
+File98: FG(F!a & (b U Xa))
+spot: 7
+Run time: 0.009345s
+pldi: 7
+Run time: 0.009064s
+ncb: 8
+Run time: 0.009742s
+
+
+File99: Xa | (GFb R Xb)
+spot: 5
+Run time: 0.005037s
+pldi: 5
+Run time: 0.005282s
+ncb: 5
+Run time: 0.00569s
+
+
