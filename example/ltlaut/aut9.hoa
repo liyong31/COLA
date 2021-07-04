@@ -1,19 +1,23 @@
 HOA: v1
-name: "FGa R a"
-States: 3
+name: "XXF(a R b)"
+States: 5
 Start: 0
-AP: 1 "a"
+AP: 2 "b" "a"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels state-acc stutter-invariant
-properties: very-weak
+properties: trans-labels explicit-labels state-acc very-weak
 --BODY--
-State: 0 {0}
-[0] 0
-[0] 2
-State: 1 {0}
-[0] 1
-State: 2
-[0] 1
+State: 0
+[t] 1
+State: 1
 [t] 2
+State: 2
+[!0 | !1] 2
+[0&1] 3
+[0&!1] 4
+State: 3 {0}
+[t] 3
+State: 4 {0}
+[0&1] 3
+[0&!1] 4
 --END--

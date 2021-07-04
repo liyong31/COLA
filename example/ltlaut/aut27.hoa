@@ -1,31 +1,15 @@
 HOA: v1
-name: "XF((Xa & F(!a | b)) R c)"
-States: 7
-Start: 0
-AP: 3 "b" "a" "c"
+name: "!c"
+States: 2
+Start: 1
+AP: 1 "c"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels state-acc very-weak
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant terminal
 --BODY--
-State: 0
-[t] 1
+State: 0 {0}
+[t] 0
 State: 1
-[t] 1
-[0&2 | !1&2] 2
-[2] 3
-[!0&1&2] 4
-State: 2
-[1] 5
-State: 3 {0}
-[0&2 | !1&2] 2
-[2] 3
-[!0&1&2] 4
-State: 4
-[0&1] 5
-[!0&1] 6
-State: 5 {0}
-[t] 5
-State: 6
-[0 | !1] 5
-[!0&1] 6
+[!0] 0
 --END--

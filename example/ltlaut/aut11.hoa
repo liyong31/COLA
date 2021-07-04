@@ -1,23 +1,15 @@
 HOA: v1
-name: "XXG(Fa | Gb)"
-States: 5
-Start: 0
-AP: 2 "a" "b"
+name: "!c"
+States: 2
+Start: 1
+AP: 1 "c"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant terminal
 --BODY--
-State: 0
-[t] 1
+State: 0 {0}
+[t] 0
 State: 1
-[t] 2
-State: 2
-[0] 2 {0}
-[!0] 3
-[!0&1] 4
-State: 3
-[0] 2 {0}
-[!0] 3
-State: 4
-[1] 4 {0}
+[!0] 0
 --END--

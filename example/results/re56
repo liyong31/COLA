@@ -232,3 +232,77 @@ State: 7
 [!0&!1&2] 5
 [0&!1&2] 7
 --END--
+HOA: v1
+States: 7
+Start: 0
+AP: 3 "b" "c" "a"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[!0&!1] 1
+[0 | 1] 2
+State: 1
+[1&2] 2 {0}
+[!0&!1&!2] 3
+[!1&2] 4
+[0&!1&!2] 5
+[1&!2] 6
+State: 2
+[!0&!1&2] 1
+[0&2 | 1&2] 2 {0}
+[!2] 6
+State: 3
+[!0&!1&!2] 3 {0}
+[0&!1&!2] 5 {0}
+[1 | 2] 6
+State: 4
+[1&2] 2 {0}
+[!1&2] 4
+[!2] 6
+State: 5
+[!0&!1&2] 3 {0}
+[0&!1&2] 5 {0}
+[1 | !2] 6
+State: 6
+[t] 6
+--END--
+HOA: v1
+States: 7
+Start: 0
+AP: 3 "b" "c" "a"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[!0&!1] 1
+[0 | 1] 2
+State: 1
+[1&2] 2 {0}
+[!0&!1&!2] 3
+[!1&2] 4
+[0&!1&!2] 5
+[1&!2] 6
+State: 2
+[!0&!1&2] 1
+[0&2 | 1&2] 2 {0}
+[!2] 6
+State: 3
+[!0&!1&!2] 3 {0}
+[0&!1&!2] 5 {0}
+[1 | 2] 6
+State: 4
+[1&2] 2 {0}
+[!1&2] 4
+[!2] 6
+State: 5
+[!0&!1&2] 3 {0}
+[0&!1&2] 5 {0}
+[1 | !2] 6
+State: 6
+[t] 6
+--END--

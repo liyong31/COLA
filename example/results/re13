@@ -264,3 +264,102 @@ State: 7
 [!1] 6
 [1] 7
 --END--
+HOA: v1
+States: 7
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: parity min even 2
+Acceptance: 2 Inf(0) | Fin(1)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[t] 1
+State: 1
+[!0] 2
+[0&!1] 3
+[0&1] 4
+State: 2
+[1] 2
+[!1] 5
+State: 3
+[!1&2] 3 {0}
+[!1&!2] 3 {1}
+[1&2] 4 {0}
+[1&!2] 4 {1}
+State: 4
+[!1] 3 {1}
+[1] 4 {1}
+State: 5
+[1&!2] 2
+[1&2] 2 {1}
+[!1&!2] 5
+[!1&2] 6 {1}
+State: 6
+[1] 2
+[!1] 5
+--END--
+HOA: v1
+States: 7
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: parity min even 2
+Acceptance: 2 Inf(0) | Fin(1)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[t] 1
+State: 1
+[!0] 2
+[0&!1] 3
+[0&1] 4
+State: 2
+[1] 2
+[!1] 5
+State: 3
+[!1&2] 3 {0}
+[!1&!2] 3 {1}
+[1&2] 4 {0}
+[1&!2] 4 {1}
+State: 4
+[!1] 3 {1}
+[1] 4 {1}
+State: 5
+[1&!2] 2
+[1&2] 2 {1}
+[!1&!2] 5
+[!1&2] 6 {1}
+State: 6
+[1] 2
+[!1] 5
+--END--
+HOA: v1
+States: 5
+Start: 0
+AP: 3 "c" "b" "a"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic stutter-invariant
+--BODY--
+State: 0
+[!0&1 | !0&!2] 1
+[!0&!1&2] 2
+[0&1 | 0&!2] 3
+[0&!1&2] 4
+State: 1
+[!0&1 | !0&!2] 1 {0}
+[!0&!1&2] 2
+[0&1 | 0&!2] 3
+[0&!1&2] 4
+State: 2
+[!0] 2 {0}
+[0] 4
+State: 3
+[1&2] 3
+[!2] 3 {0}
+[!1&2] 4
+State: 4
+[t] 4
+--END--

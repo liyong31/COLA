@@ -1,24 +1,12 @@
 HOA: v1
-name: "GF((a & Gb) R c)"
-States: 4
+name: "0"
+States: 1
 Start: 0
-AP: 3 "c" "a" "b"
-acc-name: Buchi
-Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc stutter-invariant
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant terminal
 --BODY--
 State: 0
-[t] 0
-[0&1&2] 1
-[0] 2
-State: 1
-[!0&2 | !1&2] 1
-[0&1&2] 1 {0}
-[0&!1&2] 3 {0}
-State: 2
-[0&1&2] 1
-[0] 2 {0}
-State: 3
-[0&1&2] 1 {0}
-[0&!1&2] 3 {0}
 --END--

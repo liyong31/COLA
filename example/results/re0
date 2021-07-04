@@ -388,3 +388,177 @@ State: 8
 State: 9 {0}
 [!2] 9
 --END--
+HOA: v1
+States: 10
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic stutter-invariant
+--BODY--
+State: 0
+[!0&!1&!2] 0
+[!0&!1&2] 1
+[!0&1] 2
+[0&!1&!2] 3
+[0&!1&2] 4
+[0&1] 5
+State: 1
+[!0&!2] 1
+[!0&2] 1 {0}
+[0] 4
+State: 2
+[!0&!1&2] 1
+[!0&1&!2] 2
+[!0&1&2] 2 {0}
+[0&!1&2] 4
+[0&1] 5
+[!0&!1&!2] 6
+[0&!1&!2] 7
+State: 3
+[!1&!2] 3
+[!1&2] 4
+[1] 5
+State: 4
+[t] 4 {0}
+State: 5
+[!1&2] 4
+[1&!2] 5
+[1&2] 5 {0}
+[!1&!2] 8
+State: 6
+[!0&2] 1
+[0&2] 4
+[!0&!2] 6
+[0&!1&!2] 7
+[0&1&!2] 9
+State: 7
+[2] 4
+[!1&!2] 7
+[1&!2] 9
+State: 8
+[2] 4
+[!2] 8
+State: 9
+[2] 4
+[!1&!2] 8
+[1&!2] 9
+--END--
+HOA: v1
+States: 10
+Start: 0
+AP: 3 "a" "b" "c"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic stutter-invariant
+--BODY--
+State: 0
+[!0&!1&!2] 0
+[!0&!1&2] 1
+[!0&1] 2
+[0&!1&!2] 3
+[0&!1&2] 4
+[0&1] 5
+State: 1
+[!0&!2] 1
+[!0&2] 1 {0}
+[0] 4
+State: 2
+[!0&!1&2] 1
+[!0&1&!2] 2
+[!0&1&2] 2 {0}
+[0&!1&2] 4
+[0&1] 5
+[!0&!1&!2] 6
+[0&!1&!2] 7
+State: 3
+[!1&!2] 3
+[!1&2] 4
+[1] 5
+State: 4
+[t] 4 {0}
+State: 5
+[!1&2] 4
+[1&!2] 5
+[1&2] 5 {0}
+[!1&!2] 8
+State: 6
+[!0&2] 1
+[0&2] 4
+[!0&!2] 6
+[0&!1&!2] 7
+[0&1&!2] 9
+State: 7
+[2] 4
+[!1&!2] 7
+[1&!2] 9
+State: 8
+[2] 4
+[!2] 8
+State: 9
+[2] 4
+[!1&!2] 8
+[1&!2] 9
+--END--
+HOA: v1
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic stutter-invariant weak
+--BODY--
+State: 0
+[t] 0
+--END--
+HOA: v1
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic stutter-invariant weak
+--BODY--
+State: 0
+[t] 0
+--END--
+HOA: v1
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic stutter-invariant weak
+--BODY--
+State: 0
+[t] 0
+--END--
+HOA: v1
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic stutter-invariant weak
+--BODY--
+State: 0
+[t] 0
+--END--
+HOA: v1
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic stutter-invariant weak
+--BODY--
+State: 0
+[t] 0
+--END--

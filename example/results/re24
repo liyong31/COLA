@@ -283,3 +283,150 @@ State: 10
 State: 11
 [1] 11 {0}
 --END--
+HOA: v1
+States: 14
+Start: 0
+AP: 4 "b" "c" "d" "a"
+acc-name: parity min even 2
+Acceptance: 2 Inf(0) | Fin(1)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[!0&!2] 1
+[0 | 2] 2
+State: 1
+[!0&!2&!3] 3
+[!0&!2&3] 4
+[2&3] 5
+[0&!1&!2&!3] 6
+[0&!2&3] 7
+[0&1&!2&!3] 8
+[2&!3] 13
+State: 2
+[3] 5
+[!3] 13
+State: 3
+[!0&!2] 3 {1}
+[0&!1&!2] 6
+[0&1&!2] 9
+[2] 13
+State: 4
+[!0&!2] 4
+[2] 5
+[0&!2] 7
+State: 5
+[t] 5 {1}
+State: 6
+[!1&!2] 6 {1}
+[1&!2] 9 {1}
+[!1&2] 10
+[1&2] 11
+State: 7
+[!2] 7
+[2] 12
+State: 8
+[!1&!2] 6
+[1&!2] 8 {1}
+[!1&2] 10
+[1&2] 11
+State: 9
+[!1&!2] 6 {1}
+[1&!2] 9 {1}
+[!1&2] 10
+[1&2] 11
+State: 10
+[!1] 10
+[1] 11
+State: 11
+[!1] 10 {0}
+[1] 11 {1}
+State: 12
+[1] 12
+[!1] 12 {1}
+State: 13
+[t] 13
+--END--
+HOA: v1
+States: 14
+Start: 0
+AP: 4 "b" "c" "d" "a"
+acc-name: parity min even 2
+Acceptance: 2 Inf(0) | Fin(1)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic
+--BODY--
+State: 0
+[!0&!2] 1
+[0 | 2] 2
+State: 1
+[!0&!2&!3] 3
+[!0&!2&3] 4
+[2&3] 5
+[0&!1&!2&!3] 6
+[0&!2&3] 7
+[0&1&!2&!3] 8
+[2&!3] 13
+State: 2
+[3] 5
+[!3] 13
+State: 3
+[!0&!2] 3 {1}
+[0&!1&!2] 6
+[0&1&!2] 9
+[2] 13
+State: 4
+[!0&!2] 4
+[2] 5
+[0&!2] 7
+State: 5
+[t] 5 {1}
+State: 6
+[!1&!2] 6 {1}
+[1&!2] 9 {1}
+[!1&2] 10
+[1&2] 11
+State: 7
+[!2] 7
+[2] 12
+State: 8
+[!1&!2] 6
+[1&!2] 8 {1}
+[!1&2] 10
+[1&2] 11
+State: 9
+[!1&!2] 6 {1}
+[1&!2] 9 {1}
+[!1&2] 10
+[1&2] 11
+State: 10
+[!1] 10
+[1] 11
+State: 11
+[!1] 10 {0}
+[1] 11 {1}
+State: 12
+[1] 12
+[!1] 12 {1}
+State: 13
+[t] 13
+--END--
+HOA: v1
+States: 4
+Start: 3
+AP: 2 "c" "a"
+acc-name: co-Buchi
+Acceptance: 1 Fin(0)
+properties: trans-labels explicit-labels state-acc complete
+properties: deterministic weak
+--BODY--
+State: 0 {0}
+[t] 0
+State: 1
+[!0&1 | 0&!1] 0
+[!0&!1 | 0&1] 1
+State: 2
+[t] 1
+State: 3
+[t] 2
+--END--

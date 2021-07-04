@@ -1,38 +1,12 @@
 HOA: v1
-name: "Fa & ((b | G!a) R XFc)"
-States: 8
-Start: 3
-AP: 3 "a" "b" "c"
-acc-name: Buchi
-Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc
+name: "0"
+States: 1
+Start: 0
+AP: 0
+acc-name: all
+Acceptance: 0 t
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant terminal
 --BODY--
 State: 0
-[!2] 0
-[2] 4
-State: 1
-[0&!2] 0
-[!0&!2] 1
-[0&2] 4
-[!0&2] 5
-State: 2
-[1] 0
-[!1&!2] 2
-[!1&2] 2 {0}
-[!0&!1] 6
-State: 3
-[0&1] 0
-[!0&1] 1
-[0&!1] 2
-[!0&!1] 3
-State: 4
-[t] 4 {0}
-State: 5
-[0] 4
-[!0] 5
-State: 6
-[!0&!2] 6
-[!0&2] 7
-State: 7
-[!0] 7 {0}
 --END--

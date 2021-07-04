@@ -1,20 +1,19 @@
 HOA: v1
-name: "GF((G!a R (!b R (a U b))) R !a)"
+name: "!b & ((G!b & ((Fb & G!c) | (Fc & G!b))) | (Fb & ((Fb & Fc) | G(!b & !c))))"
 States: 3
 Start: 0
-AP: 2 "a" "b"
+AP: 2 "b" "c"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc stutter-invariant
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant very-weak
 --BODY--
 State: 0
-[t] 0
 [!0&1] 1
-[!0] 2
-State: 1
-[!0&1] 1 {0}
-[0] 1
+[!0&!1] 2
+State: 1 {0}
+[t] 1
 State: 2
-[!0&1] 1
-[!0] 2 {0}
+[1] 1
+[!1] 2
 --END--

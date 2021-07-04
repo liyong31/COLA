@@ -10,11 +10,11 @@ do
     seminator --complement=nsbc ltlaut/aut$a.hoa >> output/compare.log
     echo -e '\n' >> output/compare.log
     autfilt ltlaut/aut$a.hoa --complement --output=true/tcom$a.hoa
-    r="autfilt spot/com.hoa --equivalent-to=nsbc/com.hoa" # --output=results/re$a
+    r="autfilt true/tcom"$a".hoa --equivalent-to=pldi/com.hoa" # --output=results/re$a
     if $r >> results/re$a; then
 	    echo "File$a: equivalent" >> output/verify.log
     else
 	    echo "File$a: not equivalent" >> output/verify.log
     fi
     let a++
-done <random_nd.ltl
+done <aut

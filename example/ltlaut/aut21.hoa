@@ -1,22 +1,23 @@
 HOA: v1
-name: "XG(a | (G(b U c) R b))"
+name: "c M (a | G!a)"
 States: 4
-Start: 0
-AP: 3 "a" "b" "c"
+Start: 2
+AP: 2 "a" "c"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc
+properties: trans-labels explicit-labels state-acc deterministic
+properties: stutter-invariant very-weak
 --BODY--
-State: 0
-[t] 1
-State: 1
-[0] 1 {0}
-[!0&1] 2
-[!0&1] 3
+State: 0 {0}
+[t] 0
+State: 1 {0}
+[!0] 1
 State: 2
-[0&2 | 1&2] 2 {0}
-[1&!2] 2
+[0&1] 0
+[!0&1] 1
+[0&!1] 2
+[!0&!1] 3
 State: 3
-[1] 2
-[1] 3 {0}
+[!0&1] 1
+[!0&!1] 3
 --END--

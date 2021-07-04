@@ -1,44 +1,20 @@
 HOA: v1
-name: "(Xa & F((c | Fb) & G(a | !b))) | (X!a & G((!c & G!b) | F(!a & b)))"
-States: 11
+name: "F((a M Xc) | G(b | (!b & !c)))"
+States: 4
 Start: 0
-AP: 3 "b" "a" "c"
+AP: 3 "a" "c" "b"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc
+properties: trans-labels explicit-labels state-acc very-weak
 --BODY--
 State: 0
-[!0&2 | 0&1] 1
-[t] 2
-[!0 | 1] 3
-[0&!1] 4
-[!0&!2] 5
+[t] 0
+[0] 1
+[!1 | 2] 2
 State: 1
-[!0&1&!2] 6
-State: 2
-[0&1 | 1&2] 6
-[1] 7
-State: 3
-[0&!1] 8
-[!0&!1] 9
-State: 4
-[0&!1] 8
-[!0&!1] 9
-[!0&!1&!2] 10
-State: 5
-[!0&!1&!2] 10
-State: 6
-[!0 | 1] 6 {0}
-State: 7
-[!0&2 | 0&1] 6
-[t] 7
-State: 8
-[0&!1] 8 {0}
-[!0 | 1] 9
-[!0&!2] 10
-State: 9
-[0&!1] 8 {0}
-[!0 | 1] 9
-State: 10
-[!0&!2] 10 {0}
+[1] 3
+State: 2 {0}
+[!1 | 2] 2
+State: 3 {0}
+[t] 3
 --END--

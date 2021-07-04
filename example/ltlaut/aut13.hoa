@@ -1,34 +1,18 @@
 HOA: v1
-name: "X((!a & GF(!b & Xc)) | (a & FG(b | X!c)))"
-States: 7
+name: "G!c | G(b U !a)"
+States: 3
 Start: 0
-AP: 3 "a" "b" "c"
+AP: 3 "c" "b" "a"
 acc-name: Buchi
 Acceptance: 1 Inf(0)
-properties: trans-labels explicit-labels trans-acc
+properties: trans-labels explicit-labels trans-acc stutter-invariant
 --BODY--
 State: 0
-[t] 1
+[!0] 1
+[1 | !2] 2
 State: 1
-[!0] 2
-[0&1] 3
-[0] 4
-[0&!1] 5
-[!0&!1] 6
+[!0] 1 {0}
 State: 2
-[t] 2
-[!1] 6 {0}
-State: 3
-[1] 3 {0}
-[!1] 5 {0}
-State: 4
-[1] 3
-[t] 4
-[!1] 5
-State: 5
-[1&!2] 3 {0}
-[!1&!2] 5 {0}
-State: 6
-[2] 2
-[!1&2] 6 {0}
+[1&2] 2
+[!2] 2 {0}
 --END--
