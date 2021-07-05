@@ -247,6 +247,8 @@ namespace from_spot
                     void
                     ncsb_successors(mstate&& ms, unsigned origin, bdd letter)
                     {
+
+                      // std::cout << "current state: " << get_name(to_small_mstate(ms)) << std::endl;
                       std::vector <mstate> succs;
                       succs.emplace_back(nb_states_, ncsb_m);
 
@@ -254,6 +256,7 @@ namespace from_spot
                       std::vector <bool> acc_succs;
                       acc_succs.push_back(false);
 
+                      // std::cout << "S states" << std::endl;
                       // Handle S states.
                       //
                       // Treated first because we can escape early if the letter
@@ -273,6 +276,8 @@ namespace from_spot
                             return;
 
                           succs[0][t.dst] = ncsb_s;
+                          // std::cout << "State " << i << " to " << t.dst << " in s via " << letter << std::endl;
+                          // std::cout << "next " << t.dst << " with ncsb_s" << std::endl;
 
                           // No need to look for other compatible transitions
                           // for this state; it's in the deterministic part of
@@ -280,11 +285,13 @@ namespace from_spot
                           break;
                         }
                       }
+                      // std::cout << "C states" << std::endl;
                       // record the set of states that come via accepting transitions
-                      std::vector<ncsb> c_succs (nb_states_, ncsb_m);
+                      std::vector<bool> c_succs (nb_states_, false);
                       // Handle C states.
                       for (unsigned i = 0; i < nb_states_; ++i)
                       {
+                        // including B-states
                         if (!(ms[i] & ncsb_c))
                           continue;
 
@@ -299,7 +306,13 @@ namespace from_spot
                           if (succs[0][t.dst] == ncsb_m) 
                           {
                             succs[0][t.dst] = ncsb_c;
-                            if(optb_) c_succs[t.dst] = ncsb_c;
+                            // std::cout << "orig State " << i << " to " << t.dst << " in c via " << letter << std::endl;
+                            // std::cout << "orig next " << t.dst << " with ncsb_c" << std::endl;
+                            if(optb_ && c_succs[t.dst] == false) {
+                              c_succs[t.dst] = true;
+                              // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
+                              // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                            }
                           }
                           // No need to look for other compatible transitions
                           // for this state; it's in the deterministic part of
@@ -307,7 +320,7 @@ namespace from_spot
                           break;
                         }
                       }
-
+                      // std::cout << "N states" << std::endl;
                       // Handle N states.
                       for (unsigned i = 0; i < nb_states_; ++i)
                       {
@@ -322,22 +335,29 @@ namespace from_spot
                           // PLDI: We have still only a unique successor
                           if (is_deter_[si_.scc_of(t.dst)])
                           {
-                            if (succs[0][t.dst] == ncsb_m)
+                            if (succs[0][t.dst] == ncsb_m) {
                               succs[0][t.dst] = ncsb_c;
+                              // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
+                              // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                              }
                           } else
-                            for (auto &succ: succs)
+                            for (auto &succ: succs) {
                               succ[t.dst] = ncsb_n;
+                              // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
+                              // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
+                            }
                         }
                       }
-
+                      // std::cout << "B states" << std::endl;
                       // PLDI: Handle B states. We need to know what remained in C'.
                       // PLDI: We first move all successors to B', and then pereform
                       // branching in next pass
+                      bool is_b_empty = true;
                       for (unsigned i = 0; i < nb_states_; ++i)
                       {
                         if (ms[i] != ncsb_cb)
                           continue;
-
+                        is_b_empty = false;
                         bool has_succ = false;
                         for (const auto &t: aut_->out(i))
                         {
@@ -345,9 +365,12 @@ namespace from_spot
                             continue;
 
                           has_succ = true;
-                          if (succs[0][t.dst] == ncsb_c)
+                          if (succs[0][t.dst] == ncsb_c) {
                               succs[0][t.dst] = ncsb_cb;
-
+                              // std::cout << "State " << i << " to " << t.dst << " in B via " << letter << std::endl;
+                              // std::cout << "next " << t.dst << " with ncsb_cb" << std::endl;
+                          }
+                          // std::cout << "B' is not empty" << std::endl;
                           // PLDI: If t is not accepting and t.dst in S, stop
                           // because t.src should have been i S already.
                           if (!t.acc && (succs[0][t.dst] == ncsb_s))
@@ -384,11 +407,17 @@ namespace from_spot
                                 succs.push_back(succs[j]);
                                 succs.back()[t.dst] = ncsb_s;
                                 acc_succs.push_back(false);
+                                // std::cout << "State " << i << " to " << t.dst << " in branching B via " << letter << std::endl;
+                                // std::cout << "next " << t.dst << " with ncsb_s" << std::endl;
                               }
                             }
                           }
                         }
                       }
+                      // for(int k = 0; k < succs.size(); k ++) {
+                      //   std::cout << k << " th state" << std::endl;
+                      //   std::cout << "next state: " << get_name(to_small_mstate(succs[k])) << std::endl;
+                      // }
 
                       // PLDI: For each possible successor check if B' might be empty
                       // If yes, double the successors for each state in C', make edges
@@ -407,6 +436,7 @@ namespace from_spot
                             }
                           }
 
+                          // std::cout << "current next state: " << get_name(to_small_mstate(succs[j])) << std::endl;
                           if (b_empty)
                           {
                             //PLDI: for each state s in C', move it to B'
@@ -414,31 +444,37 @@ namespace from_spot
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
                               // without lazyOpt
-                              if(! optb_) {
-                                if (succs[j][i] != ncsb_c) {
+                              // std::cout << "orig state " << i << " " << succs[j][i] << std::endl; 
+                              if(optb_ ) {
+                                // only copy states in C' to B'
+                                // note here that the states in B' after branching may not occur in C'
+                                // so we need to only concern states that remain in C'
+                                if(! (c_succs[i] && succs[j][i] == ncsb_c)) {
                                   continue;
                                 }
                               }else {
-                                  // only move C' (excluding new states from N) to B'
-                                  if (succs[j][i] != c_succs[i]) {
-                                    continue;
-                                  }
+                                if (succs[j][i] != ncsb_c) {
+                                  continue;
+                                }
                               }
+                              
                               succs[j][i] = ncsb_cb;
+                              // std::cout << "new state  " << i << "  ncsb_cb" << std::endl; 
                             }
-
+                            // std::cout << "branching C states, B is empty" << std::endl;
                             // Set edge as accepting
                             acc_succs[j] = true;
                             std::vector <mstate> new_succs; // Store clones of current succ
                             new_succs.push_back(succs[j]);
-
+                            // std::cout << "states for branching: " << get_name(to_small_mstate(succs[j])) << std::endl;
                             //PLDI: for each state s in C'
                             // if s is not accepting make a clone
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
                               // these are all states in C', also in B'
                               if(optb_) {
-                                if (succs[j][i] != ncsb_c || succs[j][i] != ncsb_cb) {
+                                // only branching C states
+                                if(succs[j][i] != ncsb_c && succs[j][i] != ncsb_cb) {
                                   continue;
                                 }
                               }else {
@@ -453,10 +489,10 @@ namespace from_spot
                                   //PLDI: skip accepting states
                                   if (is_accepting_[i])
                                     continue;
-
                                   // Make copy of k with i moved from C to S
                                   new_succs.push_back(new_succs[k]);
                                   new_succs.back()[i] = ncsb_s;
+                                  // std::cout << "states after branching: " << get_name(to_small_mstate(new_succs.back())) << std::endl;
                                 }
                               }
                               // new_succs[0] is succ[j] with C -> CB
@@ -469,6 +505,7 @@ namespace from_spot
                               }
                             }
                           }
+
                         }
                       }
 
@@ -479,10 +516,14 @@ namespace from_spot
                         if (acc_succs[j])
                         {
                           unsigned dst = new_state(std::move(succs[j]));
+                          // std::cout << "next state: acc" << std::endl;
+                          // std::cout << origin << " to {0} " << dst << " via letter "<< letter << std::endl;
                           res_->new_edge(origin, dst, letter, {0});
                         } else {
                           unsigned dst = new_state(std::move(succs[j]));
                           res_->new_edge(origin, dst, letter);
+                          // std::cout << "next state: " << std::endl;
+                          // std::cout << origin << " to " << dst << " via letter "<< letter << std::endl;
                         }
                       }
                     }
