@@ -1276,38 +1276,16 @@ namespace from_spot
             {
               // Here if we just define a mcstate succ is also ok 
               // It remains to be optimized
-              std::vector <mcstate> succs;
-              succs.emplace_back(nb_states_, nsbc_m);
+              // std::vector <mcstate> succs;
+              // succs.emplace_back(nb_states_, nsbc_m);
+              mcstate succ(nb_states_, nsbc_m);
 
               #if FWZ_DEBUG
               std::cout << "letter: " << letter << '\n';
               std::cout << "input: " << get_name(to_small_mcstate(ms)) << '\n';
               #endif
 
-              // Handle N states.
-              for (unsigned i = 0; i < nb_states_; ++i)
-              {
-                if (ms[i] != nsbc_n)
-                  continue;
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-
-                  // t.dst is in Q2
-                  if (is_deter_[si_.scc_of(t.dst)])
-                  {
-                    if ((succs[0][t.dst] != nsbc_s) && (succs[0][t.dst] != nsbc_b))
-                      succs[0][t.dst] = nsbc_c;
-                  } 
-                  else
-                  {
-                    succs[0][t.dst] = nsbc_n;
-                  }
-                }
-              }
-
-              std::vector<bool> visit(nb_states_, false);
+              // std::vector<bool> visit(nb_states_, false);
               // Handle S states. 
               for (unsigned i = 0; i < nb_states_; ++i)
               {
@@ -1319,25 +1297,27 @@ namespace from_spot
                   if (!bdd_implies(letter, t.cond))
                     continue;
 
-                  if (visit[t.dst] == true)
-                  {
-                    succs.push_back(succs[0]);
-                  }
+                  // if (visit[t.dst] == true)
+                  // {
+                  //   succs.push_back(succs[0]);
+                  // }
                   if (t.acc)
                   {
-                    succs.back()[t.dst] = nsbc_c;
+                    if (succ[t.dst] != nsbc_s)
+                      succ[t.dst] = nsbc_c;
                   }
                   else
                   {
-                    succs.back()[t.dst] = nsbc_s;
+                    succ[t.dst] = nsbc_s;
                   }
-                  visit[t.dst] = true;
+                  // else
+                  // {
+                  //   succs.back()[t.dst] = nsbc_s;
+                  // }
+                  // visit[t.dst] = true;
                 }     
               }
-              #if FWZ_DEBUG
-              std::cout << "after handle s states: " << get_name(to_small_mcstate(succs[0])) << '\n';
-              #endif
-            
+               
               // Handle B states
               bool b_empty = true;
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -1352,14 +1332,44 @@ namespace from_spot
                 {
                   if (!bdd_implies(letter, t.cond))
                     continue;
-                  for (auto& succ : succs)
-                  {
-                    if (succ[t.dst] != nsbc_s)
-                      succ[t.dst] = nsbc_b;
-                  }      
+                  // for (auto& succ : succs)
+                  // {
+                  //   if (succ[t.dst] != nsbc_s)
+                  //     succ[t.dst] = nsbc_b;
+                  // }   
+                  if (succ[t.dst] != nsbc_s)
+                    succ[t.dst] = nsbc_b;    
                   break;
                 }
               }
+
+              // Handle N states.
+              for (unsigned i = 0; i < nb_states_; ++i)
+              {
+                if (ms[i] != nsbc_n)
+                  continue;
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  // t.dst is in Q2
+                  if (is_deter_[si_.scc_of(t.dst)])
+                  {
+                    if ((succ[t.dst] != nsbc_s) && (succ[t.dst] != nsbc_b))
+                      succ[t.dst] = nsbc_c;
+                  } 
+                  else
+                  {
+                    succ[t.dst] = nsbc_n;
+                  }
+                }
+              }
+
+              #if FWZ_DEBUG
+              std::cout << "after handle s states: " << get_name(to_small_mcstate(succs[0])) << '\n';
+              #endif
+           
 
               // Handle C states.
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -1372,12 +1382,9 @@ namespace from_spot
                   if (!bdd_implies(letter, t.cond))
                     continue;
 
-                  for (auto& succ : succs)
-                  {
-                    // remove S' and B' (if a state is labeled as S' or B', we skip it)
-                    if ((succ[t.dst] != nsbc_s) && (succ[t.dst] != nsbc_b))
-                      succ[t.dst] = nsbc_c;
-                  }      
+                  // remove S' and B' (if a state is labeled as S' or B', we skip it)
+                  if ((succ[t.dst] != nsbc_s) && (succ[t.dst] != nsbc_b))
+                    succ[t.dst] = nsbc_c;      
                  
                   break;
                 }
@@ -1388,49 +1395,44 @@ namespace from_spot
               {
                 for (unsigned i = 0; i < nb_states_; ++i)
                 {
-                  for (auto& succ : succs)
-                  {
-                    if(succ[i] == nsbc_c)
-                      succ[i] = nsbc_b;
-                  }
-                  
+                  if(succ[i] == nsbc_c)
+                    succ[i] = nsbc_b;
                 }
               }
       
               // Create the automaton states
-              for (auto& succ: succs)
+              bool b_succ_empty = true;
+              for (const auto& state: succ)
               {
-                bool b_empty = true;
-                for (const auto& state: succ)
+                if (state == nsbc_b)
                 {
-                  if (state == nsbc_b)
-                  {
-                    b_empty = false;
-                    break;
-                  }
+                  b_succ_empty = false;
+                  break;
                 }
+              }
 
-                // accepting state
-                // new edge: origin to dst
-                // if b set in dst is empty, label this edge as an accepting edge
-                if (b_empty)
-                {
-                  unsigned dst = new_state(std::move(succ));
-                  res_->new_edge(origin, dst, letter, {0});
-                }
-                else
-                {
-                  unsigned dst = new_state(std::move(succ));
-                  res_->new_edge(origin, dst, letter);
-                }
+              // accepting state
+              // new edge: origin to dst
+              // if b set in dst is empty, label this edge as an accepting edge
+              if (b_succ_empty)
+              {
+                unsigned dst = new_state(std::move(succ));
+                res_->new_edge(origin, dst, letter, {0});
+              }
+              else
+              {
+                unsigned dst = new_state(std::move(succ));
+                res_->new_edge(origin, dst, letter);
               }
             }
 
             void 
             init_successors(mcstate&& ms, unsigned origin, bdd letter)
             {
-              std::vector<mcstate> succs;
-              succs.emplace_back(nb_states_, nsbc_m);
+              // std::vector<mcstate> succs;
+              // succs.emplace_back(nb_states_, nsbc_m);
+              mcstate succ(nb_states_, nsbc_m);
+
 
               // subset to subset
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -1443,15 +1445,14 @@ namespace from_spot
                 {
                   if (!bdd_implies(letter, t.cond))
                     continue;
-                  succs[0][t.dst] = nsbc_i;
+                  succ[t.dst] = nsbc_i;
                 }
               }
 
-              for (auto& succ: succs)
-              {
-                unsigned dst = new_state(std::move(succ));
-                res_->new_edge(origin, dst, letter);
-              }
+              
+              unsigned dst = new_state(std::move(succ));
+              res_->new_edge(origin, dst, letter);
+          
 
               // subset to (N, C, B)
               // succs.push_back(nb_states_, ncb_m);
@@ -1498,16 +1499,13 @@ namespace from_spot
               int flag = 1;
               for (unsigned i = 0; i < nb_states_; ++i)
               {
-                // initial phase
+                if (ms[i] == nsbc_m)
+                  continue;
+
                 if (ms[i] == nsbc_i)
                   break;
-
-                // NCB
-                if (ms[i] > 0)
-                {
+                else
                   flag = 0;
-                  break;
-                }
               }
 
               // #if FWZ_DEBUG
