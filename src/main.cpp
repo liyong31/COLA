@@ -408,26 +408,29 @@ int main(int argc, char* argv[])
                     if (complement == NCSBSpot || complement == NCSBBest)
                       {
                         comp = spot::complement_semidet(aut);
-                        comp = postprocessor.run(comp);
-                        std::cout << "spot: " << comp->num_states() << '\n';
+                        // comp = postprocessor.run(comp);
+                        // std::cout << "spot: " << comp->num_states() << '\n';
+                        // std::cout << "spot edges: " << comp->num_edges() << '\n';
                       }
                     if(complement == NCSBPLDIB || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp1 =
                           from_spot::complement_semidet_opt(aut);
-                        comp1 = postprocessor.run(comp1);
+                        // comp1 = postprocessor.run(comp1);
                         if (!comp || comp->num_states() > comp1->num_states())
                           comp = comp1;
-                        std::cout << "pldib: " << comp->num_states() << '\n';
+                        // std::cout << "pldib: " << comp->num_states() << '\n';
+                        // std::cout << "pldib edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
                         spot::twa_graph_ptr comp2 =
                           from_spot::complement_semidet(aut);
-                        comp2 = postprocessor.run(comp2);
+                        // comp2 = postprocessor.run(comp2);
                         if (!comp || comp->num_states() > comp2->num_states())
                           comp = comp2;
-                        std::cout << "pldi: " << comp->num_states() << '\n';
+                        // std::cout << "pldi: " << comp->num_states() << '\n';
+                        // std::cout << "pldi edges: " << comp->num_edges() << '\n';
                       }
                     if (complement == NCB)
                     {
@@ -435,9 +438,10 @@ int main(int argc, char* argv[])
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
                       comp = from_spot::complement_unambiguous(myaut, true);
-                      comp = postprocessor.run(comp);
+                      // comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      std::cout << "ncb: " << comp->num_states() << '\n';
+                      // std::cout << "ncb: " << comp->num_states() << '\n';
+                      // std::cout << "ncb edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NSBC)
                     {
@@ -445,9 +449,10 @@ int main(int argc, char* argv[])
                       // spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut, true);
-                      comp = postprocessor.run(comp);
+                      // comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      std::cout << "nsbc: " << comp->num_states() << '\n';
+                      // std::cout << "nsbc: " << comp->num_states() << '\n';
+                      // std::cout << "nsbc edges: " << comp->num_edges() << '\n';
                     }
                     aut = comp;
                   }
@@ -480,7 +485,7 @@ int main(int argc, char* argv[])
     check_cout();
 
     endTime = clock();
-    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s ";
 
     return 0;
 }

@@ -1,0 +1,3231 @@
+File0: easy100.hoa
+Run time: 0.008372s spot states: 13; edges: 71
+Run time: 0.006824s pldi states: 13; edges: 71
+Run time: 0.006955s pldib states: 14; edges: 74
+Run time: 0.007774s nsbc states: 13; edges: 71
+autfilt state: 19; edges: 118
+
+
+File1: easy101.hoa
+Run time: 0.065037s spot states: 30; edges: 121
+Run time: 0.059847s pldi states: 24; edges: 97
+Run time: 0.06461s pldib states: 24; edges: 117
+Run time: 0.106022s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File2: easy102.hoa
+Run time: 0.008132s spot states: 18; edges: 73
+Run time: 0.006695s pldi states: 14; edges: 61
+Run time: 0.006812s pldib states: 14; edges: 59
+Run time: 0.006788s nsbc states: 14; edges: 63
+autfilt state: 22; edges: 145
+
+
+File3: easy103.hoa
+Run time: 0.015644s spot states: 42; edges: 201
+Run time: 0.011411s pldi states: 32; edges: 153
+Run time: 0.01373s pldib states: 39; edges: 215
+Run time: 0.028311s nsbc states: 73; edges: 492
+autfilt state: 34; edges: 235
+
+
+File4: easy104.hoa
+Run time: 0.007297s spot states: 20; edges: 73
+Run time: 0.007556s pldi states: 17; edges: 57
+Run time: 0.007284s pldib states: 17; edges: 64
+Run time: 0.009022s nsbc states: 28; edges: 130
+autfilt state: 26; edges: 156
+
+
+File5: easy105.hoa
+Run time: 0.006991s spot states: 9; edges: 28
+Run time: 0.006565s pldi states: 9; edges: 28
+Run time: 0.007711s pldib states: 10; edges: 29
+Run time: 0.009568s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File6: easy106.hoa
+Run time: 0.017513s spot states: 30; edges: 119
+Run time: 0.016593s pldi states: 28; edges: 114
+Run time: 0.01665s pldib states: 28; edges: 124
+Run time: 0.025086s nsbc states: 36; edges: 195
+autfilt state: 33; edges: 230
+
+
+File7: easy107.hoa
+Run time: 0.504231s spot states: 30; edges: 121
+Run time: 0.464495s pldi states: 24; edges: 97
+Run time: 0.454298s pldib states: 24; edges: 117
+Run time: 1.03128s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File8: easy108.hoa
+Run time: 0.199164s spot states: 30; edges: 121
+Run time: 0.178324s pldi states: 24; edges: 97
+Run time: 0.195212s pldib states: 24; edges: 117
+Run time: 0.404991s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File9: easy109.hoa
+Run time: 0.009149s spot states: 10; edges: 48
+Run time: 0.009428s pldi states: 10; edges: 48
+Run time: 0.009798s pldib states: 11; edges: 51
+Run time: 0.0106s nsbc states: 10; edges: 48
+autfilt state: 16; edges: 102
+
+
+File10: easy10.hoa
+Run time: 0.006479s spot states: 6; edges: 15
+Run time: 0.006074s pldi states: 6; edges: 15
+Run time: 0.006428s pldib states: 7; edges: 22
+Run time: 0.006916s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File11: easy110.hoa
+Run time: 0.0056s spot states: 4; edges: 9
+Run time: 0.0056s pldi states: 4; edges: 9
+Run time: 0.006233s pldib states: 5; edges: 12
+Run time: 0.006379s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File12: easy111.hoa
+Run time: 0.02257s spot states: 43; edges: 136
+Run time: 0.019822s pldi states: 37; edges: 126
+Run time: 0.018507s pldib states: 30; edges: 116
+Run time: 0.033621s nsbc states: 43; edges: 231
+autfilt state: 40; edges: 284
+
+
+File13: easy112.hoa
+Run time: 0.06425s spot states: 30; edges: 121
+Run time: 0.057966s pldi states: 24; edges: 97
+Run time: 0.062772s pldib states: 24; edges: 117
+Run time: 0.099955s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File14: easy113.hoa
+Run time: 0.012863s spot states: 25; edges: 107
+Run time: 0.011464s pldi states: 22; edges: 86
+Run time: 0.012554s pldib states: 23; edges: 107
+Run time: 0.018417s nsbc states: 31; edges: 159
+autfilt state: 28; edges: 189
+
+
+File15: easy114.hoa
+Run time: 0.072195s spot states: 30; edges: 121
+Run time: 0.059604s pldi states: 24; edges: 97
+Run time: 0.063944s pldib states: 24; edges: 117
+Run time: 0.11305s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File16: easy115.hoa
+Run time: 0.006193s spot states: 9; edges: 28
+Run time: 0.005936s pldi states: 9; edges: 28
+Run time: 0.006866s pldib states: 10; edges: 29
+Run time: 0.007294s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File17: easy116.hoa
+Run time: 0.006204s spot states: 6; edges: 15
+Run time: 0.005098s pldi states: 6; edges: 15
+Run time: 0.005413s pldib states: 7; edges: 22
+Run time: 0.005721s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File18: easy117.hoa
+Run time: 0.240626s spot states: 11; edges: 37
+Run time: 0.176238s pldi states: 11; edges: 37
+Run time: 0.204179s pldib states: 12; edges: 51
+Run time: 0.273584s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File19: easy118.hoa
+Run time: 0.005361s spot states: 6; edges: 15
+Run time: 0.005089s pldi states: 6; edges: 15
+Run time: 0.005329s pldib states: 7; edges: 22
+Run time: 0.005891s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File20: easy119.hoa
+Run time: 0.01467s spot states: 28; edges: 116
+Run time: 0.013098s pldi states: 23; edges: 90
+Run time: 0.013934s pldib states: 22; edges: 106
+Run time: 0.022653s nsbc states: 33; edges: 191
+autfilt state: 27; edges: 209
+
+
+File21: easy11.hoa
+Run time: 0.006076s spot states: 9; edges: 24
+Run time: 0.005743s pldi states: 9; edges: 24
+Run time: 0.00628s pldib states: 10; edges: 31
+Run time: 0.0063s nsbc states: 11; edges: 36
+autfilt state: 11; edges: 43
+
+
+File22: easy120.hoa
+Run time: 0.006584s spot states: 12; edges: 37
+Run time: 0.007262s pldi states: 12; edges: 37
+Run time: 0.008329s pldib states: 13; edges: 41
+Run time: 0.011165s nsbc states: 18; edges: 64
+autfilt state: 16; edges: 71
+
+
+File23: easy121.hoa
+Run time: 0.007653s spot states: 15; edges: 58
+Run time: 0.007762s pldi states: 15; edges: 58
+Run time: 0.007518s pldib states: 16; edges: 59
+Run time: 0.011984s nsbc states: 27; edges: 128
+autfilt state: 18; edges: 91
+
+
+File24: easy122.hoa
+Run time: 0.006091s spot states: 9; edges: 26
+Run time: 0.005845s pldi states: 8; edges: 21
+Run time: 0.005888s pldib states: 9; edges: 28
+Run time: 0.006782s nsbc states: 13; edges: 48
+autfilt state: 14; edges: 69
+
+
+File25: easy123.hoa
+Run time: 0.263147s spot states: 230; edges: 797
+Run time: 0.188928s pldi states: 176; edges: 655
+Run time: 0.187935s pldib states: 172; edges: 634
+Run time: 4.52631s nsbc states: 335; edges: 1736
+autfilt state: 335; edges: 2101
+
+
+File26: easy124.hoa
+Run time: 0.007817s spot states: 6; edges: 20
+Run time: 0.007045s pldi states: 6; edges: 20
+Run time: 0.006848s pldib states: 7; edges: 23
+Run time: 0.007081s nsbc states: 6; edges: 20
+autfilt state: 20; edges: 93
+
+
+File27: easy125.hoa
+Run time: 0.006388s spot states: 6; edges: 15
+Run time: 0.006034s pldi states: 6; edges: 15
+Run time: 0.005818s pldib states: 7; edges: 22
+Run time: 0.006158s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File28: easy126.hoa
+Run time: 0.216926s spot states: 103; edges: 733
+Run time: 0.180202s pldi states: 102; edges: 732
+Run time: 0.186827s pldib states: 106; edges: 683
+Run time: 40.2084s nsbc states: 197; edges: 1452
+autfilt state: 207; edges: 2123
+
+
+File29: easy127.hoa
+Run time: 0.01227s spot states: 9; edges: 28
+Run time: 0.009654s pldi states: 9; edges: 28
+Run time: 0.010768s pldib states: 10; edges: 29
+Run time: 0.014339s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File30: easy128.hoa
+Run time: 0.075636s spot states: 30; edges: 121
+Run time: 0.067163s pldi states: 24; edges: 97
+Run time: 0.061246s pldib states: 24; edges: 117
+Run time: 0.106342s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File31: easy129.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 1029; edges: 26399
+
+
+File32: easy12.hoa
+Run time: 0.014628s spot states: 35; edges: 203
+Run time: 0.011448s pldi states: 26; edges: 164
+Run time: 0.013747s pldib states: 32; edges: 175
+Run time: 0.022368s nsbc states: 49; edges: 329
+autfilt state: 37; edges: 302
+
+
+File33: easy130.hoa
+Run time: 0.007518s spot states: 14; edges: 43
+Run time: 0.005987s pldi states: 11; edges: 29
+Run time: 0.006624s pldib states: 11; edges: 38
+Run time: 0.007843s nsbc states: 18; edges: 82
+autfilt state: 13; edges: 68
+
+
+File34: easy131.hoa
+Run time: 0.016494s spot states: 11; edges: 45
+Run time: 0.015736s pldi states: 11; edges: 45
+Run time: 0.016344s pldib states: 12; edges: 48
+Run time: 0.016905s nsbc states: 11; edges: 45
+autfilt state: 29; edges: 179
+
+
+File35: easy132.hoa
+Run time: 0.017806s spot states: 37; edges: 143
+Run time: 0.012576s pldi states: 30; edges: 106
+Run time: 0.013651s pldib states: 33; edges: 122
+Run time: 0.056655s nsbc states: 100; edges: 515
+autfilt state: 75; edges: 429
+
+
+File36: easy133.hoa
+Run time: 0.010934s spot states: 21; edges: 66
+Run time: 0.008419s pldi states: 18; edges: 60
+Run time: 0.008432s pldib states: 21; edges: 78
+Run time: 0.016271s nsbc states: 54; edges: 248
+autfilt state: 37; edges: 186
+
+
+File37: easy134.hoa
+Run time: 0.007068s spot states: 10; edges: 38
+Run time: 0.006396s pldi states: 9; edges: 35
+Run time: 0.006213s pldib states: 9; edges: 31
+Run time: 0.00673s nsbc states: 15; edges: 63
+autfilt state: 20; edges: 108
+
+
+File38: easy135.hoa
+Run time: 0.011849s spot states: 21; edges: 87
+Run time: 0.011112s pldi states: 21; edges: 87
+Run time: 0.011521s pldib states: 25; edges: 113
+Run time: 0.015508s nsbc states: 36; edges: 175
+autfilt state: 43; edges: 290
+
+
+File39: easy136.hoa
+Run time: 0.010713s spot states: 24; edges: 89
+Run time: 0.007932s pldi states: 22; edges: 77
+Run time: 0.00844s pldib states: 22; edges: 93
+Run time: 0.008915s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File40: easy137.hoa
+Run time: 0.014305s spot states: 19; edges: 60
+Run time: 0.012034s pldi states: 19; edges: 60
+Run time: 0.012766s pldib states: 20; edges: 66
+Run time: 0.021926s nsbc states: 31; edges: 108
+autfilt state: 25; edges: 104
+
+
+File41: easy138.hoa
+Run time: 0.036715s spot states: 14; edges: 87
+Run time: 0.034639s pldi states: 14; edges: 87
+Run time: 0.035439s pldib states: 15; edges: 94
+Run time: 0.039856s nsbc states: 14; edges: 87
+autfilt state: 45; edges: 546
+
+
+File42: easy139.hoa
+Run time: 0.01348s spot states: 21; edges: 78
+Run time: 0.010464s pldi states: 19; edges: 66
+Run time: 0.011142s pldib states: 20; edges: 88
+Run time: 0.013613s nsbc states: 23; edges: 108
+autfilt state: 25; edges: 163
+
+
+File43: easy13.hoa
+Run time: 0.018257s spot states: 41; edges: 202
+Run time: 0.013242s pldi states: 34; edges: 171
+Run time: 0.014295s pldib states: 32; edges: 188
+Run time: 0.031563s nsbc states: 76; edges: 530
+autfilt state: 46; edges: 398
+
+
+File44: easy140.hoa
+Run time: 0.009755s spot states: 24; edges: 89
+Run time: 0.008178s pldi states: 22; edges: 77
+Run time: 0.009268s pldib states: 22; edges: 93
+Run time: 0.00977s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File45: easy141.hoa
+Run time: 0.074689s spot states: 30; edges: 121
+Run time: 0.063107s pldi states: 24; edges: 97
+Run time: 0.066969s pldib states: 24; edges: 117
+Run time: 0.105304s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File46: easy142.hoa
+Run time: 0.006183s spot states: 6; edges: 15
+Run time: 0.005432s pldi states: 6; edges: 15
+Run time: 0.005671s pldib states: 7; edges: 22
+Run time: 0.006674s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File47: easy143.hoa
+Run time: 0.022142s spot states: 38; edges: 217
+Run time: 0.022042s pldi states: 38; edges: 217
+Run time: 0.025234s pldib states: 40; edges: 234
+Run time: 0.047551s nsbc states: 72; edges: 445
+autfilt state: 87; edges: 809
+
+
+File48: easy144.hoa
+Run time: 0.013874s spot states: 16; edges: 58
+Run time: 0.010068s pldi states: 15; edges: 55
+Run time: 0.010872s pldib states: 17; edges: 62
+Run time: 0.013768s nsbc states: 23; edges: 92
+autfilt state: 21; edges: 107
+
+
+File49: easy145.hoa
+Run time: 0.010887s spot states: 24; edges: 79
+Run time: 0.010643s pldi states: 20; edges: 69
+Run time: 0.009762s pldib states: 20; edges: 81
+Run time: 0.013417s nsbc states: 18; edges: 80
+autfilt state: 22; edges: 144
+
+
+File50: easy146.hoa
+spot timeout
+Run time: 0.288961s pldi states: 194; edges: 1006
+Run time: 0.198505s pldib states: 185; edges: 986
+nsbc timeout
+autfilt state: 309; edges: 3659
+
+
+File51: easy147.hoa
+Run time: 0.072093s spot states: 93; edges: 450
+Run time: 0.033814s pldi states: 72; edges: 392
+Run time: 0.047977s pldib states: 86; edges: 527
+Run time: 0.198489s nsbc states: 141; edges: 1162
+autfilt state: 86; edges: 941
+
+
+File52: easy148.hoa
+Run time: 0.022654s spot states: 9; edges: 41
+Run time: 0.02427s pldi states: 9; edges: 41
+Run time: 0.023499s pldib states: 10; edges: 44
+Run time: 0.023621s nsbc states: 9; edges: 41
+autfilt state: 18; edges: 133
+
+
+File53: easy149.hoa
+Run time: 0.005668s spot states: 6; edges: 15
+Run time: 0.005545s pldi states: 6; edges: 15
+Run time: 0.00646s pldib states: 7; edges: 22
+Run time: 0.006926s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File54: easy14.hoa
+Run time: 0.011517s spot states: 13; edges: 43
+Run time: 0.011199s pldi states: 13; edges: 43
+Run time: 0.011796s pldib states: 15; edges: 56
+Run time: 0.015696s nsbc states: 21; edges: 82
+autfilt state: 32; edges: 224
+
+
+File55: easy150.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 540; edges: 11325
+
+
+File56: easy151.hoa
+Run time: 0.005506s spot states: 6; edges: 15
+Run time: 0.00536s pldi states: 6; edges: 15
+Run time: 0.005818s pldib states: 7; edges: 22
+Run time: 0.006542s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File57: easy152.hoa
+Run time: 0.23424s spot states: 74; edges: 630
+Run time: 0.070297s pldi states: 52; edges: 334
+Run time: 0.056288s pldib states: 43; edges: 291
+Run time: 0.486776s nsbc states: 188; edges: 1868
+autfilt state: 51; edges: 536
+
+
+File58: easy153.hoa
+Run time: 0.007881s spot states: 20; edges: 51
+Run time: 0.00687s pldi states: 16; edges: 46
+Run time: 0.00671s pldib states: 17; edges: 53
+Run time: 0.009708s nsbc states: 29; edges: 124
+autfilt state: 21; edges: 106
+
+
+File59: easy154.hoa
+Run time: 0.470772s spot states: 30; edges: 121
+Run time: 0.439236s pldi states: 24; edges: 97
+Run time: 0.462409s pldib states: 24; edges: 117
+Run time: 0.878266s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File60: easy155.hoa
+Run time: 0.007907s spot states: 22; edges: 101
+Run time: 0.007465s pldi states: 19; edges: 90
+Run time: 0.007874s pldib states: 21; edges: 106
+Run time: 0.009613s nsbc states: 29; edges: 178
+autfilt state: 26; edges: 200
+
+
+File61: easy156.hoa
+Run time: 0.00729s spot states: 9; edges: 28
+Run time: 0.006898s pldi states: 9; edges: 28
+Run time: 0.008416s pldib states: 10; edges: 29
+Run time: 0.00984s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File62: easy157.hoa
+Run time: 0.051244s spot states: 30; edges: 121
+Run time: 0.042592s pldi states: 24; edges: 97
+Run time: 0.052272s pldib states: 24; edges: 117
+Run time: 0.088668s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File63: easy158.hoa
+spot timeout
+Run time: 29.873s pldi states: 175; edges: 2053
+pldib timeout
+nsbc timeout
+autfilt state: 193; edges: 3551
+
+
+File64: easy159.hoa
+Run time: 0.005299s spot states: 4; edges: 9
+Run time: 0.005582s pldi states: 4; edges: 9
+Run time: 0.005967s pldib states: 5; edges: 12
+Run time: 0.006355s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File65: easy15.hoa
+Run time: 0.028477s spot states: 61; edges: 435
+Run time: 0.028428s pldi states: 61; edges: 435
+Run time: 0.02885s pldib states: 62; edges: 442
+Run time: 0.036242s nsbc states: 61; edges: 435
+autfilt state: 90; edges: 749
+
+
+File66: easy160.hoa
+Run time: 0.13035s spot states: 100; edges: 496
+Run time: 0.084295s pldi states: 86; edges: 449
+Run time: 0.086814s pldib states: 83; edges: 483
+Run time: 0.160969s nsbc states: 90; edges: 756
+autfilt state: 184; edges: 2479
+
+
+File67: easy161.hoa
+Run time: 0.011085s spot states: 16; edges: 52
+Run time: 0.011704s pldi states: 16; edges: 52
+Run time: 0.012032s pldib states: 17; edges: 53
+Run time: 0.015266s nsbc states: 26; edges: 89
+autfilt state: 19; edges: 74
+
+
+File68: easy162.hoa
+Run time: 0.025785s spot states: 31; edges: 123
+Run time: 0.023495s pldi states: 29; edges: 118
+Run time: 0.021755s pldib states: 29; edges: 127
+Run time: 0.03959s nsbc states: 37; edges: 196
+autfilt state: 33; edges: 227
+
+
+File69: easy163.hoa
+Run time: 0.008488s spot states: 9; edges: 28
+Run time: 0.006963s pldi states: 9; edges: 28
+Run time: 0.008102s pldib states: 10; edges: 29
+Run time: 0.01014s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File70: easy164.hoa
+Run time: 2.10513s spot states: 715; edges: 1848
+Run time: 53.1648s pldi states: 390; edges: 1572
+Run time: 1.59825s pldib states: 398; edges: 1506
+Run time: 3.20916s nsbc states: 574; edges: 2948
+autfilt state: 4897; edges: 29000
+
+
+File71: easy165.hoa
+Run time: 0.257087s spot states: 139; edges: 543
+Run time: 0.24823s pldi states: 139; edges: 543
+Run time: 0.39523s pldib states: 143; edges: 577
+Run time: 0.90898s nsbc states: 232; edges: 938
+autfilt state: 240; edges: 1343
+
+
+File72: easy166.hoa
+Run time: 0.040254s spot states: 21; edges: 167
+Run time: 0.039673s pldi states: 21; edges: 167
+Run time: 0.04519s pldib states: 23; edges: 179
+Run time: 0.050018s nsbc states: 21; edges: 167
+autfilt state: 29; edges: 273
+
+
+File73: easy167.hoa
+Run time: 0.005052s spot states: 6; edges: 19
+Run time: 0.004828s pldi states: 6; edges: 19
+Run time: 0.00554s pldib states: 7; edges: 21
+Run time: 0.005616s nsbc states: 9; edges: 34
+autfilt state: 9; edges: 37
+
+
+File74: easy168.hoa
+Run time: 0.467068s spot states: 30; edges: 121
+Run time: 0.465159s pldi states: 24; edges: 97
+Run time: 0.475639s pldib states: 24; edges: 117
+Run time: 0.924608s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File75: easy169.hoa
+Run time: 0.130151s spot states: 97; edges: 465
+Run time: 0.077485s pldi states: 92; edges: 468
+Run time: 0.099658s pldib states: 100; edges: 509
+Run time: 0.366344s nsbc states: 120; edges: 1011
+autfilt state: 120; edges: 1435
+
+
+File76: easy16.hoa
+Run time: 0.004917s spot states: 4; edges: 9
+Run time: 0.005465s pldi states: 4; edges: 9
+Run time: 0.005379s pldib states: 5; edges: 12
+Run time: 0.005985s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File77: easy170.hoa
+Run time: 0.005753s spot states: 4; edges: 9
+Run time: 0.005575s pldi states: 4; edges: 9
+Run time: 0.005614s pldib states: 5; edges: 12
+Run time: 0.00603s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File78: easy171.hoa
+Run time: 0.042814s spot states: 82; edges: 612
+Run time: 0.044745s pldi states: 82; edges: 612
+Run time: 0.04647s pldib states: 83; edges: 619
+Run time: 0.061127s nsbc states: 82; edges: 612
+autfilt state: 102; edges: 977
+
+
+File79: easy172.hoa
+Run time: 0.017496s spot states: 44; edges: 161
+Run time: 0.013209s pldi states: 31; edges: 113
+Run time: 0.016154s pldib states: 32; edges: 117
+Run time: 0.022563s nsbc states: 52; edges: 206
+autfilt state: 38; edges: 171
+
+
+File80: easy173.hoa
+Run time: 0.007811s spot states: 7; edges: 25
+Run time: 0.007826s pldi states: 7; edges: 25
+Run time: 0.007881s pldib states: 8; edges: 28
+Run time: 0.007876s nsbc states: 7; edges: 25
+autfilt state: 28; edges: 133
+
+
+File81: easy174.hoa
+Run time: 0.012386s spot states: 24; edges: 91
+Run time: 0.010615s pldi states: 22; edges: 79
+Run time: 0.012155s pldib states: 22; edges: 95
+Run time: 0.01406s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File82: easy175.hoa
+Run time: 0.005508s spot states: 6; edges: 17
+Run time: 0.005363s pldi states: 6; edges: 17
+Run time: 0.006308s pldib states: 7; edges: 22
+Run time: 0.00647s nsbc states: 10; edges: 35
+autfilt state: 8; edges: 30
+
+
+File83: easy176.hoa
+Run time: 0.006915s spot states: 9; edges: 28
+Run time: 0.006494s pldi states: 9; edges: 28
+Run time: 0.007144s pldib states: 10; edges: 29
+Run time: 0.008559s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File84: easy177.hoa
+spot timeout
+Run time: 0.051672s pldi states: 61; edges: 249
+Run time: 0.058468s pldib states: 64; edges: 241
+Run time: 0.185984s nsbc states: 84; edges: 426
+autfilt state: 300; edges: 4550
+
+
+File85: easy178.hoa
+Run time: 0.005437s spot states: 6; edges: 15
+Run time: 0.005019s pldi states: 6; edges: 15
+Run time: 0.005397s pldib states: 7; edges: 22
+Run time: 0.006094s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File86: easy179.hoa
+Run time: 0.015453s spot states: 26; edges: 85
+Run time: 0.015151s pldi states: 26; edges: 85
+Run time: 0.01838s pldib states: 27; edges: 78
+Run time: 0.040567s nsbc states: 38; edges: 149
+autfilt state: 72; edges: 665
+
+
+File87: easy17.hoa
+Run time: 0.006595s spot states: 9; edges: 25
+Run time: 0.006904s pldi states: 9; edges: 25
+Run time: 0.007007s pldib states: 10; edges: 28
+Run time: 0.008183s nsbc states: 9; edges: 31
+autfilt state: 16; edges: 74
+
+
+File88: easy180.hoa
+spot timeout
+Run time: 1.26912s pldi states: 349; edges: 2207
+Run time: 0.437484s pldib states: 300; edges: 2130
+nsbc timeout 
+autfilt state: 996; edges: 12250
+
+
+File89: easy181.hoa
+Run time: 0.007239s spot states: 14; edges: 44
+Run time: 0.006685s pldi states: 11; edges: 35
+Run time: 0.006258s pldib states: 10; edges: 45
+Run time: 0.006843s nsbc states: 12; edges: 48
+autfilt state: 13; edges: 73
+
+
+File90: easy182.hoa
+Run time: 0.010792s spot states: 24; edges: 89
+Run time: 0.008445s pldi states: 22; edges: 77
+Run time: 0.00761s pldib states: 22; edges: 93
+Run time: 0.010443s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File91: easy183.hoa
+Run time: 0.009502s spot states: 16; edges: 62
+Run time: 0.006476s pldi states: 15; edges: 54
+Run time: 0.007264s pldib states: 17; edges: 67
+Run time: 0.009586s nsbc states: 23; edges: 104
+autfilt state: 26; edges: 167
+
+
+File92: easy184.hoa
+Run time: 0.006138s spot states: 6; edges: 15
+Run time: 0.005106s pldi states: 6; edges: 15
+Run time: 0.005493s pldib states: 7; edges: 22
+Run time: 0.00679s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File93: easy185.hoa
+Run time: 0.019406s spot states: 43; edges: 220
+Run time: 0.013343s pldi states: 33; edges: 174
+Run time: 0.058806s pldib states: 43; edges: 236
+Run time: 0.031547s nsbc states: 72; edges: 485
+autfilt state: 54; edges: 413
+
+
+File94: easy186.hoa
+Run time: 0.05343s spot states: 30; edges: 121
+Run time: 0.044961s pldi states: 24; edges: 97
+Run time: 0.053196s pldib states: 24; edges: 117
+Run time: 0.088985s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File95: easy187.hoa
+Run time: 0.03884s spot states: 39; edges: 153
+Run time: 0.02461s pldi states: 33; edges: 147
+Run time: 0.027833s pldib states: 35; edges: 165
+Run time: 0.079265s nsbc states: 78; edges: 525
+autfilt state: 50; edges: 417
+
+
+File96: easy188.hoa
+Run time: 0.007068s spot states: 9; edges: 28
+Run time: 0.00614s pldi states: 9; edges: 28
+Run time: 0.006684s pldib states: 10; edges: 29
+Run time: 0.007972s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File97: easy189.hoa
+Run time: 0.006573s spot states: 8; edges: 23
+Run time: 0.005562s pldi states: 8; edges: 23
+Run time: 0.005902s pldib states: 9; edges: 25
+Run time: 0.006404s nsbc states: 8; edges: 28
+autfilt state: 11; edges: 43
+
+
+File98: easy18.hoa
+Run time: 0.016529s spot states: 30; edges: 119
+Run time: 0.012894s pldi states: 28; edges: 114
+Run time: 0.013318s pldib states: 28; edges: 124
+Run time: 0.020573s nsbc states: 36; edges: 195
+autfilt state: 33; edges: 230
+
+
+File99: easy190.hoa
+Run time: 0.010124s spot states: 24; edges: 89
+Run time: 0.007882s pldi states: 22; edges: 77
+Run time: 0.008525s pldib states: 22; edges: 93
+Run time: 0.008702s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 176
+
+
+File100: easy191.hoa
+Run time: 0.008008s spot states: 12; edges: 50
+Run time: 0.006961s pldi states: 12; edges: 50
+Run time: 0.006833s pldib states: 14; edges: 58
+Run time: 0.010042s nsbc states: 26; edges: 140
+autfilt state: 23; edges: 139
+
+
+File101: easy192.hoa
+Run time: 0.034945s spot states: 92; edges: 285
+Run time: 0.028666s pldi states: 68; edges: 243
+Run time: 0.028857s pldib states: 62; edges: 227
+Run time: 0.198609s nsbc states: 163; edges: 809
+autfilt state: 183; edges: 1223
+
+
+File102: easy193.hoa
+Run time: 0.010234s spot states: 24; edges: 89
+Run time: 0.007374s pldi states: 22; edges: 77
+Run time: 0.009178s pldib states: 22; edges: 93
+Run time: 0.008769s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File103: easy194.hoa
+Run time: 0.065025s spot states: 30; edges: 121
+Run time: 0.069218s pldi states: 24; edges: 97
+Run time: 0.065965s pldib states: 24; edges: 117
+Run time: 0.109168s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File104: easy195.hoa
+Run time: 0.007799s spot states: 8; edges: 21
+Run time: 0.005803s pldi states: 8; edges: 21
+Run time: 0.006428s pldib states: 9; edges: 28
+Run time: 0.007244s nsbc states: 11; edges: 42
+autfilt state: 11; edges: 50
+
+
+File105: easy196.hoa
+Run time: 0.019869s spot states: 30; edges: 119
+Run time: 0.01809s pldi states: 28; edges: 114
+Run time: 0.018065s pldib states: 28; edges: 124
+Run time: 0.029221s nsbc states: 36; edges: 195
+autfilt state: 33; edges: 230
+
+
+File106: easy197.hoa
+Run time: 0.253129s spot states: 11; edges: 37
+Run time: 0.178191s pldi states: 11; edges: 37
+Run time: 0.212509s pldib states: 12; edges: 51
+Run time: 0.296341s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File107: easy198.hoa
+Run time: 0.012231s spot states: 25; edges: 101
+Run time: 0.010816s pldi states: 21; edges: 87
+Run time: 0.011446s pldib states: 22; edges: 103
+Run time: 0.015881s nsbc states: 30; edges: 180
+autfilt state: 25; edges: 201
+
+
+File108: easy199.hoa
+Run time: 0.012149s spot states: 19; edges: 67
+Run time: 0.011506s pldi states: 19; edges: 67
+Run time: 0.014091s pldib states: 20; edges: 66
+Run time: 0.022331s nsbc states: 26; edges: 113
+autfilt state: 48; edges: 442
+
+
+File109: easy19.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 193; edges: 3571
+
+
+File110: easy1.hoa
+Run time: 0.008604s spot states: 24; edges: 89
+Run time: 0.007564s pldi states: 22; edges: 77
+Run time: 0.008585s pldib states: 22; edges: 93
+Run time: 0.008519s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File111: easy200.hoa
+Run time: 0.009246s spot states: 21; edges: 81
+Run time: 0.007879s pldi states: 20; edges: 73
+Run time: 0.00803s pldib states: 19; edges: 82
+Run time: 0.009333s nsbc states: 25; edges: 120
+autfilt state: 28; edges: 193
+
+
+File112: easy202.hoa
+Run time: 0.054564s spot states: 30; edges: 121
+Run time: 0.047074s pldi states: 24; edges: 97
+Run time: 0.055642s pldib states: 24; edges: 117
+Run time: 0.09306s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File113: easy203.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 1547; edges: 23257
+
+
+File114: easy204.hoa
+Run time: 0.015929s spot states: 28; edges: 116
+Run time: 0.013745s pldi states: 23; edges: 90
+Run time: 0.014592s pldib states: 22; edges: 106
+Run time: 0.024819s nsbc states: 33; edges: 191
+autfilt state: 27; edges: 209
+
+
+File115: easy205.hoa
+Run time: 0.156648s spot states: 11; edges: 37
+Run time: 0.113653s pldi states: 11; edges: 37
+Run time: 0.117095s pldib states: 12; edges: 51
+Run time: 0.140908s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File116: easy206.hoa
+Run time: 0.008723s spot states: 24; edges: 89
+Run time: 0.008071s pldi states: 22; edges: 77
+Run time: 0.008419s pldib states: 22; edges: 93
+Run time: 0.009121s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File117: easy207.hoa
+Run time: 0.007511s spot states: 11; edges: 29
+Run time: 0.007177s pldi states: 11; edges: 29
+Run time: 0.007595s pldib states: 12; edges: 40
+Run time: 0.008451s nsbc states: 15; edges: 60
+autfilt state: 16; edges: 76
+
+
+File118: easy208.hoa
+Run time: 0.015627s spot states: 24; edges: 91
+Run time: 0.012513s pldi states: 22; edges: 79
+Run time: 0.014107s pldib states: 22; edges: 95
+Run time: 0.020238s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File119: easy209.hoa
+Run time: 0.01633s spot states: 42; edges: 225
+Run time: 0.017863s pldi states: 36; edges: 198
+Run time: 0.012685s pldib states: 32; edges: 200
+Run time: 0.024945s nsbc states: 66; edges: 467
+autfilt state: 51; edges: 497
+
+
+File120: easy20.hoa
+Run time: 0.016899s spot states: 26; edges: 111
+Run time: 0.014541s pldi states: 23; edges: 90
+Run time: 0.016263s pldib states: 24; edges: 112
+Run time: 0.022018s nsbc states: 33; edges: 167
+autfilt state: 29; edges: 205
+
+
+File121: easy210.hoa
+Run time: 0.005488s spot states: 4; edges: 9
+Run time: 0.005204s pldi states: 4; edges: 9
+Run time: 0.006328s pldib states: 5; edges: 12
+Run time: 0.006505s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File122: easy211.hoa
+Run time: 0.056542s spot states: 30; edges: 121
+Run time: 0.047819s pldi states: 24; edges: 97
+Run time: 0.05591s pldib states: 24; edges: 117
+Run time: 0.09448s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File123: easy212.hoa
+Run time: 0.010282s spot states: 15; edges: 55
+Run time: 0.009741s pldi states: 14; edges: 52
+Run time: 0.008684s pldib states: 16; edges: 59
+Run time: 0.010047s nsbc states: 21; edges: 87
+autfilt state: 25; edges: 134
+
+
+File124: easy213.hoa
+Run time: 0.00633s spot states: 6; edges: 15
+Run time: 0.005385s pldi states: 6; edges: 15
+Run time: 0.005887s pldib states: 7; edges: 22
+Run time: 0.006292s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File125: easy214.hoa
+Run time: 0.007013s spot states: 7; edges: 23
+Run time: 0.006956s pldi states: 6; edges: 19
+Run time: 0.006361s pldib states: 7; edges: 23
+Run time: 0.00779s nsbc states: 13; edges: 52
+autfilt state: 9; edges: 37
+
+
+File126: easy215.hoa
+Run time: 0.151467s spot states: 81; edges: 446
+Run time: 0.015193s pldi states: 43; edges: 201
+Run time: 0.01635s pldib states: 45; edges: 228
+Run time: 0.285544s nsbc states: 207; edges: 1505
+autfilt state: 53; edges: 442
+
+
+File127: easy216.hoa
+Run time: 0.005879s spot states: 6; edges: 15
+Run time: 0.005261s pldi states: 6; edges: 15
+Run time: 0.005995s pldib states: 7; edges: 22
+Run time: 0.007005s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File128: easy217.hoa
+Run time: 0.020242s spot states: 46; edges: 148
+Run time: 0.018175s pldi states: 39; edges: 141
+Run time: 0.014479s pldib states: 31; edges: 124
+Run time: 0.027165s nsbc states: 48; edges: 261
+autfilt state: 42; edges: 306
+
+
+File129: easy218.hoa
+Run time: 0.016204s spot states: 16; edges: 67
+Run time: 0.013152s pldi states: 16; edges: 67
+Run time: 0.013298s pldib states: 20; edges: 89
+Run time: 0.017475s nsbc states: 24; edges: 126
+autfilt state: 26; edges: 165
+
+
+File130: easy219.hoa
+Run time: 0.006998s spot states: 13; edges: 30
+Run time: 0.007666s pldi states: 13; edges: 30
+Run time: 0.007201s pldib states: 14; edges: 35
+Run time: 0.010824s nsbc states: 24; edges: 61
+autfilt state: 13; edges: 33
+
+
+File131: easy21.hoa
+Run time: 0.01126s spot states: 13; edges: 51
+Run time: 0.009618s pldi states: 12; edges: 48
+Run time: 0.009044s pldib states: 14; edges: 55
+Run time: 0.01217s nsbc states: 17; edges: 79
+autfilt state: 24; edges: 143
+
+
+File132: easy220.hoa
+Run time: 0.011351s spot states: 19; edges: 79
+Run time: 0.009704s pldi states: 19; edges: 69
+Run time: 0.010341s pldib states: 20; edges: 78
+Run time: 0.014387s nsbc states: 31; edges: 153
+autfilt state: 28; edges: 175
+
+
+File133: easy221.hoa
+Run time: 0.006896s spot states: 6; edges: 15
+Run time: 0.006038s pldi states: 6; edges: 15
+Run time: 0.006313s pldib states: 7; edges: 22
+Run time: 0.005989s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File134: easy222.hoa
+Run time: 0.344972s spot states: 245; edges: 1567
+Run time: 0.165671s pldi states: 169; edges: 1021
+Run time: 0.192005s pldib states: 173; edges: 977
+Run time: 4.16827s nsbc states: 582; edges: 4934
+autfilt state: 325; edges: 3411
+
+
+File135: easy223.hoa
+Run time: 0.009129s spot states: 14; edges: 41
+Run time: 0.008036s pldi states: 14; edges: 41
+Run time: 0.008939s pldib states: 15; edges: 39
+Run time: 0.011924s nsbc states: 16; edges: 57
+autfilt state: 10; edges: 34
+
+
+File136: easy224.hoa
+Run time: 0.009626s spot states: 14; edges: 54
+Run time: 0.008588s pldi states: 13; edges: 49
+Run time: 0.009105s pldib states: 12; edges: 47
+Run time: 0.014826s nsbc states: 23; edges: 119
+autfilt state: 30; edges: 229
+
+
+File137: easy225.hoa
+Run time: 0.028294s spot states: 43; edges: 184
+Run time: 0.025869s pldi states: 43; edges: 183
+Run time: 0.0209s pldib states: 43; edges: 220
+Run time: 0.055245s nsbc states: 63; edges: 429
+autfilt state: 71; edges: 729
+
+
+File138: easy226.hoa
+Run time: 0.008135s spot states: 12; edges: 35
+Run time: 0.00682s pldi states: 12; edges: 35
+Run time: 0.007834s pldib states: 13; edges: 35
+Run time: 0.00842s nsbc states: 12; edges: 44
+autfilt state: 15; edges: 61
+
+
+File139: easy227.hoa
+Run time: 0.062907s spot states: 30; edges: 121
+Run time: 0.057012s pldi states: 24; edges: 97
+Run time: 0.061754s pldib states: 24; edges: 117
+Run time: 0.102209s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File140: easy228.hoa
+Run time: 0.009604s spot states: 14; edges: 54
+Run time: 0.008656s pldi states: 13; edges: 49
+Run time: 0.009907s pldib states: 12; edges: 47
+Run time: 0.015191s nsbc states: 23; edges: 119
+autfilt state: 30; edges: 229
+
+
+File141: easy229.hoa
+Run time: 0.0083s spot states: 10; edges: 42
+Run time: 0.007095s pldi states: 9; edges: 39
+Run time: 0.006956s pldib states: 9; edges: 34
+Run time: 0.008902s nsbc states: 15; edges: 71
+autfilt state: 22; edges: 146
+
+
+File142: easy22.hoa
+Run time: 0.006365s spot states: 8; edges: 21
+Run time: 0.006287s pldi states: 8; edges: 21
+Run time: 0.006923s pldib states: 9; edges: 28
+Run time: 0.006926s nsbc states: 11; edges: 42
+autfilt state: 11; edges: 50
+
+
+File143: easy230.hoa
+Run time: 0.083943s spot states: 28; edges: 107
+Run time: 0.077842s pldi states: 23; edges: 85
+Run time: 0.094335s pldib states: 22; edges: 100
+Run time: 0.166448s nsbc states: 25; edges: 121
+autfilt state: 28; edges: 194
+
+
+File144: easy231.hoa
+Run time: 0.008071s spot states: 15; edges: 46
+Run time: 0.00756s pldi states: 14; edges: 50
+Run time: 0.006811s pldib states: 14; edges: 51
+Run time: 0.008283s nsbc states: 19; edges: 74
+autfilt state: 21; edges: 108
+
+
+File145: easy232.hoa
+Run time: 0.007115s spot states: 9; edges: 26
+Run time: 0.006988s pldi states: 8; edges: 21
+Run time: 0.006959s pldib states: 9; edges: 28
+Run time: 0.007118s nsbc states: 13; edges: 48
+autfilt state: 14; edges: 69
+
+
+File146: easy233.hoa
+Run time: 0.009891s spot states: 10; edges: 33
+Run time: 0.009846s pldi states: 10; edges: 33
+Run time: 0.008962s pldib states: 11; edges: 40
+Run time: 0.011871s nsbc states: 15; edges: 62
+autfilt state: 13; edges: 65
+
+
+File147: easy234.hoa
+spot timeout
+Run time: 3.6917s pldi states: 309; edges: 1482
+Run time: 32.9234s pldib states: 313; edges: 1441
+Run time: 13.6514s nsbc states: 433; edges: 3393
+autfilt state: 427; edges: 6660
+
+
+File148: easy235.hoa
+Run time: 0.009761s spot states: 16; edges: 66
+Run time: 0.008428s pldi states: 16; edges: 62
+Run time: 0.009434s pldib states: 19; edges: 78
+Run time: 0.009836s nsbc states: 16; edges: 66
+autfilt state: 19; edges: 102
+
+
+File149: easy236.hoa
+Run time: 0.021776s spot states: 39; edges: 160
+Run time: 0.013634s pldi states: 34; edges: 144
+Run time: 0.014389s pldib states: 32; edges: 148
+Run time: 0.028019s nsbc states: 54; edges: 366
+autfilt state: 40; edges: 343
+
+
+File150: easy237.hoa
+Run time: 0.007187s spot states: 6; edges: 15
+Run time: 0.005814s pldi states: 6; edges: 15
+Run time: 0.006253s pldib states: 7; edges: 22
+Run time: 0.006268s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File151: easy238.hoa
+Run time: 0.012901s spot states: 29; edges: 77
+Run time: 0.010823s pldi states: 29; edges: 77
+Run time: 0.014783s pldib states: 30; edges: 83
+Run time: 0.018895s nsbc states: 36; edges: 121
+autfilt state: 35; edges: 140
+
+
+File152: easy239.hoa
+Run time: 0.009389s spot states: 21; edges: 81
+Run time: 0.007825s pldi states: 20; edges: 73
+Run time: 0.008009s pldib states: 19; edges: 82
+Run time: 0.009691s nsbc states: 25; edges: 120
+autfilt state: 28; edges: 193
+
+
+File153: easy23.hoa
+Run time: 0.04907s spot states: 74; edges: 244
+Run time: 0.038601s pldi states: 62; edges: 221
+Run time: 0.041483s pldib states: 65; edges: 204
+Run time: 0.116858s nsbc states: 79; edges: 421
+autfilt state: 87; edges: 903
+
+
+File154: easy240.hoa
+Run time: 0.01149s spot states: 24; edges: 91
+Run time: 0.010007s pldi states: 22; edges: 79
+Run time: 0.010841s pldib states: 22; edges: 95
+Run time: 0.012149s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File155: easy241.hoa
+Run time: 0.014235s spot states: 28; edges: 104
+Run time: 0.011337s pldi states: 23; edges: 83
+Run time: 0.012143s pldib states: 22; edges: 98
+Run time: 0.013073s nsbc states: 25; edges: 119
+autfilt state: 27; edges: 186
+
+
+File156: easy242.hoa
+Run time: 0.010887s spot states: 10; edges: 35
+Run time: 0.009779s pldi states: 10; edges: 35
+Run time: 0.012125s pldib states: 11; edges: 37
+Run time: 0.015499s nsbc states: 15; edges: 62
+autfilt state: 15; edges: 75
+
+
+File157: easy243.hoa
+Run time: 0.043021s spot states: 65; edges: 233
+Run time: 0.040018s pldi states: 57; edges: 214
+Run time: 0.037258s pldib states: 55; edges: 218
+Run time: 0.066043s nsbc states: 71; edges: 430
+autfilt state: 59; edges: 471
+
+
+File158: easy244.hoa
+Run time: 0.00755s spot states: 12; edges: 35
+Run time: 0.007426s pldi states: 12; edges: 35
+Run time: 0.009209s pldib states: 13; edges: 35
+Run time: 0.009603s nsbc states: 12; edges: 44
+autfilt state: 15; edges: 61
+
+
+File159: easy245.hoa
+Run time: 0.477566s spot states: 30; edges: 121
+Run time: 0.433488s pldi states: 24; edges: 97
+Run time: 0.470869s pldib states: 24; edges: 117
+Run time: 0.910259s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File160: easy246.hoa
+Run time: 0.005826s spot states: 4; edges: 9
+Run time: 0.00578s pldi states: 4; edges: 9
+Run time: 0.006256s pldib states: 5; edges: 12
+Run time: 0.006346s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File161: easy247.hoa
+Run time: 0.010374s spot states: 28; edges: 101
+Run time: 0.009095s pldi states: 23; edges: 81
+Run time: 0.010609s pldib states: 22; edges: 95
+Run time: 0.012919s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File162: easy248.hoa
+Run time: 0.198673s spot states: 30; edges: 121
+Run time: 0.168196s pldi states: 24; edges: 97
+Run time: 0.18047s pldib states: 24; edges: 117
+Run time: 0.37141s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File163: easy249.hoa
+Run time: 0.00952s spot states: 24; edges: 89
+Run time: 0.008575s pldi states: 22; edges: 77
+Run time: 0.008623s pldib states: 22; edges: 93
+Run time: 0.010526s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File164: easy24.hoa
+Run time: 0.209394s spot states: 30; edges: 121
+Run time: 0.167302s pldi states: 24; edges: 97
+Run time: 0.193298s pldib states: 24; edges: 117
+Run time: 0.383603s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File165: easy250.hoa
+Run time: 0.010447s spot states: 9; edges: 36
+Run time: 0.006986s pldi states: 9; edges: 33
+Run time: 0.008152s pldib states: 11; edges: 47
+Run time: 0.008579s nsbc states: 15; edges: 70
+autfilt state: 25; edges: 162
+
+
+File166: easy251.hoa
+Run time: 0.010692s spot states: 28; edges: 131
+Run time: 0.009301s pldi states: 21; edges: 107
+Run time: 0.010231s pldib states: 24; edges: 127
+Run time: 0.017062s nsbc states: 49; edges: 294
+autfilt state: 34; edges: 247
+
+
+File167: easy252.hoa
+Run time: 0.007428s spot states: 16; edges: 62
+Run time: 0.00673s pldi states: 15; edges: 54
+Run time: 0.007665s pldib states: 17; edges: 67
+Run time: 0.008449s nsbc states: 23; edges: 104
+autfilt state: 26; edges: 167
+
+
+File168: easy253.hoa
+Run time: 0.03457s spot states: 14; edges: 87
+Run time: 0.034889s pldi states: 14; edges: 87
+Run time: 0.035506s pldib states: 15; edges: 94
+Run time: 0.039655s nsbc states: 14; edges: 87
+autfilt state: 45; edges: 546
+
+
+File169: easy254.hoa
+Run time: 0.231374s spot states: 30; edges: 121
+Run time: 0.181909s pldi states: 24; edges: 97
+Run time: 0.205724s pldib states: 24; edges: 117
+Run time: 0.396442s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File170: easy255.hoa
+Run time: 0.008518s spot states: 13; edges: 30
+Run time: 0.008252s pldi states: 13; edges: 30
+Run time: 0.007447s pldib states: 14; edges: 35
+Run time: 0.011121s nsbc states: 24; edges: 61
+autfilt state: 13; edges: 33
+
+
+File171: easy256.hoa
+Run time: 0.008038s spot states: 11; edges: 35
+Run time: 0.008829s pldi states: 11; edges: 35
+Run time: 0.007507s pldib states: 13; edges: 46
+Run time: 0.009452s nsbc states: 19; edges: 81
+autfilt state: 17; edges: 54
+
+
+File172: easy257.hoa
+Run time: 0.028122s spot states: 48; edges: 152
+Run time: 0.022812s pldi states: 41; edges: 139
+Run time: 0.020018s pldib states: 33; edges: 130
+Run time: 0.04154s nsbc states: 50; edges: 277
+autfilt state: 42; edges: 311
+
+
+File173: easy258.hoa
+spot timeout
+Run time: 0.721589s pldi states: 300; edges: 1857
+Run time: 6.46821s pldib states: 319; edges: 1948
+nsbc timeout 
+autfilt state: 1246; edges: 10654
+
+
+File174: easy259.hoa
+Run time: 0.066884s spot states: 30; edges: 121
+Run time: 0.059602s pldi states: 24; edges: 97
+Run time: 0.065317s pldib states: 24; edges: 117
+Run time: 0.103283s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File175: easy25.hoa
+Run time: 0.023244s spot states: 42; edges: 147
+Run time: 0.02103s pldi states: 40; edges: 145
+Run time: 0.019717s pldib states: 31; edges: 128
+Run time: 0.031961s nsbc states: 46; edges: 257
+autfilt state: 39; edges: 283
+
+
+File176: easy260.hoa
+Run time: 0.015914s spot states: 30; edges: 119
+Run time: 0.013764s pldi states: 28; edges: 114
+Run time: 0.013638s  pldib states: 28; edges: 124
+Run time: 0.018051s nsbc states: 36; edges: 195
+autfilt state: 33; edges: 230
+
+
+File177: easy261.hoa
+Run time: 0.008192s spot states: 9; edges: 22
+Run time: 0.007833s pldi states: 9; edges: 22
+Run time: 0.007696s pldib states: 9; edges: 22
+Run time: 0.008389s nsbc states: 15; edges: 39
+autfilt state: 9; edges: 23
+
+
+File178: easy262.hoa
+Run time: 0.065004s spot states: 30; edges: 121
+Run time: 0.059843s pldi states: 24; edges: 97
+Run time: 0.060121s pldib states: 24; edges: 117
+Run time: 0.101955s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File179: easy263.hoa
+Run time: 0.043613s spot states: 44; edges: 259
+Run time: 0.034019s pldi states: 33; edges: 208
+Run time: 0.036978s pldib states: 45; edges: 301
+Run time: 0.065037s nsbc states: 73; edges: 605
+autfilt state: 58; edges: 559
+
+
+File180: easy264.hoa
+Run time: 0.48545s spot states: 30; edges: 121
+Run time: 0.460808s pldi states: 24; edges: 97
+Run time: 0.47927s pldib states: 24; edges: 117
+Run time: 0.926658s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File181: easy265.hoa
+Run time: 0.00694s spot states: 6; edges: 16
+Run time: 0.006022s pldi states: 6; edges: 16
+Run time: 0.006731s pldib states: 7; edges: 23
+Run time: 0.007609s nsbc states: 9; edges: 31
+autfilt state: 8; edges: 32
+
+
+File182: easy266.hoa
+Run time: 0.01661s spot states: 26; edges: 111
+Run time: 0.013349s pldi states: 23; edges: 90
+Run time: 0.016457s pldib states: 24; edges: 112
+Run time: 0.020708s nsbc states: 33; edges: 167
+autfilt state: 29; edges: 205
+
+
+File183: easy267.hoa
+Run time: 0.008998s spot states: 24; edges: 94
+Run time: 0.007807s pldi states: 21; edges: 83
+Run time: 0.008091s pldib states: 22; edges: 94
+Run time: 0.010679s nsbc states: 31; edges: 171
+autfilt state: 27; edges: 178
+
+
+File184: easy268.hoa
+Run time: 0.005577s spot states: 4; edges: 9
+Run time: 0.006289s pldi states: 4; edges: 9
+Run time: 0.00593s pldib states: 5; edges: 12
+Run time: 0.005961s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File185: easy269.hoa
+Run time: 0.012439s spot states: 20; edges: 63
+Run time: 0.011648s pldi states: 20; edges: 63
+Run time: 0.013811s pldib states: 21; edges: 59
+Run time: 0.026798s nsbc states: 27; edges: 104
+autfilt state: 24; edges: 102
+
+
+File186: easy26.hoa
+Run time: 0.013333s spot states: 25; edges: 107
+Run time: 0.011579s pldi states: 22; edges: 86
+Run time: 0.013604s pldib states: 23; edges: 107
+Run time: 0.018648s nsbc states: 31; edges: 159
+autfilt state: 28; edges: 194
+
+
+File187: easy270.hoa
+Run time: 0.034441s spot states: 14; edges: 87
+Run time: 0.034084s pldi states: 14; edges: 87
+Run time: 0.034395s pldib states: 15; edges: 94
+Run time: 0.039056s nsbc states: 14; edges: 87
+autfilt state: 45; edges: 540
+
+
+File188: easy271.hoa
+Run time: 0.005713s spot states: 6; edges: 15
+Run time: 0.006073s pldi states: 6; edges: 15
+Run time: 0.00572s pldib states: 7; edges: 22
+Run time: 0.006213s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File189: easy272.hoa
+Run time: 0.023128s spot states: 28; edges: 116
+Run time: 0.01872s pldi states: 23; edges: 90
+Run time: 0.021069s pldib states: 22; edges: 106
+Run time: 0.041356s nsbc states: 33; edges: 187
+autfilt state: 27; edges: 206
+
+
+File190: easy273.hoa
+Run time: 0.00855s spot states: 9; edges: 28
+Run time: 0.008022s pldi states: 9; edges: 28
+Run time: 0.009391s pldib states: 10; edges: 29
+Run time: 0.010675s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File191: easy274.hoa
+Run time: 4.46385s spot states: 263; edges: 1609
+Run time: 0.078218s pldi states: 119; edges: 674
+Run time: 0.107623s pldib states: 130; edges: 772
+Run time: 0.280206s nsbc states: 190; edges: 1420
+autfilt state: 283; edges: 3251
+
+
+File192: easy275.hoa
+Run time: 0.034114s spot states: 30; edges: 121
+Run time: 0.029355s pldi states: 24; edges: 97
+Run time: 0.031182s pldib states: 24; edges: 117
+Run time: 0.051888s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File193: easy276.hoa
+Run time: 0.017843s spot states: 24; edges: 91
+Run time: 0.013815s pldi states: 22; edges: 79
+Run time: 0.014634s pldib states: 22; edges: 95
+Run time: 0.017383s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File194: easy277.hoa
+Run time: 0.012271s spot states: 13; edges: 43
+Run time: 0.011062s pldi states: 13; edges: 43
+Run time: 0.011581s pldib states: 15; edges: 56
+Run time: 0.014326s nsbc states: 21; edges: 82
+autfilt state: 32; edges: 224
+
+
+File195: easy278.hoa
+Run time: 0.008293s spot states: 14; edges: 51
+Run time: 0.007653s pldi states: 11; edges: 41
+Run time: 0.00785s pldib states: 11; edges: 53
+Run time: 0.008221s nsbc states: 12; edges: 49
+autfilt state: 13; edges: 73
+
+
+File196: easy279.hoa
+Run time: 0.006641s spot states: 11; edges: 32
+Run time: 0.007059s pldi states: 11; edges: 32
+Run time: 0.007018s pldib states: 12; edges: 38
+Run time: 0.008879s nsbc states: 16; edges: 56
+autfilt state: 14; edges: 59
+
+
+File197: easy27.hoa
+Run time: 0.007894s spot states: 11; edges: 38
+Run time: 0.008447s pldi states: 11; edges: 38
+Run time: 0.008856s pldib states: 13; edges: 46
+Run time: 0.010768s nsbc states: 14; edges: 57
+autfilt state: 21; edges: 119
+
+
+File198: easy280.hoa
+Run time: 0.027192s spot states: 37; edges: 171
+Run time: 0.018649s pldi states: 36; edges: 169
+Run time: 0.020807s pldib states: 37; edges: 197
+Run time: 0.032295s nsbc states: 38; edges: 233
+autfilt state: 68; edges: 655
+
+
+File199: easy281.hoa
+Run time: 0.007487s spot states: 8; edges: 25
+Run time: 0.007923s pldi states: 8; edges: 25
+Run time: 0.007673s pldib states: 9; edges: 26
+Run time: 0.010735s nsbc states: 11; edges: 42
+autfilt state: 11; edges: 46
+
+
+File200: easy282.hoa
+Run time: 0.008631s spot states: 14; edges: 66
+Run time: 0.009661s pldi states: 14; edges: 66
+Run time: 0.008389s pldib states: 15; edges: 69
+Run time: 0.009283s nsbc states: 14; edges: 66
+autfilt state: 16; edges: 80
+
+
+File201: easy283.hoa
+Run time: 0.011702s spot states: 10; edges: 33
+Run time: 0.010893s pldi states: 10; edges: 33
+Run time: 0.013887s pldib states: 11; edges: 34
+Run time: 0.018378s nsbc states: 16; edges: 58
+autfilt state: 13; edges: 55
+
+
+File202: easy284.hoa
+Run time: 0.006236s spot states: 9; edges: 26
+Run time: 0.005889s pldi states: 8; edges: 21
+Run time: 0.006397s pldib states: 9; edges: 28
+Run time: 0.006927s nsbc states: 13; edges: 48
+autfilt state: 14; edges: 69
+
+
+File203: easy285.hoa
+Run time: 0.006915s spot states: 9; edges: 29
+Run time: 0.006936s pldi states: 9; edges: 29
+Run time: 0.00657s pldib states: 9; edges: 29
+Run time: 0.006206s nsbc states: 9; edges: 29
+autfilt state: 10; edges: 33
+
+
+File204: easy286.hoa
+Run time: 0.004966s spot states: 4; edges: 9
+Run time: 0.004807s pldi states: 4; edges: 9
+Run time: 0.005251s pldib states: 5; edges: 12
+Run time: 0.005973s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File205: easy287.hoa
+Run time: 0.006087s spot states: 6; edges: 15
+Run time: 0.005414s pldi states: 6; edges: 15
+Run time: 0.005721s pldib states: 7; edges: 22
+Run time: 0.00601s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File206: easy288.hoa
+Run time: 0.014427s spot states: 25; edges: 106
+Run time: 0.012401s pldi states: 22; edges: 85
+Run time: 0.015062s pldib states: 22; edges: 103
+Run time: 0.018663s nsbc states: 30; edges: 147
+autfilt state: 28; edges: 189
+
+
+File207: easy289.hoa
+Run time: 0.006502s spot states: 13; edges: 51
+Run time: 0.006312s pldi states: 12; edges: 48
+Run time: 0.006193s pldib states: 12; edges: 41
+Run time: 0.00643s nsbc states: 11; edges: 39
+autfilt state: 17; edges: 87
+
+
+File208: easy28.hoa
+Run time: 0.005331s spot states: 6; edges: 15
+Run time: 0.00573s pldi states: 6; edges: 15
+Run time: 0.00542s pldib states: 7; edges: 22
+Run time: 0.005882s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File209: easy290.hoa
+Run time: 0.007645s spot states: 20; edges: 51
+Run time: 0.006557s pldi states: 16; edges: 46
+Run time: 0.006773s pldib states: 17; edges: 53
+Run time: 0.009555s nsbc states: 29; edges: 124
+autfilt state: 21; edges: 106
+
+
+File210: easy291.hoa
+Run time: 0.035402s spot states: 77; edges: 408
+Run time: 0.01623s pldi states: 48; edges: 251
+Run time: 0.018476s pldib states: 51; edges: 304
+Run time: 4.27952s nsbc states: 85; edges: 692
+autfilt state: 79; edges: 590
+
+
+File211: easy292.hoa
+Run time: 0.064258s spot states: 78; edges: 450
+Run time: 0.033635s pldi states: 67; edges: 402
+Run time: 0.048933s pldib states: 83; edges: 551
+Run time: 0.15146s nsbc states: 135; edges: 1147
+autfilt state: 115; edges: 1174
+
+
+File212: easy293.hoa
+Run time: 0.056597s spot states: 30; edges: 121
+Run time: 0.046864s pldi states: 24; edges: 97
+Run time: 0.055244s pldib states: 24; edges: 117
+Run time: 0.092198s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File213: easy294.hoa
+Run time: 0.00582s spot states: 8; edges: 23
+Run time: 0.005637s pldi states: 8; edges: 23
+Run time: 0.005875s pldib states: 9; edges: 26
+Run time: 0.006841s nsbc states: 8; edges: 28
+autfilt state: 30; edges: 237
+
+
+File214: easy295.hoa
+Run time: 0.038412s spot states: 30; edges: 121
+Run time: 0.030499s pldi states: 24; edges: 97
+Run time: 0.034103s pldib states: 24; edges: 117
+Run time: 0.05618s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File215: easy296.hoa
+Run time: 0.005911s spot states: 8; edges: 24
+Run time: 0.005969s pldi states: 8; edges: 23
+Run time: 0.005982s pldib states: 9; edges: 30
+Run time: 0.006663s nsbc states: 12; edges: 45
+autfilt state: 11; edges: 54
+
+
+File216: easy297.hoa
+Run time: 0.013933s spot states: 25; edges: 107
+Run time: 0.012795s pldi states: 22; edges: 86
+Run time: 0.014992s pldib states: 23; edges: 108
+Run time: 0.020009s nsbc states: 31; edges: 161
+autfilt state: 28; edges: 202
+
+
+File217: easy298.hoa
+Run time: 0.008161s spot states: 24; edges: 94
+Run time: 0.00743s pldi states: 21; edges: 83
+Run time: 0.008122s pldib states: 22; edges: 94
+Run time: 0.009865s nsbc states: 31; edges: 171
+autfilt state: 27; edges: 178
+
+
+File218: easy299.hoa
+spot timeout
+Run time: 205.214s pldi states: 169; edges: 1939
+pldib timeout 
+nsbc timeout
+autfilt state: 80; edges: 3307
+ 
+
+File219: easy29.hoa
+Run time: 2.13373s spot states: 524; edges: 2429
+Run time: 0.398801s pldi states: 265; edges: 1450
+Run time: 0.54875s pldib states: 283; edges: 1463
+Run time: 1.15287s nsbc states: 488; edges: 3397
+autfilt state: 602; edges: 5680
+
+
+File220: easy2.hoa
+Run time: 0.005462s spot states: 6; edges: 15
+Run time: 0.00542s pldi states: 6; edges: 15
+Run time: 0.006051s pldib states: 7; edges: 22
+Run time: 0.00589s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File221: easy300.hoa
+Run time: 0.198436s spot states: 30; edges: 121
+Run time: 0.160405s pldi states: 24; edges: 97
+Run time: 0.196715s pldib states: 24; edges: 117
+Run time: 0.359958s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File222: easy301.hoa
+Run time: 0.015858s spot states: 24; edges: 106
+Run time: 0.01377s pldi states: 21; edges: 85
+Run time: 0.014644s pldib states: 22; edges: 106
+Run time: 0.021064s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File223: easy302.hoa
+Run time: 0.008081s spot states: 11; edges: 32
+Run time: 0.008065s pldi states: 11; edges: 32
+Run time: 0.007735s pldib states: 12; edges: 46
+Run time: 0.008372s nsbc states: 12; edges: 48
+autfilt state: 16; edges: 97
+
+
+File224: easy303.hoa
+Run time: 0.011992s spot states: 28; edges: 115
+Run time: 0.009824s pldi states: 23; edges: 88
+Run time: 0.010463s pldib states: 22; edges: 105
+Run time: 0.016093s nsbc states: 33; edges: 186
+autfilt state: 27; edges: 202
+
+
+File225: easy304.hoa
+Run time: 0.011805s spot states: 9; edges: 41
+Run time: 0.012223s pldi states: 9; edges: 41
+Run time: 0.013003s pldib states: 10; edges: 44
+Run time: 0.012739s nsbc states: 9; edges: 41
+autfilt state: 16; edges: 111
+
+
+File226: easy305.hoa
+Run time: 0.017945s spot states: 50; edges: 261
+Run time: 0.019048s pldi states: 40; edges: 213
+Run time: 0.013051s pldib states: 35; edges: 216
+Run time: 0.025839s nsbc states: 68; edges: 488
+autfilt state: 49; edges: 477
+
+
+File227: easy306.hoa
+Run time: 0.138909s spot states: 81; edges: 253
+Run time: 0.129158s pldi states: 80; edges: 247
+Run time: 0.13285s pldib states: 81; edges: 234
+Run time: 0.386096s nsbc states: 127; edges: 425
+autfilt state: 110; edges: 848
+
+
+File228: easy307.hoa
+Run time: 0.008299s spot states: 16; edges: 62
+Run time: 0.007157s pldi states: 15; edges: 54
+Run time: 0.007951s pldib states: 17; edges: 67
+Run time: 0.009474s nsbc states: 23; edges: 104
+autfilt state: 26; edges: 167
+
+
+File229: easy308.hoa
+Run time: 0.017608s spot states: 37; edges: 143
+Run time: 0.01341s pldi states: 30; edges: 106
+Run time: 0.014626s pldib states: 33; edges: 122
+Run time: 0.057308s nsbc states: 100; edges: 515
+autfilt state: 75; edges: 429
+
+
+File230: easy309.hoa
+Run time: 0.366441s spot states: 7; edges: 24
+Run time: 0.371452s pldi states: 7; edges: 24
+Run time: 0.385283s pldib states: 8; edges: 27
+Run time: 0.373954s nsbc states: 7; edges: 24
+autfilt state: 26; edges: 149
+
+
+File231: easy30.hoa
+Run time: 0.034699s spot states: 30; edges: 121
+Run time: 0.027719s pldi states: 24; edges: 97
+Run time: 0.031625s pldib states: 24; edges: 117
+Run time: 0.054966s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File232: easy310.hoa
+Run time: 0.009117s spot states: 16; edges: 93
+Run time: 0.007701s pldi states: 16; edges: 89
+Run time: 0.008393s pldib states: 19; edges: 107
+Run time: 0.011825s nsbc states: 28; edges: 190
+autfilt state: 48; edges: 463
+
+
+File233: easy311.hoa
+Run time: 0.006842s spot states: 5; edges: 15
+Run time: 0.006991s pldi states: 5; edges: 15
+Run time: 0.006325s pldib states: 6; edges: 18
+Run time: 0.005855s nsbc states: 5; edges: 15
+autfilt state: 12; edges: 53
+
+
+File234: easy312.hoa
+Run time: 0.015793s spot states: 24; edges: 106
+Run time: 0.013826s pldi states: 21; edges: 85
+Run time: 0.014892s pldib states: 22; edges: 106
+Run time: 0.0212s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File235: easy313.hoa
+Run time: 0.006539s spot states: 6; edges: 15
+Run time: 0.005992s pldi states: 6; edges: 15
+Run time: 0.006605s pldib states: 7; edges: 22
+Run time: 0.006496s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File236: easy314.hoa
+Run time: 0.01514s spot states: 26; edges: 111
+Run time: 0.012897s pldi states: 23; edges: 90
+Run time: 0.016425s pldib states: 24; edges: 112
+Run time: 0.021805s nsbc states: 33; edges: 167
+autfilt state: 29; edges: 206
+
+
+File237: easy315.hoa
+Run time: 0.053393s spot states: 81; edges: 319
+Run time: 0.034856s pldi states: 60; edges: 243
+Run time: 0.038534s pldib states: 62; edges: 291
+Run time: 0.149859s nsbc states: 99; edges: 696
+autfilt state: 87; edges: 823
+
+
+File238: easy316.hoa
+Run time: 0.00905s spot states: 24; edges: 89
+Run time: 0.008335s pldi states: 22; edges: 77
+Run time: 0.008282s pldib states: 22; edges: 93
+Run time: 0.009709s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File239: easy317.hoa
+Run time: 0.014536s spot states: 27; edges: 118
+Run time: 0.008017s pldi states: 16; edges: 65
+Run time: 0.007901s pldib states: 19; edges: 81
+Run time: 0.029215s nsbc states: 61; edges: 346
+autfilt state: 28; edges: 156
+
+
+File240: easy318.hoa
+Run time: 0.166481s spot states: 95; edges: 276
+Run time: 0.151922s pldi states: 87; edges: 269
+Run time: 0.135436s pldib states: 78; edges: 252
+Run time: 0.33336s nsbc states: 139; edges: 498
+autfilt state: 109; edges: 644
+
+
+File241: easy319.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 1348; edges: 27544
+
+
+File242: easy31.hoa
+Run time: 0.007958s spot states: 16; edges: 58
+Run time: 0.006854s pldi states: 12; edges: 45
+Run time: 0.007143s pldib states: 12; edges: 56
+Run time: 0.008465s nsbc states: 17; edges: 83
+autfilt state: 14; edges: 75
+
+
+File243: easy320.hoa
+Run time: 0.007982s spot states: 9; edges: 22
+Run time: 0.007057s pldi states: 9; edges: 22
+Run time: 0.007965s pldib states: 9; edges: 22
+Run time: 0.010171s nsbc states: 15; edges: 39
+autfilt state: 9; edges: 23
+
+
+File244: easy321.hoa
+Run time: 0.012549s spot states: 8; edges: 29
+Run time: 0.01175s pldi states: 8; edges: 29
+Run time: 0.012389s pldib states: 9; edges: 32
+Run time: 0.011297s nsbc states: 8; edges: 29
+autfilt state: 26; edges: 163
+
+
+File245: easy322.hoa
+Run time: 0.015342s spot states: 24; edges: 106
+Run time: 0.012929s pldi states: 21; edges: 85
+Run time: 0.013585s pldib states: 22; edges: 106
+Run time: 0.020185s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File246: easy323.hoa
+Run time: 0.015766s spot states: 24; edges: 106
+Run time: 0.013746s pldi states: 21; edges: 85
+Run time: 0.014541s pldib states: 22; edges: 106
+Run time: 0.020507s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File247: easy324.hoa
+Run time: 0.007404s spot states: 14; edges: 44
+Run time: 0.007475s pldi states: 11; edges: 35
+Run time: 0.007461s pldib states: 10; edges: 45
+Run time: 0.007937s nsbc states: 12; edges: 48
+autfilt state: 13; edges: 73
+
+
+File248: easy325.hoa
+Run time: 0.006325s spot states: 6; edges: 15
+Run time: 0.00635s pldi states: 6; edges: 15
+Run time: 0.006531s pldib states: 7; edges: 22
+Run time: 0.00732s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File249: easy326.hoa
+Run time: 0.007101s spot states: 7; edges: 23
+Run time: 0.006217s pldi states: 6; edges: 17
+Run time: 0.006448s pldib states: 7; edges: 20
+Run time: 0.006468s nsbc states: 10; edges: 41
+autfilt state: 17; edges: 93
+
+
+File250: easy327.hoa
+Run time: 0.00968s spot states: 27; edges: 111
+Run time: 0.008554s pldi states: 23; edges: 87
+Run time: 0.008065s pldib states: 21; edges: 101
+Run time: 0.010761s nsbc states: 31; edges: 169
+autfilt state: 27; edges: 206
+
+
+File251: easy328.hoa
+Run time: 0.005887s spot states: 4; edges: 9
+Run time: 0.005704s pldi states: 4; edges: 9
+Run time: 0.006058s pldib states: 5; edges: 12
+Run time: 0.00696s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File252: easy329.hoa
+Run time: 0.006153s spot states: 6; edges: 16
+Run time: 0.006017s pldi states: 6; edges: 16
+Run time: 0.006025s pldib states: 7; edges: 23
+Run time: 0.005743s nsbc states: 9; edges: 31
+autfilt state: 8; edges: 32
+
+
+File253: easy32.hoa
+Run time: 0.016109s spot states: 29; edges: 118
+Run time: 0.013654s pldi states: 24; edges: 92
+Run time: 0.0148s pldib states: 23; edges: 109
+Run time: 0.024024s nsbc states: 36; edges: 197
+autfilt state: 28; edges: 211
+
+
+File254: easy330.hoa
+Run time: 0.012109s spot states: 23; edges: 86
+Run time: 0.011378s pldi states: 20; edges: 72
+Run time: 0.010974s pldib states: 20; edges: 84
+Run time: 0.011151s nsbc states: 21; edges: 99
+autfilt state: 24; edges: 155
+
+
+File255: easy331.hoa
+Run time: 0.013641s spot states: 33; edges: 125
+Run time: 0.010494s pldi states: 26; edges: 90
+Run time: 0.011266s pldib states: 29; edges: 106
+Run time: 0.031147s nsbc states: 90; edges: 460
+autfilt state: 69; edges: 397
+
+
+File256: easy332.hoa
+Run time: 0.00467s spot states: 6; edges: 19
+Run time: 0.004504s pldi states: 6; edges: 19
+Run time: 0.005452s pldib states: 7; edges: 21
+Run time: 0.005608s nsbc states: 9; edges: 34
+autfilt state: 9; edges: 37
+
+
+File257: easy333.hoa
+Run time: 0.007938s spot states: 8; edges: 21
+Run time: 0.007311s pldi states: 8; edges: 21
+Run time: 0.007823s pldib states: 9; edges: 28
+Run time: 0.008624s nsbc states: 11; edges: 42
+autfilt state: 11; edges: 50
+
+
+File258: easy334.hoa
+Run time: 0.075472s spot states: 28; edges: 107
+Run time: 0.073277s pldi states: 23; edges: 85
+Run time: 0.09786s pldib states: 22; edges: 100
+Run time: 0.153781s nsbc states: 25; edges: 121
+autfilt state: 28; edges: 194
+
+
+File259: easy335.hoa
+Run time: 0.241657s spot states: 11; edges: 37
+Run time: 0.174763s pldi states: 11; edges: 37
+Run time: 0.214864s pldib states: 12; edges: 51
+Run time: 0.264171s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File260: easy336.hoa
+Run time: 0.007649s spot states: 9; edges: 28
+Run time: 0.006927s pldi states: 9; edges: 28
+Run time: 0.008773s pldib states: 10; edges: 29
+Run time: 0.011169s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File261: easy337.hoa
+Run time: 0.007964s spot states: 22; edges: 75
+Run time: 0.008338s pldi states: 18; edges: 60
+Run time: 0.007559s pldib states: 21; edges: 88
+Run time: 0.008273s nsbc states: 18; edges: 81
+autfilt state: 23; edges: 162
+
+
+File262: easy338.hoa
+Run time: 0.022967s spot states: 17; edges: 83
+Run time: 0.021756s pldi states: 17; edges: 83
+Run time: 0.018742s pldib states: 18; edges: 86
+Run time: 0.020533s nsbc states: 17; edges: 83
+autfilt state: 97; edges: 1043
+
+
+File263: easy339.hoa
+Run time: 0.008239s spot states: 9; edges: 28
+Run time: 0.008307s pldi states: 9; edges: 28
+Run time: 0.008485s pldib states: 10; edges: 29
+Run time: 0.010359s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File264: easy33.hoa
+Run time: 0.020826s spot states: 36; edges: 120
+Run time: 0.018091s pldi states: 28; edges: 98
+Run time: 0.016793s pldib states: 28; edges: 112
+Run time: 0.032201s nsbc states: 43; edges: 256
+autfilt state: 36; edges: 262
+
+
+File265: easy340.hoa
+Run time: 0.006879s spot states: 6; edges: 15
+Run time: 0.005897s pldi states: 6; edges: 15
+Run time: 0.006137s pldib states: 7; edges: 22
+Run time: 0.006149s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File266: easy341.hoa
+Run time: 0.019818s spot states: 53; edges: 235
+Run time: 0.0197s pldi states: 49; edges: 217
+Run time: 0.018808s pldib states: 48; edges: 243
+Run time: 0.032653s nsbc states: 74; edges: 495
+autfilt state: 51; edges: 453
+
+
+File267: easy342.hoa
+Run time: 0.01343s spot states: 27; edges: 129
+Run time: 0.011007s pldi states: 26; edges: 126
+Run time: 0.011791s pldib states: 28; edges: 142
+Run time: 0.015008s nsbc states: 35; edges: 210
+autfilt state: 34; edges: 281
+
+
+File268: easy343.hoa
+Run time: 0.022109s spot states: 34; edges: 127
+Run time: 0.0185s pldi states: 32; edges: 122
+Run time: 0.017409s pldib states: 32; edges: 129
+Run time: 0.032368s nsbc states: 38; edges: 203
+autfilt state: 40; edges: 298
+
+
+File269: easy344.hoa
+Run time: 0.019801s spot states: 40; edges: 176
+Run time: 0.012574s pldi states: 30; edges: 119
+Run time: 0.013891s pldib states: 31; edges: 141
+Run time: 0.026103s nsbc states: 54; edges: 345
+autfilt state: 71; edges: 453
+
+
+File270: easy345.hoa
+Run time: 0.215041s spot states: 30; edges: 121
+Run time: 0.177556s pldi states: 24; edges: 97
+Run time: 0.196637s pldib states: 24; edges: 117
+Run time: 0.394617s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File271: easy346.hoa
+Run time: 0.022002s spot states: 31; edges: 130
+Run time: 0.016609s pldi states: 28; edges: 124
+Run time: 0.015313s pldib states: 28; edges: 130
+Run time: 0.040676s nsbc states: 47; edges: 278
+autfilt state: 35; edges: 293
+
+
+File272: easy347.hoa
+Run time: 0.008623s spot states: 9; edges: 28
+Run time: 0.007516s pldi states: 9; edges: 28
+Run time: 0.007884s pldib states: 10; edges: 29
+Run time: 0.009657s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File273: easy348.hoa
+Run time: 0.021661s spot states: 40; edges: 183
+Run time: 0.019975s pldi states: 40; edges: 183
+Run time: 0.022396s pldib states: 44; edges: 222
+Run time: 0.059101s nsbc states: 59; edges: 397
+autfilt state: 75; edges: 696
+
+
+File274: easy349.hoa
+Run time: 0.007024s spot states: 9; edges: 28
+Run time: 0.006966s pldi states: 9; edges: 28
+Run time: 0.008937s pldib states: 10; edges: 29
+Run time: 0.00781s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File275: easy34.hoa
+Run time: 0.446476sspot states: 30; edges: 121
+Run time: 0.441604s pldi states: 24; edges: 97
+Run time: 0.451102s pldib states: 24; edges: 117
+Run time: 0.853778s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File276: easy350.hoa
+Run time: 0.006671s spot states: 6; edges: 15
+Run time: 0.005987s pldi states: 6; edges: 15
+Run time: 0.005751s pldib states: 7; edges: 22
+Run time: 0.0061s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File277: easy351.hoa
+Run time: 0.209384s spot states: 30; edges: 121
+Run time: 0.165884s pldi states: 24; edges: 97
+Run time: 0.184702s pldib states: 24; edges: 117
+Run time: 0.37868s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File278: easy352.hoa
+Run time: 0.007896s spot states: 12; edges: 59
+Run time: 0.007538s pldi states: 12; edges: 59
+Run time: 0.007148s pldib states: 13; edges: 63
+Run time: 0.009068s nsbc states: 20; edges: 117
+autfilt state: 36; edges: 272
+
+
+File279: easy353.hoa
+Run time: 0.017586s spot states: 28; edges: 108
+Run time: 0.016798s pldi states: 23; edges: 88
+Run time: 0.016032s pldib states: 22; edges: 103
+Run time: 0.023394s nsbc states: 31; edges: 170
+autfilt state: 28; edges: 199
+
+
+File280: easy354.hoa
+Run time: 0.007633s spot states: 14; edges: 41
+Run time: 0.007994s pldi states: 14; edges: 41
+Run time: 0.008395s pldib states: 15; edges: 39
+Run time: 0.011575s nsbc states: 16; edges: 57
+autfilt state: 10; edges: 34
+
+
+File281: easy355.hoa
+Run time: 0.007601s spot states: 18; edges: 74
+Run time: 0.00681s pldi states: 14; edges: 61
+Run time: 0.006734s pldib states: 14; edges: 59
+Run time: 0.007245s nsbc states: 17; edges: 77
+autfilt state: 23; edges: 162
+
+
+File282: easy356.hoa
+Run time: 0.007259s spot states: 5; edges: 11
+Run time: 0.006281s pldi states: 5; edges: 11
+Run time: 0.007507s pldib states: 5; edges: 11
+Run time: 0.007087s nsbc states: 7; edges: 16
+autfilt state: 5; edges: 10
+
+
+File283: easy357.hoa
+Run time: 0.006393s spot states: 10; edges: 37
+Run time: 0.006332s pldi states: 9; edges: 35
+Run time: 0.006306s pldib states: 9; edges: 37
+Run time: 0.006512s nsbc states: 11; edges: 43
+autfilt state: 17; edges: 83
+
+
+File284: easy358.hoa
+Run time: 0.007204s spot states: 10; edges: 32
+Run time: 0.006207s pldi states: 10; edges: 32
+Run time: 0.007231s pldib states: 14; edges: 52
+Run time: 0.007402s nsbc states: 13; edges: 54
+autfilt state: 14; edges: 61
+
+
+File285: easy359.hoa
+Run time: 0.008397s spot states: 24; edges: 89
+Run time: 0.007911s pldi states: 22; edges: 77
+Run time: 0.007842s pldib states: 22; edges: 93
+Run time: 0.009364s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File286: easy35.hoa
+Run time: 0.016743s spot states: 28; edges: 116
+Run time: 0.013941s pldi states: 23; edges: 90
+Run time: 0.015195s pldib states: 22; edges: 106
+Run time: 0.025655s nsbc states: 33; edges: 191
+autfilt state: 27; edges: 209
+
+
+File287: easy360.hoa
+Run time: 0.006635s spot states: 9; edges: 28
+Run time: 0.006575s pldi states: 9; edges: 28
+Run time: 0.007333s pldib states: 10; edges: 29
+Run time: 0.00784s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File288: easy361.hoa
+Run time: 0.009006s spot states: 8; edges: 33
+Run time: 0.009167s pldi states: 8; edges: 33
+Run time: 0.008984s pldib states: 9; edges: 36
+Run time: 0.009098s nsbc states: 8; edges: 33
+autfilt state: 34; edges: 199
+
+
+File289: easy362.hoa
+Run time: 0.046694s spot states: 22; edges: 139
+Run time: 0.045747s pldi states: 22; edges: 139
+Run time: 0.049383s pldib states: 25; edges: 164
+Run time: 0.05135s nsbc states: 22; edges: 139
+autfilt state: 38; edges: 282
+
+
+File290: easy363.hoa
+Run time: 0.019245s spot states: 27; edges: 104
+Run time: 0.017372s pldi states: 25; edges: 99
+Run time: 0.016491s pldib states: 25; edges: 107
+Run time: 0.030228s nsbc states: 32; edges: 168
+autfilt state: 29; edges: 197
+
+
+File291: easy364.hoa
+Run time: 0.004978s spot states: 4; edges: 9
+Run time: 0.004986s pldi states: 4; edges: 9
+Run time: 0.005612s pldib states: 5; edges: 12
+Run time: 0.005908s nsbc states: 6; edges: 15
+autfilt state: 5; edges: 12
+
+
+File292: easy365.hoa
+Run time: 0.009125s spot states: 22; edges: 75
+Run time: 0.007123s pldi states: 18; edges: 60
+Run time: 0.007829s pldib states: 21; edges: 88
+Run time: 0.00772s nsbc states: 18; edges: 81
+autfilt state: 23; edges: 162
+
+
+File293: easy366.hoa
+Run time: 0.008493s spot states: 24; edges: 89
+Run time: 0.008515s pldi states: 22; edges: 77
+Run time: 0.008761s pldib states: 22; edges: 93
+Run time: 0.009318s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File294: easy367.hoa
+Run time: 0.01494s spot states: 24; edges: 106
+Run time: 0.013593s pldi states: 21; edges: 85
+Run time: 0.014941s pldib states: 22; edges: 106
+Run time: 0.021173s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File295: easy368.hoa
+Run time: 0.015233s spot states: 24; edges: 106
+Run time: 0.013046s pldi states: 21; edges: 85
+Run time: 0.014174s pldib states: 22; edges: 106
+Run time: 0.020912s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File296: easy369.hoa
+Run time: 0.011058s spot states: 13; edges: 51
+Run time: 0.008667s pldi states: 12; edges: 48
+Run time: 0.008677s pldib states: 14; edges: 55
+Run time: 0.011078s nsbc states: 17; edges: 79
+autfilt state: 24; edges: 143
+
+
+File297: easy36.hoa
+Run time: 0.00692s spot states: 12; edges: 34
+Run time: 0.006996s pldi states: 12; edges: 34
+Run time: 0.007894s pldib states: 13; edges: 40
+Run time: 0.008823s nsbc states: 16; edges: 58
+autfilt state: 14; edges: 62
+
+
+File298: easy370.hoa
+Run time: 0.16922s spot states: 11; edges: 37
+Run time: 0.116941s pldi states: 11; edges: 37
+Run time: 0.122235s pldib states: 12; edges: 51
+Run time: 0.154423s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File299: easy371.hoa
+Run time: 0.010693s spot states: 16; edges: 49
+Run time: 0.00773s pldi states: 12; edges: 39
+Run time: 0.008514s pldib states: 12; edges: 48
+Run time: 0.008956s nsbc states: 14; edges: 61
+autfilt state: 18; edges: 94
+
+
+File300: easy372.hoa
+Run time: 0.008713s spot states: 21; edges: 66
+Run time: 0.008618s pldi states: 18; edges: 60
+Run time: 0.010526s pldib states: 21; edges: 78
+Run time: 0.016142s nsbc states: 54; edges: 248
+autfilt state: 37; edges: 186
+
+
+File301: easy373.hoa
+Run time: 0.009575s spot states: 9; edges: 28
+Run time: 0.008094s pldi states: 9; edges: 28
+Run time: 0.008522s pldib states: 10; edges: 29
+Run time: 0.010313s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File302: easy374.hoa
+Run time: 0.046548s spot states: 48; edges: 230
+Run time: 0.030861s pldi states: 48; edges: 230
+Run time: 0.031601s pldib states: 51; edges: 210
+Run time: 0.072279s nsbc states: 77; edges: 478
+autfilt state: 101; edges: 996
+
+
+File303: easy375.hoa
+Run time: 0.008512s spot states: 12; edges: 50
+Run time: 0.006875s pldi states: 11; edges: 45
+Run time: 0.0063s pldib states: 13; edges: 56
+Run time: 0.0071s nsbc states: 12; edges: 52
+autfilt state: 16; edges: 87
+
+
+File304: easy376.hoa
+Run time: 0.009704s spot states: 22; edges: 90
+Run time: 0.00827s pldi states: 21; edges: 79
+Run time: 0.008192s pldib states: 21; edges: 97
+Run time: 0.010925s nsbc states: 30; edges: 159
+autfilt state: 29; edges: 196
+
+
+File305: easy37.hoa
+Run time: 0.006698s spot states: 6; edges: 15
+Run time: 0.006259s pldi states: 6; edges: 15
+Run time: 0.007892s pldib states: 7; edges: 22
+Run time: 0.007023s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File306: easy38.hoa
+Run time: 0.008481s spot states: 10; edges: 31
+Run time: 0.007115s pldi states: 10; edges: 31
+Run time: 0.008835s pldib states: 11; edges: 32
+Run time: 0.009976s nsbc states: 15; edges: 52
+autfilt state: 13; edges: 52
+
+
+File307: easy39.hoa
+Run time: 0.055722s spot states: 30; edges: 121
+Run time: 0.044558s pldi states: 24; edges: 97
+Run time: 0.051469s pldib states: 24; edges: 117
+Run time: 0.083772s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File308: easy3.hoa
+Run time: 0.148396s spot states: 11; edges: 37
+Run time: 0.106567s pldi states: 11; edges: 37
+Run time: 0.114113s pldib states: 12; edges: 51
+Run time: 0.143911s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File309: easy40.hoa
+Run time: 0.007145s spot states: 9; edges: 30
+Run time: 0.006551s pldi states: 9; edges: 30
+Run time: 0.006971s pldib states: 10; edges: 31
+Run time: 0.008162s nsbc states: 14; edges: 53
+autfilt state: 12; eges: 52
+
+
+File310: easy41.hoa
+Run time: 0.020447s spot states: 43; edges: 136
+Run time: 0.017921s pldi states: 37; edges: 126
+Run time: 0.015717s pldib states: 30; edges: 116
+Run time: 0.025262s nsbc states: 43; edges: 231
+autfilt state: 40; edges: 284
+
+
+File311: easy42.hoa
+Run time: 0.008117s spot states: 15; edges: 46
+Run time: 0.007574s pldi states: 14; edges: 50
+Run time: 0.00687s pldib states: 14; edges: 51
+Run time: 0.007658s nsbc states: 19; edges: 74
+autfilt state: 21; edges: 108
+
+
+File312: easy43.hoa
+Run time: 0.012237s spot states: 24; edges: 95
+Run time: 0.008934s pldi states: 21; edges: 80
+Run time: 0.008362s pldib states: 21; edges: 80
+Run time: 0.014736s nsbc states: 34; edges: 161
+autfilt state: 35; edges: 236
+
+
+File313: easy44.hoa
+Run time: 0.289671s spot states: 77; edges: 658
+Run time: 0.126735s pldi states: 47; edges: 357
+Run time: 0.108462s pldib states: 45; edges: 388
+Run time: 0.483929s nsbc states: 134; edges: 1418
+autfilt state: 89; edges: 995
+
+
+File314: easy45.hoa
+Run time: 0.00824s spot states: 13; edges: 50
+Run time: 0.008337s pldi states: 14; edges: 55
+Run time: 0.007539s pldib states: 12; edges: 49
+Run time: 0.007784s nsbc states: 12; edges: 43
+autfilt state: 18; edges: 101
+
+
+File315: easy46.hoa
+Run time: 0.019522s spot states: 30; edges: 131
+Run time: 0.018582s pldi states: 27; edges: 125
+Run time: 0.024768s pldib states: 29; edges: 144
+Run time: 0.027959s nsbc states: 42; edges: 220
+autfilt state: 41; eges: 251
+
+
+File316: easy47.hoa
+Run time: 0.006514s spot states: 7; edges: 22
+Run time: 0.006606s pldi states: 6; edges: 18
+Run time: 0.006095s pldib states: 7; edges: 22
+Run time: 0.007175s nsbc states: 13; edges: 54
+autfilt state: 9; edges: 37
+
+
+File317: easy48.hoa
+Run time: 0.485071s spot states: 30; edges: 121
+Run time: 0.447064s pldi states: 24; edges: 97
+Run time: 0.481605s pldib states: 24; edges: 117
+Run time: 0.919477s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File318: easy49.hoa
+Run time: 0.005148s spot states: 6; edges: 15
+Run time: 0.005388s pldi states: 6; edges: 15
+Run time: 0.005488s pldib states: 7; edges: 22
+Run time: 0.005623s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File319: easy4.hoa
+Run time: 0.018843s spot states: 41; edges: 198
+Run time: 0.011827s pldi states: 34; edges: 157
+Run time: 0.01257s pldib states: 31; edges: 171
+Run time: 0.0335s nsbc states: 67; edges: 434
+autfilt state: 41; edges: 300
+
+
+File320: easy50.hoa
+Run time: 0.006948s spot states: 9; edges: 28
+Run time: 0.007255s pldi states: 9; edges: 28
+Run time: 0.008077s pldib states: 10; edges: 29
+Run time: 0.010534s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File321: easy51.hoa
+Run time: 0.009596s spot states: 23; edges: 99
+Run time: 0.007154s pldi states: 14; edges: 58
+Run time: 0.006868s pldib states: 14; edges: 58
+Run time: 0.011496s nsbc states: 33; edges: 181
+autfilt state: 26; edges: 167
+
+
+File322: easy52.hoa
+Run time: 0.006332s spot states: 6; edges: 15
+Run time: 0.005555s pldi states: 6; edges: 15
+Run time: 0.005365s pldib states: 7; edges: 22
+Run time: 0.006158s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File323: easy53.hoa
+Run time: 0.280318s spot states: 230; edges: 797
+Run time: 0.182824s pldi states: 176; edges: 655
+Run time: 0.190046s pldib states: 172; edges: 634
+Run time: 4.28077s nsbc states: 335; edges: 1736
+autfilt state: 335; edges: 2101
+
+
+File324: easy54.hoa
+Run time: 0.015231s spot states: 33; edges: 125
+Run time: 0.011266s pldi states: 26; edges: 90
+Run time: 0.011069s pldib states: 29; edges: 106
+Run time: 0.031003s nsbc states: 90; edges: 460
+autfilt state: 69; edges: 397
+
+
+File325: easy55.hoa
+Run time: 0.007109s spot states: 9; edges: 28
+Run time: 0.006217s pldi states: 8; edges: 23
+Run time: 0.005993s pldib states: 9; edges: 32
+Run time: 0.006773s nsbc states: 13; edges: 59
+autfilt state: 16; edges: 95
+
+
+File326: easy56.hoa
+Run time: 0.008747s spot states: 9; edges: 29
+Run time: 0.008305s pldi states: 9; edges: 29
+Run time: 0.008648s pldib states: 11; edges: 45
+Run time: 0.00971s nsbc states: 14; edges: 62
+autfilt state: 17; edges: 91
+
+
+File327: easy57.hoa
+Run time: 0.884771s spot states: 150; edges: 1379
+Run time: 0.110067s pldi states: 72; edges: 546
+Run time: 0.079167s pldib states: 58; edges: 495
+Run time: 1.59418s nsbc states: 287; edges: 3476
+autfilt state: 78; edges: 1096
+
+
+File328: easy58.hoa
+Run time: 0.471813s spot states: 30; edges: 121
+Run time: 0.43169s pldi states: 24; edges: 97
+Run time: 0.468923s pldib states: 24; edges: 117
+Run time: 0.86892s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File329: easy59.hoa
+Run time: 0.008202s spot states: 24; edges: 89
+Run time: 0.00751s pldi states: 22; edges: 77
+Run time: 0.008337s pldib states: 22; edges: 93
+Run time: 0.008647s nsbc states: 25; edges: 116
+autfilt state: 27; edges: 177
+
+
+File330: easy5.hoa
+Run time: 0.035399s spot states: 53; edges: 205
+Run time: 0.035031s pldi states: 50; edges: 198
+Run time: 0.034332s pldib states: 52; edges: 172
+Run time: 0.126664s nsbc states: 74; edges: 391
+autfilt state: 75; edges: 622
+
+
+File331: easy60.hoa
+Run time: 0.021971s spot states: 36; edges: 119
+Run time: 0.016961s pldi states: 32; edges: 111
+Run time: 0.017516s pldib states: 31; edges: 119
+Run time: 0.06914s nsbc states: 46; edges: 225
+autfilt state: 35; edges: 204
+
+
+File332: easy61.hoa
+Run time: 0.007184s spot states: 10; edges: 32
+Run time: 0.006196s pldi states: 10; edges: 32
+Run time: 0.00706s pldib states: 14; edges: 52
+Run time: 0.007097s nsbc states: 13; edges: 54
+autfilt state: 14; edges: 61
+
+
+File333: easy62.hoa
+Run time: 0.045854s spot states: 30; edges: 121
+Run time: 0.03907s pldi states: 24; edges: 97
+Run time: 0.045235s pldib states: 24; edges: 117
+Run time: 0.083064s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File334: easy63.hoa
+Run time: 0.006615s spot states: 11; edges: 37
+Run time: 0.007718s pldi states: 11; edges: 37
+Run time: 0.006893s pldib states: 11; edges: 37
+Run time: 0.007168s nsbc states: 11; edges: 37
+autfilt state: 12; edges: 41
+
+
+File335: easy64.hoa
+Run time: 0.0067s spot states: 9; edges: 24
+Run time: 0.00611s pldi states: 9; edges: 24
+Run time: 0.0061s pldib states: 10; edges: 31
+Run time: 0.007482s nsbc states: 14; edges: 52
+autfilt state: 9; edges: 33
+
+
+File336: easy65.hoa
+Run time: 0.012008s spot states: 29; edges: 117
+Run time: 0.010943s pldi states: 24; edges: 91
+Run time: 0.010807s pldib states: 23; edges: 108
+Run time: 0.015756s nsbc states: 36; edges: 193
+autfilt state: 28; edges: 204
+
+
+File337: easy66.hoa
+Run time: 0.045366s spot states: 56; edges: 246
+Run time: 0.032117s pldi states: 55; edges: 240
+Run time: 0.035787s pldib states: 59; edges: 222
+Run time: 0.113428s nsbc states: 84; edges: 563
+autfilt state: 87; edges: 1003
+
+
+File338: easy67.hoa
+Run time: 0.019705s spot states: 32; edges: 128
+Run time: 0.013697s pldi states: 29; edges: 117
+Run time: 0.014109s pldib states: 27; edges: 129
+Run time: 0.023004s nsbc states: 34; edges: 198
+autfilt state: 38; edges: 291
+
+
+File339: easy68.hoa
+Run time: 0.018218s spot states: 30; edges: 119
+Run time: 0.016646s pldi states: 28; edges: 114
+Run time: 0.016728s pldib states: 28; edges: 124
+Run time: 0.02478s nsbc states: 36; edges: 195
+autfilt state: 33; edges: 230
+
+
+File340: easy69.hoa
+Run time: 0.060055s spot states: 30; edges: 121
+Run time: 0.059022s pldi states: 24; edges: 97
+Run time: 0.060797s pldib states: 24; edges: 117
+Run time: 0.103028s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File341: easy6.hoa
+Run time: 0.006072s spot states: 9; edges: 24
+Run time: 0.006264s pldi states: 9; edges: 24
+Run time: 0.006143s pldib states: 10; edges: 31
+Run time: 0.00661s nsbc states: 14; edges: 52
+autfilt state: 9; edges: 33
+
+
+File342: easy70.hoa
+Run time: 0.011296s spot states: 24; edges: 91
+Run time: 0.012039s pldi states: 24; edges: 91
+Run time: 0.009768s pldib states: 26; edges: 95
+Run time: 0.012312s nsbc states: 42; edges: 185
+autfilt state: 22; edges: 83
+
+
+File343: easy71.hoa
+Run time: 0.01227s spot states: 25; edges: 70
+Run time: 0.012323s pldi states: 25; edges: 70
+Run time: 0.020889s pldib states: 26; edges: 74
+Run time: 0.027556s nsbc states: 39; edges: 144
+autfilt state: 34; edges: 128
+
+
+File344: easy72.hoa
+Run time: 0.01428s spot states: 25; edges: 107
+Run time: 0.012492s pldi states: 22; edges: 86
+Run time: 0.014606s pldib states: 23; edges: 108
+Run time: 0.021093s nsbc states: 31; edges: 161
+autfilt state: 28; edges: 202
+
+
+File345: easy73.hoa
+Run time: 0.00724s spot states: 6; edges: 15
+Run time: 0.006426s pldi states: 6; edges: 15
+Run time: 0.006479s pldib states: 7; edges: 22
+Run time: 0.007703s nsbc states: 8; edges: 26
+autfilt state: 8; edges: 31
+
+
+File346: easy74.hoa
+Run time: 0.007358s spot states: 17; edges: 66
+Run time: 0.007996s pldi states: 15; edges: 58
+Run time: 0.007547s pldib states: 16; edges: 67
+Run time: 0.01058s nsbc states: 27; edges: 134
+autfilt state: 24; edges: 146
+
+
+File347: easy75.hoa
+Run time: 0.377791s spot states: 7; edges: 24
+Run time: 0.381195s pldi states: 7; edges: 24
+Run time: 0.384597s pldib states: 8; edges: 27
+Run time: 0.373585s nsbc states: 7; edges: 24
+autfilt state: 26; edges: 149
+
+
+File348: easy76.hoa
+Run time: 0.032757s spot states: 56; edges: 181
+Run time: 0.032212s pldi states: 50; edges: 180
+Run time: 0.029227s pldib states: 49; edges: 178
+Run time: 0.044921s nsbc states: 56; edges: 309
+autfilt state: 67; edges: 476
+
+
+File349: easy77.hoa
+Run time: 0.0057s spot states: 8; edges: 23
+Run time: 0.006038s pldi states: 8; edges: 23
+Run time: 0.007061s pldib states: 9; edges: 28
+Run time: 0.006352s nsbc states: 12; edges: 38
+autfilt state: 9; edges: 26
+
+
+File350: easy78.hoa
+Run time: 0.0156s spot states: 24; edges: 106
+Run time: 0.013165s pldi states: 21; edges: 85
+Run time: 0.014137s pldib states: 22; edges: 106
+Run time: 0.020273s nsbc states: 28; edges: 156
+autfilt state: 27; edges: 199
+
+
+File351: easy79.hoa
+Run time: 0.00926s spot states: 11; edges: 34
+Run time: 0.009546s pldi states: 11; edges: 34
+Run time: 0.011896s pldib states: 12; edges: 35
+Run time: 0.0161s nsbc states: 17; edges: 57
+autfilt state: 14; edges: 55
+
+
+File352: easy7.hoa
+Run time: 0.010935s spot states: 28; edges: 107
+Run time: 0.009529s pldi states: 23; edges: 85
+Run time: 0.010245s pldib states: 22; edges: 100
+Run time: 0.012234s nsbc states: 25; edges: 121
+autfilt state: 28; edges: 194
+
+
+File353: easy80.hoa
+Run time: 0.006837s spot states: 9; edges: 28
+Run time: 0.007125s pldi states: 9; edges: 28
+Run time: 0.008372s pldib states: 10; edges: 29
+Run time: 0.010822s nsbc states: 13; edges: 47
+autfilt state: 12; edges: 49
+
+
+File354: easy81.hoa
+Run time: 0.008926s spot states: 20; edges: 63
+Run time: 0.009009s pldi states: 20; edges: 63
+Run time: 0.010427s pldib states: 21; edges: 59
+Run time: 0.015628s nsbc states: 28; edges: 113
+autfilt state: 24; edges: 141
+
+
+File355: easy82.hoa
+Run time: 0.009369s spot states: 21; edges: 66
+Run time: 0.008384s pldi states: 18; edges: 60
+Run time: 0.008764s pldib states: 21; edges: 78
+Run time: 0.016098s nsbc states: 54; edges: 248
+autfilt state: 37; edges: 186
+
+
+File356: easy83.hoa
+Run time: 0.013995s spot states: 18; edges: 52
+Run time: 0.013122s pldi states: 18; edges: 52
+Run time: 0.014656s pldib states: 21; edges: 64
+Run time: 0.014559s nsbc states: 24; edges: 81
+autfilt state: 17; edges: 55
+
+
+File357: easy84.hoa
+Run time: 0.031077s spot states: 51; edges: 175
+Run time: 0.028065s pldi states: 45; edges: 163
+Run time: 0.023708s pldib states: 35; edges: 146
+Run time: 0.049743s nsbc states: 60; edges: 343
+autfilt state: 49; edges: 353
+
+
+File358: easy85.hoa
+Run time: 1.24651s spot states: 136; edges: 1331
+Run time: 0.52626s pldi states: 89; edges: 778
+Run time: 0.281072s pldib states: 73; edges: 657
+Run time: 6.03788s nsbc states: 308; edges: 3831
+autfilt state: 108; edges: 1438
+
+
+File359: easy86.hoa
+Run time: 0.12175s spot states: 100; edges: 496
+Run time: 0.088563s pldi states: 86; edges: 449
+Run time: 0.086483s pldib states: 83; edges: 483
+Run time: 0.160713s nsbc states: 90; edges: 756
+autfilt state: 184; edges: 2482
+
+
+File360: easy87.hoa
+spot timeout
+pldi timeout
+Run time: 1.4025s pldib states: 458; edges: 3231
+nsbc timeout 
+autfilt state: 2002; edges: 24705
+
+
+File361: easy88.hoa
+Run time: 0.065452s spot states: 30; edges: 121
+Run time: 0.057354s pldi states: 24; edges: 97
+Run time: 0.066876s pldib states: 24; edges: 117
+Run time: 0.110454s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File362: easy89.hoa
+Run time: 0.020657s spot states: 28; edges: 116
+Run time: 0.018456s pldi states: 23; edges: 90
+Run time: 0.020559s pldib states: 22; edges: 106
+Run time: 0.03802s nsbc states: 33; edges: 191
+autfilt state: 27; edges: 204
+
+
+File363: easy8.hoa
+Run time: 0.029766s spot states: 30; edges: 121
+Run time: 0.025633s pldi states: 24; edges: 97
+Run time: 0.02872s pldib states: 24; edges: 117
+Run time: 0.045421s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File364: easy90.hoa
+Run time: 0.009903s spot states: 10; edges: 33
+Run time: 0.010301s pldi states: 10; edges: 33
+Run time: 0.009046s pldib states: 11; edges: 34
+Run time: 0.011153s nsbc states: 16; edges: 58
+autfilt state: 13; edges: 55
+
+
+File365: easy91.hoa
+Run time: 0.061212s spot states: 30; edges: 121
+Run time: 0.049742s pldi states: 24; edges: 97
+Run time: 0.0567s pldib states: 24; edges: 117
+Run time: 0.089279s nsbc states: 34; edges: 215
+autfilt state: 27; edges: 225
+
+
+File366: easy92.hoa
+Run time: 0.007114s spot states: 20; edges: 51
+Run time: 0.006466s pldi states: 16; edges: 46
+Run time: 0.006908s pldib states: 17; edges: 53
+Run time: 0.009915s nsbc states: 29; edges: 124
+autfilt state: 21; edges: 106
+
+
+File367: easy93.hoa
+Run time: 0.006524s spot states: 6; edges: 16
+Run time: 0.007598s pldi states: 6; edges: 16
+Run time: 0.007882s pldib states: 7; edges: 23
+Run time: 0.006996s nsbc states: 9; edges: 36
+autfilt state: 9; edges: 34
+
+
+File368: easy94.hoa
+Run time: 0.009556s spot states: 8; edges: 30
+Run time: 0.009975s pldi states: 8; edges: 30
+Run time: 0.009115s pldib states: 9; edges: 33
+Run time: 0.008623s nsbc states: 8; edges: 30
+autfilt state: 32; edges: 153
+
+
+File369: easy95.hoa
+Run time: 0.015089s spot states: 24; edges: 91
+Run time: 0.012577s pldi states: 22; edges: 79
+Run time: 0.01313s pldib states: 22; edges: 95
+Run time: 0.016417s nsbc states: 25; edges: 117
+autfilt state: 27; edges: 178
+
+
+File370: easy96.hoa
+Run time: 0.007625s spot states: 16; edges: 62
+Run time: 0.006903s pldi states: 15; edges: 54
+Run time: 0.007031s pldib states: 17; edges: 67
+Run time: 0.008266s nsbc states: 23; edges: 104
+autfilt state: 26; edges: 167
+
+
+File371: easy97.hoa
+Run time: 0.016752s spot states: 23; edges: 77
+Run time: 0.013716s pldi states: 20; edges: 70
+Run time: 0.013751s pldib states: 20; edges: 88
+Run time: 0.023885s nsbc states: 31; edges: 189
+autfilt state: 27; edges: 210
+
+
+File372: easy98.hoa
+Run time: 0.006798s spot states: 14; edges: 48
+Run time: 0.007692s pldi states: 14; edges: 48
+Run time: 0.007455s pldib states: 15; edges: 47
+Run time: 0.010575s nsbc states: 20; edges: 85
+autfilt state: 17; edges: 82
+
+
+File373: easy99.hoa
+Run time: 0.040083s spot states: 21; edges: 167
+Run time: 0.039281s pldi states: 21; edges: 167
+Run time: 0.042477s pldib states: 23; edges: 179
+Run time: 0.046635s nsbc states: 21; edges: 167
+autfilt state: 29; edges: 273
+
+
+File374: easy9.hoa
+Run time: 0.050887s spot states: 89; edges: 316
+Run time: 0.060084s pldi states: 85; edges: 326
+Run time: 0.06165s pldib states: 88; edges: 312
+Run time: 0.099843s nsbc states: 115; edges: 665
+autfilt state: 124; edges: 1033
+
+
+File375: normal10.hoa
+Run time: 0.243511s spot states: 11; edges: 37
+Run time: 0.176774s pldi states: 11; edges: 37
+Run time: 0.196977s pldib states: 12; edges: 51
+Run time: 0.266206s nsbc states: 14; edges: 67
+autfilt state: 16; edges: 97
+
+
+File376: normal1.hoa
+spot timeout
+pldi timeout
+pldib timeout
+Run time: 1.22284s nsbc states: 237; edges: 1601
+autfilt state: 268; edges: 3506
+
+
+File377: normal2.hoa
+Run time: 0.065694s spot states: 12; edges: 65
+Run time: 0.071337s pldi states: 12; edges: 65
+Run time: 0.070438s pldib states: 13; edges: 71
+Run time: 0.070454s nsbc states: 12; edges: 65
+autfilt state: 30; edges: 258
+
+
+File378: normal3.hoa
+Run time: 0.043372s spot states: 30; edges: 257
+Run time: 0.043855s pldi states: 30; edges: 257
+Run time: 0.045848s pldib states: 32; edges: 275
+Run time: 0.053816s nsbc states: 30; edges: 257
+autfilt state: 56; edges: 656
+
+
+File379: normal4.hoa
+Run time: 1.34152s spot states: 12; edges: 49
+Run time: 1.32543s pldi states: 11; edges: 44
+Run time: 1.2251s pldib states: 12; edges: 48
+Run time: 2.21913s nsbc states: 22; edges: 110
+autfilt state: 41; edges: 298
+
+
+File380: normal5.hoa
+Run time: 0.363519s spot states: 61; edges: 454
+Run time: 0.280882s pldi states: 48; edges: 419
+Run time: 0.163004s pldib states: 47; edges: 406
+Run time: 0.662901s nsbc states: 117; edges: 1209
+autfilt state: 51; edges: 606
+
+
+File381: normal6.hoa
+Run time: 0.065925s spot states: 12; edges: 65
+Run time: 0.068915s pldi states: 12; edges: 65
+Run time: 0.069689s pldib states: 13; edges: 71
+Run time: 0.070609s nsbc states: 12; edges: 65
+autfilt state: 30; edges: 258
+
+
+File382: normal7.hoa
+Run time: 0.193835s spot states: 163; edges: 2068
+Run time: 0.21657s pldi states: 163; edges: 2068
+Run time: 0.217353s pldib states: 165; edges: 2091
+Run time: 0.470721s nsbc states: 163; edges: 2068
+autfilt state: 392; edges: 5365
+
+
+File383: normal8.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 9420; edges: 88345
+
+
+File384: normal9.hoa
+Run time: 0.065616s spot states: 12; edges: 65
+Run time: 0.071058s pldi states: 12; edges: 65
+Run time: 0.070916s pldib states: 13; edges: 71
+Run time: 0.070891s nsbc states: 12; edges: 65
+autfilt state: 30; edges: 258
+
+
+File385: zdifficult10.hoa
+spot timeout
+Run time: 4.2942s pldi states: 267; edges: 1107
+Run time: 0.361138s pldib states: 257; edges: 1028
+nsbc timeout
+autfilt state: 493; edges: 4120
+
+
+File386: zdifficult11.hoa
+spot timeout
+Run time: 4.155s pldi states: 147; edges: 1469
+Run time: 3.0883s pldib states: 127; edges: 1305
+nsbc timeout
+autfilt state: 170; edges: 2752
+
+
+File387: zdifficult12.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 507; edges: 10543
+
+
+File388: zdifficult13.hoa
+Run time: 0.054064s spot states: 25; edges: 218
+Run time: 0.054483s pldi states: 25; edges: 218
+Run time: 0.070146s pldib states: 28; edges: 246
+Run time: 0.070148s nsbc states: 25; edges: 218
+autfilt state: 44; edges: 468
+
+
+File389: zdifficult14.hoa
+Run time: 0.030274s spot states: 18; edges: 140
+Run time: 0.02704s pldi states: 18; edges: 140
+Run time: 0.027558s pldib states: 19; edges: 149
+Run time: 0.031246s
+nsbc states: 18; edges: 140
+autfilt state: 34; edges: 379
+
+
+File390: zdifficult15.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 823; edges: 19307
+
+
+File391: zdifficult16.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 471; edges: 9328
+
+
+File392: zdifficult17.hoa
+Run time: 6.26447s spot states: 12; edges: 49
+Run time: 6.20633s pldi states: 11; edges: 44
+Run time: 5.70321s pldib states: 12; edges: 48
+Run time: 11.2229s nsbc states: 22; edges: 110
+autfilt state: 41; edges: 302
+
+
+File393: zdifficult18.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 9387; edges: 312360
+
+
+File394: zdifficult19.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 10133; edges: 335741
+
+
+
+File395: zdifficult1.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 823; edges: 19325
+
+
+File396: zdifficult2.hoa
+Run time: 6.43757s spot states: 12; edges: 49
+Run time: 6.2071s pldi states: 11; edges: 44
+Run time: 6.44895s pldib states: 12; edges: 48
+Run time: 10.7769s nsbc states: 22; edges: 110
+autfilt state: 41; edges: 300
+
+
+File397: zdifficult3.hoa
+Run time: 0.028365s spot states: 14; edges: 89
+Run time: 0.02778s pldi states: 14; edges: 89
+Run time: 0.026278s pldib states: 15; edges: 92
+Run time: 0.027973s nsbc states: 14; edges: 89
+autfilt state: 23; edges: 212
+
+File398: zdifficult4.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 494; edges: 9685
+
+
+File399: zdifficult5.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 494; edges: 9710
+
+
+File400: zdifficult6.hoa
+Run time: 6.15468s spot states: 12; edges: 49
+Run time: 6.1358s pldi states: 11; edges: 44
+Run time: 5.70607s pldib states: 12; edges: 48
+Run time: 11.1043s nsbc states: 22; edges: 110
+autfilt state: 41; edges: 300
+
+
+File401: zdifficult7.hoa
+Run time: 0.308663s spot states: 158; edges: 885
+Run time: 0.164364s pldi states: 130; edges: 728
+Run time: 0.169666s pldib states: 135; edges: 722
+Run time: 0.616538s nsbc states: 255; edges: 1589
+autfilt state: 295; edges: 3288
+
+
+File402: zdifficult8.hoa
+spot timeout
+pldi timeout
+pldib timeout
+nsbc timeout
+autfilt state: 518; edges: 10320
+
+
+File403: zdifficult9.hoa
+Run time: 8.08299s spot states: 12; edges: 49
+Run time: 8.11094s pldi states: 11; edges: 44
+Run time: 7.67506s pldib states: 12; edges: 48
+Run time: 15.2889s nsbc states: 22; edges: 110
+autfilt state: 41; edges: 300
