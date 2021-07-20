@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     spot::option_map om;
     bool cut_det = false;
     jobs_type jobs = 0;
-    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCSBPLDIB, NCB, NSBC };
+    enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCSBPLDIB, NCSBPLDIF, NCSBPLDIBF, NCB, NSBC };
     complement_t complement = NoComplement;
     output_type desired_output = TGBA;
 
@@ -246,6 +246,10 @@ int main(int argc, char* argv[])
           complement = NCSBPLDI;
         else if(arg == "--complement=pldib")
           complement = NCSBPLDIB;
+        else if(arg == "--complement=pldif")
+          complement = NCSBPLDIF;
+        else if(arg == "--complement=pldibf")
+          complement = NCSBPLDIBF;
         else if (arg == "--complement=ncb")
           complement = NCB;
         else if (arg == "--complement=nsbc")
@@ -409,8 +413,8 @@ int main(int argc, char* argv[])
                       {
                         comp = spot::complement_semidet(aut);
                         // comp = postprocessor.run(comp);
-                        // std::cout << "spot: " << comp->num_states() << '\n';
-                        // std::cout << "spot edges: " << comp->num_edges() << '\n';
+                        std::cout << "spot states: " << comp->num_states() << ' ';
+                        std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
                     if(complement == NCSBPLDIB || complement == NCSBBest) 
                     {
@@ -419,8 +423,28 @@ int main(int argc, char* argv[])
                         // comp1 = postprocessor.run(comp1);
                         if (!comp || comp->num_states() > comp1->num_states())
                           comp = comp1;
-                        // std::cout << "pldib: " << comp->num_states() << '\n';
-                        // std::cout << "pldib edges: " << comp->num_edges() << '\n';
+                        std::cout << "pldib states: " << comp->num_states() << ' ';
+                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                    }
+                    if(complement == NCSBPLDIF || complement == NCSBBest) 
+                    {
+                        spot::twa_graph_ptr comp3 =
+                          from_spot::complement_semidet_onthefly(aut);
+                        // comp1 = postprocessor.run(comp1);
+                        if (!comp || comp->num_states() > comp3->num_states())
+                          comp = comp3;
+                        std::cout << "pldif states: " << comp->num_states() << ' ';
+                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                    }
+                    if(complement == NCSBPLDIBF || complement == NCSBBest) 
+                    {
+                        spot::twa_graph_ptr comp4 =
+                          from_spot::complement_semidet_opt_onthefly(aut);
+                        // comp1 = postprocessor.run(comp1);
+                        if (!comp || comp->num_states() > comp4->num_states())
+                          comp = comp4;
+                        std::cout << "pldibf states: " << comp->num_states() << ' ';
+                        std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
@@ -429,30 +453,30 @@ int main(int argc, char* argv[])
                         // comp2 = postprocessor.run(comp2);
                         if (!comp || comp->num_states() > comp2->num_states())
                           comp = comp2;
-                        // std::cout << "pldi: " << comp->num_states() << '\n';
-                        // std::cout << "pldi edges: " << comp->num_edges() << '\n';
+                        std::cout << "pldi states: " << comp->num_states() << ' ';
+                        std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
                     if (complement == NCB)
                     {
                       // spot::print_hoa(std::cout, aut) << '\n';
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
-                      comp = from_spot::complement_unambiguous(myaut, true);
+                      comp = from_spot::complement_unambiguous(myaut); //, true);
                       // comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      // std::cout << "ncb: " << comp->num_states() << '\n';
-                      // std::cout << "ncb edges: " << comp->num_edges() << '\n';
+                      std::cout << "ncb states: " << comp->num_states() << ' ';
+                      std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NSBC)
                     {
                       // #if FWZ_DEBUG
                       // spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
-                      comp = from_spot::new_complement_semidet(aut, true);
+                      comp = from_spot::new_complement_semidet(aut); //, true);
                       // comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      // std::cout << "nsbc: " << comp->num_states() << '\n';
-                      // std::cout << "nsbc edges: " << comp->num_edges() << '\n';
+                      std::cout << "nsbc states: " << comp->num_states() << ' ';
+                      std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     aut = comp;
                   }
@@ -472,6 +496,11 @@ int main(int argc, char* argv[])
               outfile.open("pldi/" + comfile);
             if (complement == NCSBPLDIB)
               outfile.open("pldib/" + comfile);
+            if (complement == NCSBPLDIF)
+              outfile.open("pldif/" + comfile);
+            if (complement == NCSBPLDIBF)
+              outfile.open("pldibf/" + comfile);
+            
             if (complement == NCB)
               outfile.open("ncb/" + comfile);
             if (complement == NSBC)
@@ -479,13 +508,14 @@ int main(int argc, char* argv[])
           
             spot::print_hoa(outfile, aut, opts);
             outfile.close();
+            
           }
       }
 
     check_cout();
 
     endTime = clock();
-    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s ";
+    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s\n";
 
     return 0;
 }

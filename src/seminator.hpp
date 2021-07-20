@@ -55,6 +55,12 @@ namespace from_spot {
   spot::twa_graph_ptr
   complement_semidet_opt(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
+  spot::twa_graph_ptr
+  complement_semidet_onthefly(const spot::const_twa_graph_ptr &aut, bool show_names = false);
+
+  spot::twa_graph_ptr
+  complement_semidet_opt_onthefly(const spot::const_twa_graph_ptr &aut, bool show_names = false);
+
   /// \brief Complement a unambiguous TωA
   ///
   /// The automaton \a aut should be unambiguous.

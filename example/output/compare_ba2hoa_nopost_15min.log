@@ -1,0 +1,431 @@
+File0: normal10.hoa
+autfilt state: 16   edges: 97
+spot states: 22     edges: 81
+Run time: 0.069128s
+pldi states: 16     edges: 66
+Run time: 0.073393s
+pldib states: 19     edges: 105
+Run time: 0.075977s
+nsbc states: 23     edges: 148
+Run time: 0.075365s
+  #H.S = 110                         // #states of learned automaton
+  #H.T = 74520                       // #transitions of learned automaton
+  #TTO = 1733 (ms)                   // total time for learning Buchi automata
+
+
+File1: normal1.hoa
+autfilt state: 268   edges: 3506
+spot states: 383     edges: 1572
+Run time: 0.133146s
+pldi states: 347     edges: 1754
+Run time: 0.116002s
+pldib states: 353     edges: 1826
+Run time: 0.1071s
+nsbc states: 539     edges: 5013
+Run time: 0.117362s
+  #H.S = 76564                       // #states of learned automaton
+  #H.T = 193622                      // #transitions of learned automaton
+  #TTO = 8418 (ms)                   // total time for learning Buchi automata
+
+
+File2: normal2.hoa
+autfilt state: 30   edges: 258
+spot states: 14     edges: 84
+Run time: 0.062996s
+pldi states: 14     edges: 84
+Run time: 0.063521s
+pldib states: 15     edges: 90
+Run time: 0.063573s
+nsbc states: 26     edges: 234
+Run time: 0.064235s
+  #H.S = 263                         // #states of learned automaton
+  #H.T = 47257                       // #transitions of learned automaton
+  #TTO = 1051 (ms)                   // total time for learning Buchi automata
+
+
+File3: normal3.hoa
+autfilt state: 56   edges: 656
+spot states: 41     edges: 394
+Run time: 0.033379s
+pldi states: 41     edges: 394
+Run time: 0.033765s
+pldib states: 44     edges: 423
+Run time: 0.036159s
+nsbc states: 80     edges: 1135
+Run time: 0.040975s
+  #H.S = 811                         // #states of learned automaton
+  #H.T = 109159                      // #transitions of learned automaton
+  #TTO = 1321 (ms)                   // total time for learning Buchi automata
+
+
+File4: normal4.hoa
+autfilt state: 41   edges: 298
+spot states: 16     edges: 61
+Run time: 0.643178s
+pldi states: 16     edges: 61
+Run time: 0.639572s
+pldib states: 17     edges: 91
+Run time: 0.65178s
+nsbc states: 22     edges: 127
+Run time: 0.695194s
+  #H.S = 125                         // #states of learned automaton
+  #H.T = 529868                      // #transitions of learned automaton
+  #TTO = 6314 (ms)                   // total time for learning Buchi automata
+
+
+File5: normal5.hoa
+autfilt state: 51   edges: 606
+spot states: 224     edges: 1456
+Run time: 0.035038s
+pldi states: 142     edges: 1152
+Run time: 0.033272s
+pldib states: 124     edges: 1201
+Run time: 0.031555s
+nsbc states: 204     edges: 2450
+Run time: 0.037419s
+  #H.S = 237                         // #states of learned automaton
+  #H.T = 46537                       // #transitions of learned automaton
+  #TTO = 722 (ms)                    // total time for learning Buchi automata
+
+
+File6: normal6.hoa
+autfilt state: 30   edges: 258
+spot states: 14     edges: 84
+Run time: 0.064513s
+pldi states: 14     edges: 84
+Run time: 0.062769s
+pldib states: 15     edges: 90
+Run time: 0.062771s
+nsbc states: 26     edges: 234
+Run time: 0.061999s
+  #H.S = 263                         // #states of learned automaton
+  #H.T = 44857                       // #transitions of learned automaton
+  #TTO = 782 (ms)                    // total time for learning Buchi automata
+
+
+File7: normal7.hoa
+autfilt state: 392   edges: 5365
+spot states: 1731     edges: 23747
+Run time: 0.109304s
+pldi states: 1731     edges: 23747
+Run time: 0.128977s
+pldib states: 1737     edges: 23846
+Run time: 0.129898s
+nsbc states: 3461     edges: 69509
+Run time: 0.193689s
+  #H.S = 236764                      // #states of learned automaton
+  #H.T = 1156108                     // #transitions of learned automaton
+  #TTO = 25726 (ms)                  // total time for learning Buchi automata
+
+
+File8: normal8.hoa
+autfilt state: 9420   edges: 88345
+spot states: 43825     edges: 184122
+Run time: 0.207645s
+pldi states: 9662     edges: 47482
+Run time: 0.069406s
+pldib states: 10272     edges: 56546
+Run time: 0.079994s
+nsbc states: 7017     edges: 72319
+Run time: 0.080862s
+  #H.S = 60034                       // #states of learned automaton
+  #H.T = 407511                      // #transitions of learned automaton
+  #TTO = 5789 (ms)                   // total time for learning Buchi automata
+
+
+File9: normal9.hoa
+autfilt state: 30   edges: 258
+spot states: 14     edges: 84
+Run time: 0.0643s
+pldi states: 14     edges: 84
+Run time: 0.064143s
+pldib states: 15     edges: 90
+Run time: 0.063247s
+nsbc states: 26     edges: 234
+Run time: 0.064016s
+  #H.S = 263                         // #states of learned automaton
+  #H.T = 46091                       // #transitions of learned automaton
+  #TTO = 1054 (ms)                   // total time for learning Buchi automata
+
+
+File10: zdifficult10.hoa
+autfilt state: 493   edges: 4120
+spot states: 2959     edges: 9337
+Run time: 0.025631s
+pldi states: 1293     edges: 5567
+Run time: 0.018234s
+pldib states: 1279     edges: 6109
+Run time: 0.019527s
+nsbc states: 3278     edges: 23111
+Run time: 0.036796s
+  #H.S = 13927                       // #states of learned automaton
+  #H.T = 53414                       // #transitions of learned automaton
+  #TTO = 1360 (ms)                   // total time for learning Buchi automata
+
+
+File11: zdifficult11.hoa
+autfilt state: 170   edges: 2752
+spot states: 1197     edges: 8622
+Run time: 0.163101s
+pldi states: 426     edges: 4647
+Run time: 0.118282s
+pldib states: 423     edges: 5131
+Run time: 0.114397s
+nsbc states: 1197     edges: 19138
+Run time: 0.249844s
+  #H.S = 1804                        // #states of learned automaton
+  #H.T = 387933                      // #transitions of learned automaton
+  #TTO = 3336 (ms)                   // total time for learning Buchi automata
+
+
+File12: zdifficult12.hoa
+autfilt state: 507   edges: 10543
+spot states: 2150     edges: 19696
+Run time: 0.87264s
+pldi states: 731     edges: 9753
+Run time: 0.497698s
+pldib states: 755     edges: 10232
+Run time: 0.479796s
+nsbc states: 2174     edges: 43216
+Run time: 1.33207s
+  #H.S = 2306                        // #states of learned automaton
+  #H.T = 1321000                     // #transitions of learned automaton
+  #TTO = 12137 (ms)                  // total time for learning Buchi automata
+
+
+File13: zdifficult13.hoa
+autfilt state: 44   edges: 468
+spot states: 40     edges: 416
+Run time: 0.048607s
+pldi states: 40     edges: 416
+Run time: 0.048737s
+pldib states: 45     edges: 471
+Run time: 0.046779s
+nsbc states: 80     edges: 1211
+Run time: 0.053578s
+  #H.S = 978                         // #states of learned automaton
+  #H.T = 220199                      // #transitions of learned automaton
+  #TTO = 2445 (ms)                   // total time for learning Buchi automata
+
+
+File14: zdifficult14.hoa
+autfilt state: 34   edges: 379
+spot states: 23     edges: 196
+Run time: 0.027214s
+pldi states: 23     edges: 196
+Run time: 0.026025s
+pldib states: 24     edges: 205
+Run time: 0.025068s
+nsbc states: 44     edges: 560
+Run time: 0.025985s
+  #H.S = 432                         // #states of learned automaton
+  #H.T = 23292                       // #transitions of learned automaton
+  #TTO = 900 (ms)                    // total time for learning Buchi automata
+
+
+File15: zdifficult15.hoa
+autfilt state: 823   edges: 19307
+spot states: 7030     edges: 58576
+Run time: 7.88077s
+pldi states: 1850     edges: 25017
+Run time: 3.70927s
+pldib states: 1957     edges: 28088
+Run time: 3.92761s
+nsbc states: 5585     edges: 122889
+Run time: 11.8725s
+  #H.S = 6748                        // #states of learned automaton
+  #H.T = 8384850                     // #transitions of learned automaton
+  #TTO = 97670 (ms)                  // total time for learning Buchi automata
+
+
+File16: zdifficult16.hoa
+autfilt state: 471   edges: 9328
+spot states: 2062     edges: 16292
+Run time: 1.80734s
+pldi states: 665     edges: 8343
+Run time: 0.878902s
+pldib states: 701     edges: 8988
+Run time: 0.88963s
+nsbc states: 2055     edges: 36778
+Run time: 2.31187s
+  #H.S = 2286                        // #states of learned automaton
+  #H.T = 2574063                     // #transitions of learned automaton
+  #TTO = 23228 (ms)                  // total time for learning Buchi automata
+
+
+File17: zdifficult17.hoa
+autfilt state: 41   edges: 302
+spot states: 16     edges: 61
+Run time: 3.28717s
+pldi states: 16     edges: 61
+Run time: 3.29951s
+pldib states: 17     edges: 91
+Run time: 3.35513s
+nsbc states: 22     edges: 127
+Run time: 3.69686s
+  #H.S = 125                         // #states of learned automaton
+  #H.T = 2373963                     // #transitions of learned automaton
+  #TTO = 32400 (ms)                  // total time for learning Buchi automata
+
+
+File18: zdifficult18.hoa
+autfilt state: 9387   edges: 312360
+spot states: 146716     edges: 1345334
+Run time: 13.4076s
+pldi states: 27187     edges: 465070
+Run time: 5.6105s
+pldib states: 26235     edges: 477956
+Run time: 5.61425s
+nsbc states: 62179     edges: 1783213
+Run time: 18.5858s
+roll timeout
+
+
+File19: zdifficult19.hoa
+autfilt state: 10133   edges: 335741
+spot states: 152571     edges: 1326190
+Run time: 15.1308s
+pldi states: 27386     edges: 458475
+Run time: 5.63255s
+pldib states: 26474     edges: 468311
+Run time: 5.57518s
+nsbc states: 65521     edges: 1850379
+Run time: 18.2998s
+roll timeout
+
+
+File20: zdifficult1.hoa
+autfilt state: 823   edges: 19325
+spot states: 7030     edges: 58576
+Run time: 8.18357s
+pldi states: 1850     edges: 25017
+Run time: 3.72906s
+pldib states: 1957     edges: 28088
+Run time: 3.96601s
+nsbc states: 5585     edges: 122889
+Run time: 12.5321s
+  #H.S = 6748                        // #states of learned automaton
+  #H.T = 8345657                     // #transitions of learned automaton
+  #TTO = 99166 (ms)                  // total time for learning Buchi automata
+
+
+File21: zdifficult2.hoa
+autfilt state: 41   edges: 300
+spot states: 16     edges: 61
+Run time: 3.19126s
+pldi states: 16     edges: 61
+Run time: 3.22163s
+pldib states: 17     edges: 91
+Run time: 3.33231s
+nsbc states: 22     edges: 127
+Run time: 3.54891s
+  #H.S = 125                         // #states of learned automaton
+  #H.T = 2278951                     // #transitions of learned automaton
+  #TTO = 32994 (ms)                  // total time for learning Buchi automata
+
+
+File22: zdifficult3.hoa
+autfilt state: 23   edges: 212
+spot states: 32     edges: 247
+Run time: 0.024462s
+pldi states: 32     edges: 247
+Run time: 0.023313s
+pldib states: 33     edges: 255
+Run time: 0.02294s
+nsbc states: 62     edges: 704
+Run time: 0.025957s
+  #H.S = 764                         // #states of learned automaton
+  #H.T = 31187                       // #transitions of learned automaton
+  #TTO = 1024 (ms)                   // total time for learning Buchi automata
+
+
+File23: zdifficult4.hoa
+autfilt state: 494   edges: 9685
+spot states: 2062     edges: 16292
+Run time: 1.92123s
+pldi states: 665     edges: 8343
+Run time: 0.924276s
+pldib states: 701     edges: 8988
+Run time: 0.943078s
+nsbc states: 2055     edges: 36778
+Run time: 2.38555s
+  #H.S = 2286                        // #states of learned automaton
+  #H.T = 2559146                     // #transitions of learned automaton
+  #TTO = 23567 (ms)                  // total time for learning Buchi automata
+
+
+File24: zdifficult5.hoa
+autfilt state: 494   edges: 9710
+spot states: 2062     edges: 16292
+Run time: 2.42903s
+pldi states: 665     edges: 8343
+Run time: 1.17967s
+pldib states: 701     edges: 8988
+Run time: 1.19006s
+nsbc states: 2055     edges: 36778
+Run time: 2.92794s
+  #H.S = 2286                        // #states of learned automaton
+  #H.T = 3126286                     // #transitions of learned automaton
+  #TTO = 32006 (ms)                  // total time for learning Buchi automata
+
+
+File25: zdifficult6.hoa
+autfilt state: 41   edges: 300
+spot states: 16     edges: 61
+Run time: 3.30592s
+pldi states: 16     edges: 61
+Run time: 3.30724s
+pldib states: 17     edges: 91
+Run time: 3.3739s
+nsbc states: 22     edges: 127
+Run time: 3.65568s
+  #H.S = 125                         // #states of learned automaton
+  #H.T = 2273931                     // #transitions of learned automaton
+  #TTO = 32517 (ms)                  // total time for learning Buchi automata
+
+
+File26: zdifficult7.hoa
+autfilt state: 295   edges: 3288
+spot states: 339     edges: 1417
+Run time: 0.036204s
+pldi states: 264     edges: 1317
+Run time: 0.0354s
+pldib states: 276     edges: 1443
+Run time: 0.038913s
+nsbc states: 445     edges: 3710
+Run time: 0.042935s
+  #H.S = 12252                       // #states of learned automaton
+  #H.T = 273952                      // #transitions of learned automaton
+  #TTO = 3796 (ms)                   // total time for learning Buchi automata
+
+
+File27: zdifficult8.hoa
+autfilt state: 518   edges: 10320
+spot states: 2281     edges: 18644
+Run time: 4.26032s
+pldi states: 724     edges: 9056
+Run time: 2.01766s
+pldib states: 772     edges: 10022
+Run time: 2.0953s
+nsbc states: 2166     edges: 39302
+Run time: 5.1406s
+  #H.S = 2372                        // #states of learned automaton
+  #H.T = 4860798                     // #transitions of learned automaton
+  #TTO = 49550 (ms)                  // total time for learning Buchi automata
+
+
+File28: zdifficult9.hoa
+autfilt state: 41   edges: 300
+spot states: 16     edges: 61
+Run time: 4.98651s
+pldi states: 16     edges: 61
+Run time: 4.94642s
+pldib states: 17     edges: 91
+Run time: 5.17602s
+nsbc states: 22     edges: 127
+Run time: 5.63992s
+  #H.S = 125                         // #states of learned automaton
+  #H.T = 3410753                     // #transitions of learned automaton
+  #TTO = 57854 (ms)                  // total time for learning Buchi automata
+
+

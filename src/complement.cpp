@@ -160,6 +160,9 @@ namespace from_spot
                     // opt 
                     bool optb_;
 
+                    // on the fly
+                    bool onthefly;
+
                     std::string
                     get_name(const small_mstate& ms)
                     {
@@ -331,21 +334,45 @@ namespace from_spot
                           if (!bdd_implies(letter, t.cond))
                             continue;
 
-                          // PLDI: All states from 2nd component go to C only.
-                          // PLDI: We have still only a unique successor
-                          if (is_deter_[si_.scc_of(t.dst)])
+                          if (onthefly)
                           {
-                            if (succs[0][t.dst] == ncsb_m) {
-                              succs[0][t.dst] = ncsb_c;
-                              // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                            
+                            if (t.acc)
+                            {
+                              if (succs[0][t.dst] == ncsb_m) 
+                              {
+                                succs[0][t.dst] = ncsb_c;
                               }
-                          } else
-                            for (auto &succ: succs) {
-                              succ[t.dst] = ncsb_n;
-                              // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
-                            }
+                            }      
+                            else
+                            {
+                              for (auto &succ: succs) 
+                              {
+                                if (succ[t.dst] == ncsb_m) 
+                                {
+                                  succ[t.dst] = ncsb_n;
+                                }
+                              }
+                            }               
+                          } 
+                          else 
+                          {
+                            // PLDI: All states from 2nd component go to C only.
+                            // PLDI: We have still only a unique successor
+                            if (is_deter_[si_.scc_of(t.dst)])
+                            {
+                              if (succs[0][t.dst] == ncsb_m) {
+                                succs[0][t.dst] = ncsb_c;
+                                // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
+                                // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                                }
+                            } else
+                              for (auto &succ: succs) {
+                                succ[t.dst] = ncsb_n;
+                                // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
+                                // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
+                              }
+                          }
                         }
                       }
                       // std::cout << "B states" << std::endl;
@@ -564,9 +591,7 @@ namespace from_spot
                       }
 
                       optb_ = false;
-
-                      // Compute which SCCs are part of the deterministic set.
-                      is_deter_ = spot::semidet_sccs(si_);
+                      onthefly = false;
 
                       if (show_names_)
                       {
@@ -588,10 +613,23 @@ namespace from_spot
                       optb_ = true;
                     }
 
+                    void set_onthefly()
+                    {
+                      onthefly = true;
+                    }
+                    
                     spot::twa_graph_ptr
                     run()
                     {
                       // Main stuff happens here
+
+
+                      if (onthefly == false)
+                      {
+                        // Compute which SCCs are part of the deterministic set.
+                        is_deter_ = spot::semidet_sccs(si_);
+                      }
+                    
 
                       while (!todo_.empty())
                       {
@@ -1454,7 +1492,7 @@ namespace from_spot
               res_->new_edge(origin, dst, letter);
           
 
-              // subset to (N, C, B)
+              // subset to (N, S, B, C)
               // succs.push_back(nb_states_, ncb_m);
               mcstate tmpState(nb_states_, nsbc_m);
 
@@ -1544,7 +1582,6 @@ namespace from_spot
 
               // Generate bdd supports and compatible options for each state.
               // Also check if all its transitions are accepting.
-              // fengwz: check if exists a transition that is accepting
               for (unsigned i = 0; i < nb_states_; ++i)
               {
                 bdd res_support = bddtrue;
@@ -1652,6 +1689,17 @@ namespace from_spot
     }
 
     spot::twa_graph_ptr
+    complement_semidet_onthefly(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+      auto ncsb = ncsb_complementation(aut, show_names);
+      ncsb.set_onthefly();
+      return ncsb.run();
+    }
+
+    spot::twa_graph_ptr
     complement_semidet_opt(const spot::const_twa_graph_ptr& aut, bool show_names)
     {
       if (!is_semi_deterministic(aut))
@@ -1661,6 +1709,19 @@ namespace from_spot
       ncsb.set_opt();
       return ncsb.run();
     }
+
+    spot::twa_graph_ptr
+    complement_semidet_opt_onthefly(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+      auto ncsb = ncsb_complementation(aut, show_names);
+      ncsb.set_opt();
+      ncsb.set_onthefly();
+      return ncsb.run();
+    }
+
 
     // fengwz
     spot::twa_graph_ptr
