@@ -135,8 +135,8 @@ void check_cout()
 
 int main(int argc, char* argv[])
 {
-    clock_t startTime, endTime;
-    startTime = clock();
+    // clock_t startTime, endTime;
+    // startTime = clock();
 
     // Declaration for input options. The rest is in seminator.hpp
     // as they need to be included in other files.
@@ -412,49 +412,49 @@ int main(int argc, char* argv[])
                     if (complement == NCSBSpot || complement == NCSBBest)
                       {
                         comp = spot::complement_semidet(aut);
-                        // comp = postprocessor.run(comp);
-                        std::cout << "spot states: " << comp->num_states() << ' ';
-                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                        comp = postprocessor.run(comp);
+                        // std::cout << "spot states: " << comp->num_states() << ' ';
+                        // std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
                     if(complement == NCSBPLDIB || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp1 =
                           from_spot::complement_semidet_opt(aut);
-                        // comp1 = postprocessor.run(comp1);
+                        comp1 = postprocessor.run(comp1);
                         if (!comp || comp->num_states() > comp1->num_states())
                           comp = comp1;
-                        std::cout << "pldib states: " << comp->num_states() << ' ';
-                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                        // std::cout << "pldib states: " << comp->num_states() << ' ';
+                        // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if(complement == NCSBPLDIF || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp3 =
                           from_spot::complement_semidet_onthefly(aut);
-                        // comp1 = postprocessor.run(comp1);
+                        comp3 = postprocessor.run(comp3);
                         if (!comp || comp->num_states() > comp3->num_states())
                           comp = comp3;
-                        std::cout << "pldif states: " << comp->num_states() << ' ';
-                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                        // std::cout << "pldif states: " << comp->num_states() << ' ';
+                        // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if(complement == NCSBPLDIBF || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp4 =
                           from_spot::complement_semidet_opt_onthefly(aut);
-                        // comp1 = postprocessor.run(comp1);
+                        comp4 = postprocessor.run(comp4);
                         if (!comp || comp->num_states() > comp4->num_states())
                           comp = comp4;
-                        std::cout << "pldibf states: " << comp->num_states() << ' ';
-                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                        // std::cout << "pldibf states: " << comp->num_states() << ' ';
+                        // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
                         spot::twa_graph_ptr comp2 =
                           from_spot::complement_semidet(aut);
-                        // comp2 = postprocessor.run(comp2);
+                        comp2 = postprocessor.run(comp2);
                         if (!comp || comp->num_states() > comp2->num_states())
                           comp = comp2;
-                        std::cout << "pldi states: " << comp->num_states() << ' ';
-                        std::cout << "    edges: " << comp->num_edges() << '\n';
+                        // std::cout << "pldi states: " << comp->num_states() << ' ';
+                        // std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
                     if (complement == NCB)
                     {
@@ -462,10 +462,10 @@ int main(int argc, char* argv[])
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
                       comp = from_spot::complement_unambiguous(myaut); //, true);
-                      // comp = postprocessor.run(comp);
+                      comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      std::cout << "ncb states: " << comp->num_states() << ' ';
-                      std::cout << "    edges: " << comp->num_edges() << '\n';
+                      // std::cout << "ncb states: " << comp->num_states() << ' ';
+                      // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     if (complement == NSBC)
                     {
@@ -473,10 +473,10 @@ int main(int argc, char* argv[])
                       // spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut); //, true);
-                      // comp = postprocessor.run(comp);
+                      comp = postprocessor.run(comp);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
-                      std::cout << "nsbc states: " << comp->num_states() << ' ';
-                      std::cout << "    edges: " << comp->num_edges() << '\n';
+                      // std::cout << "nsbc states: " << comp->num_states() << ' ';
+                      // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     aut = comp;
                   }
@@ -488,34 +488,35 @@ int main(int argc, char* argv[])
                 opts = "1.1";
               }
 
-            std::ofstream outfile;
-            std::string comfile = "com.hoa";
-            if (complement == NCSBSpot)
-              outfile.open("spot/" + comfile);
-            if (complement == NCSBPLDI)
-              outfile.open("pldi/" + comfile);
-            if (complement == NCSBPLDIB)
-              outfile.open("pldib/" + comfile);
-            if (complement == NCSBPLDIF)
-              outfile.open("pldif/" + comfile);
-            if (complement == NCSBPLDIBF)
-              outfile.open("pldibf/" + comfile);
+            // std::ofstream outfile;
+            // std::string comfile = "com.hoa";
+            // if (complement == NCSBSpot)
+            //   outfile.open("spot/" + comfile);
+            // if (complement == NCSBPLDI)
+            //   outfile.open("pldi/" + comfile);
+            // if (complement == NCSBPLDIB)
+            //   outfile.open("pldib/" + comfile);
+            // if (complement == NCSBPLDIF)
+            //   outfile.open("pldif/" + comfile);
+            // if (complement == NCSBPLDIBF)
+            //   outfile.open("pldibf/" + comfile);
             
-            if (complement == NCB)
-              outfile.open("ncb/" + comfile);
-            if (complement == NSBC)
-              outfile.open("nsbc/" + comfile);
+            // if (complement == NCB)
+            //   outfile.open("ncb/" + comfile);
+            // if (complement == NSBC)
+            //   outfile.open("nsbc/" + comfile);
           
-            spot::print_hoa(outfile, aut, opts);
-            outfile.close();
+            // spot::print_hoa(outfile, aut, opts);
+            // outfile.close();
+            spot::print_hoa(std::cout, aut, opts);
             
           }
       }
 
     check_cout();
 
-    endTime = clock();
-    std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s\n";
+    // endTime = clock();
+    // std::cout << "Run time: " <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s\n";
 
     return 0;
 }
