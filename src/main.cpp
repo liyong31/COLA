@@ -509,13 +509,13 @@ int main(int argc, char* argv[])
                   //     postprocessor.set_pref(spot::postprocessor::Any);
                   //   }
 
-                  // if (determinize == Rabin)
-                  //   {
-                  //     comp = from_spot::determinize_rabin(aut);
-                  //     // comp = postprocessor.run(comp);
-                  //     // std::cout << "spot states: " << comp->num_states() << ' ';
-                  //     // std::cout << "    edges: " << comp->num_edges() << '\n';
-                  //   }
+                  if (determinize == Rabin)
+                  {
+                    comp = from_spot::determinize_rabin(aut);
+                    // comp = postprocessor.run(comp);
+                    // std::cout << "spot states: " << comp->num_states() << ' ';
+                    // std::cout << "    edges: " << comp->num_edges() << '\n';
+                  }
                   
                   if (determinize == Parity)
                   {

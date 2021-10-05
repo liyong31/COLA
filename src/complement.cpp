@@ -1712,6 +1712,391 @@ namespace from_spot
               return res_;
             }
         };
+
+                // determinization
+        class determinization_rabin
+        {
+        private:
+            // The source automaton.
+            const spot::const_twa_graph_ptr aut_;
+
+            // SCCs information of the source automaton.
+            spot::scc_info si_;
+
+            // Number of states in the input automaton.
+            unsigned n_states_;
+
+            // Number of states in Q_D
+            unsigned d_states_ = 1;
+            unsigned rabin = 0;
+
+            // The complement being built.
+            spot::twa_graph_ptr res_;
+
+            // Association between NCSB states and state numbers of the
+            // complement.
+            std::unordered_map<small_dstate, unsigned, small_dstate_hash> rabin2n_;
+
+            // States to process.
+            std::deque<std::pair<dstate, unsigned>> todo_;
+
+            // Support for each state of the source automaton.
+            std::vector<bdd> support_;
+
+            // Propositions compatible with all transitions of a state.
+            std::vector<bdd> compat_;
+
+            // Whether a SCC is deterministic or not
+            std::vector<bool> is_deter_;
+
+            // Whether a state only has accepting transitions
+            std::vector<bool> is_accepting_;
+
+            // State names for graphviz display
+            std::vector<std::string>* names_;
+
+            // Show NCSB states in state name to help debug
+            bool show_names_;
+
+            std::string
+            get_name(const small_dstate& ms)
+            {
+              std::string res = "{";
+
+              // N
+              bool first_state = true;
+              for (const auto& p: ms)
+                if (p.second == detrb_n)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += ("N:" + std::to_string(p.first));
+                }
+
+              res += "},{";
+              
+              // (state, bottom)
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second == detrb_bot)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += ("(" + std::to_string(p.first) + ", bot)");
+                }
+
+              res += "},{";
+
+              // (state, label)
+              first_state = true;
+              for (const auto& p: ms)
+                if (p.second >= detrb_d)
+                {
+                  if (!first_state)
+                    res += ",";
+                  first_state = false;
+                  res += ("(" + std::to_string(p.first) + ", " + p.second + " )");
+                }
+
+              res += "},{";
+
+              return res + "}";
+            }
+
+            small_dstate
+            to_small_dstate(const dstate& ms)
+            {
+              unsigned count = 0;
+              for (unsigned i = 0; i < n_states_; ++i)
+                count+= (ms[i] != detrb_m);
+              small_dstate small;
+              small.reserve(count);
+              for (unsigned i = 0; i < n_states_; ++i)
+                if (ms[i] != detrb_m)
+                  small.emplace_back(i, ms[i]);
+              return small;
+            }
+
+            // looks for a duplicate in the map before
+            // creating a new state if needed.
+            unsigned
+            new_state(dstate&& s)
+            {
+              auto p = rabin2n_.emplace(to_small_dstate(s), 0);
+              if (p.second) // This is a new state
+              {
+                p.first->second = res_->new_state();
+                if (show_names_)
+                  names_->push_back(get_name(p.first->first));
+                todo_.emplace_back(std::move(s), p.first->second);
+              }
+              return p.first->second;
+            }
+
+            void
+            rabin_successors(dstate&& ms, unsigned origin, bdd letter)
+            {
+              // std::vector <dstate> succs;
+              // succs.emplace_back(n_states_, nsbc_m);
+              dstate succ(n_states_, detrb_m);
+
+              #if FWZ_DEBUG
+              std::cout << "letter: " << letter << '\n';
+              std::cout << "input: " << get_name(to_small_dstate(ms)) << '\n';
+              #endif
+
+              // At first, all states in Q_D is set to bottom
+              for (unsigned i = 0; i < n_states_; ++i)
+              {
+                // i is in Q_D
+                if (is_deter_[si_.scc_of(i)])
+                {
+                  succ[i] = detrb_bot;
+                }
+              }
+
+              // Handle \delta_D(\alpha(g), a)
+              int minLable = INT32_MAX;
+              int maxLable = 0;
+              for (unsigned i = 0; i < n_states_; ++i)
+              {
+                if (ms[i] < detrb_d)
+                  continue;
+
+                if (ms[i] < minLable)
+                {
+                  minLable = ms[i];
+                }
+
+                if (ms[i] > maxLable)
+                {
+                  maxLable = ms[i];
+                }
+
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+                  
+                  // only one successor
+                  succ[t.dst] = minLable;      
+                 
+                  break;
+                }
+              }
+
+              // Handle N states.
+              for (unsigned i = 0; i < n_states_; ++i)
+              {
+                if (ms[i] != detrb_n)
+                  continue;
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  // t.dst is in Q_D
+                  if (is_deter_[si_.scc_of(t.dst)])
+                  {
+                    // if g(t.dst) >= detrb_d, 
+                    // means it has been given a label, 
+                    // and means it is a successor of some state in Q_D,
+                    // then we should skip it,
+                    // and only consider the situation that g(t.dst) < detrb_d
+                    if (succ[t.dst] < detrb_d)
+                    {
+                      succ[t.dst] = maxLable + 1;
+                    }
+                  } 
+                  else
+                  {
+                    succ[t.dst] = detrb_n;
+                  }
+                }
+              }
+      
+              unsigned dst = new_state(std::move(succ)); 
+              // accepting state
+              // Ri = {(N,g) | i \notin beta(g)
+              // Ai = {(N,g) | i \in g(F)}
+              // `(Fin(0)&Inf(1))|(Fin(2)&Inf(3))|...|(Fin(2n-2)&Inf(2n-1))`
+              // std::cout << "d_states_: " << d_states_ << std::endl;
+             
+              bool reject = true;
+              bool accept = false;
+              
+              for (unsigned label = 1; label <= d_states_; label++)
+              {
+                for (int i = 0; i < n_states_; i++)
+                { 
+                  if (ms[i] == label)
+                  {
+                    for (const auto &t: aut_->out(i))
+                    {
+                      if (!bdd_implies(letter, t.cond))
+                        continue;
+
+                      // if label disappears, reject this transition
+                      if (succ[t.dst] == label)
+                      {
+                        reject = false;
+
+                        // if label exists, and the transition is accepting, accept it
+                        if (t.acc)
+                        {
+                          accept = true;
+                        }
+                      }
+                    }
+                  }
+                }
+                if (reject == true)
+                {
+                  res_->new_edge(origin, dst, letter, {2 * (label - 1)});
+                }
+                if (accept == true)
+                {
+                  res_->new_edge(origin, dst, letter, {2 * label - 1});
+                }
+              }
+            }
+
+
+        public:
+            determinization_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
+                    : aut_(aut),
+                      si_(aut),
+                      n_states_(aut->num_states()),
+                      support_(n_states_),
+                      compat_(n_states_),
+                      is_accepting_(n_states_),
+                      show_names_(show_names)
+            {
+              // res_ = spot::make_twa_graph(aut->get_dict());
+              // res_->copy_ap_of(aut);
+              // // res_->set_buchi();
+
+              res_ = spot::make_twa_graph(aut->get_dict());
+              res_->copy_ap_of(aut);
+              res_->prop_copy(aut,
+                   { false, // state based
+                       false, // inherently_weak
+                       false, false, // deterministic
+                       true, // complete
+                       false // stutter inv
+                       });
+
+              // Generate bdd supports and compatible options for each state.
+              // Also check if all its transitions are accepting.
+              for (unsigned i = 0; i < n_states_; ++i)
+              {
+                bdd res_support = bddtrue;
+                bdd res_compat = bddfalse;
+                
+                bool accepting = true;
+                bool has_transitions = false;
+                for (const auto& out: aut->out(i))
+                {
+                  has_transitions = true;
+                  res_support &= bdd_support(out.cond);
+                  res_compat |= out.cond;
+                  if (!out.acc)
+                    accepting = false;
+                }
+                support_[i] = res_support;
+                compat_[i] = res_compat;
+                is_accepting_[i] = accepting && has_transitions;
+              }
+
+
+
+              // Compute which SCCs are part of the deterministic set.
+              is_deter_ = spot::semidet_sccs(si_);
+
+              if (show_names_)
+              {
+                names_ = new std::vector<std::string>();
+                res_->set_named_prop("state-names", names_);
+              }
+
+              // Because we only handle one initial state, we assume it
+              // belongs to the N set. (otherwise the automaton would be
+              // deterministic)
+              unsigned init_state = aut->get_init_state_number();
+              dstate new_init_state(n_states_, detrb_m);
+              new_init_state[init_state] = detrb_n;
+              for (unsigned i = 0; i < n_states_; ++i)
+              {
+                if (is_deter_[si_.scc_of(i)])
+                {
+                  d_states_++;
+                  new_init_state[i] = detrb_bot;
+                }
+              }
+
+              res_->set_init_state(new_state(std::move(new_init_state)));
+            }
+
+            spot::twa_graph_ptr
+            run()
+            {
+              // Main stuff happens here
+
+              while (!todo_.empty())
+              {
+                auto top = todo_.front();
+                todo_.pop_front();
+
+                dstate ms = top.first;
+
+                // Compute support of all available states.
+                bdd msupport = bddtrue;
+                bdd n_s_compat = bddfalse;
+                bdd c_compat = bddtrue;
+                bool c_empty = true;
+                for (unsigned i = 0; i < n_states_; ++i)
+                  if (ms[i] != detrb_m)
+                  {
+                    msupport &= support_[i];                
+                    n_s_compat |= compat_[i];
+                  }
+
+                bdd all;
+                all = n_s_compat;
+
+                // // Get a dstate from todo_
+                // // 1. dstate -> (letter that not appears) empty set
+                // // 2. dstate -> (appearing letter) other dstate 
+                // if (all != bddtrue)
+                // {
+                //   dstate empty_state(n_states_, detrb_m);
+                //   res_->new_edge(top.second,
+                //                   new_state(std::move(empty_state)),
+                //                   !all,
+                //                   {0});
+                // }
+
+                
+                while (all != bddfalse)
+                {
+                  bdd one = bdd_satoneset(all, msupport, bddfalse);
+                  all -= one;
+
+                  // Compute all new states available from the generated letter.
+                  rabin_successors(std::move(ms), top.second, one);
+                }
+              }
+              
+              std::cout << "dstates_: " << d_states_ << std::endl;
+              res_->set_acceptance(d_states_, spot::acc_cond::acc_code::rabin(d_states_));
+              res_->prop_universal(true);
+              res_->prop_state_acc(false);
+              // res_->merge_edges();
+              return res_;
+            }
+        };
         
         namespace cola
         {
@@ -2184,18 +2569,18 @@ namespace from_spot
       return nsbc.run();
     }
 
-    // // determinization
-    // // new complement_semidet
-    // spot::twa_graph_ptr
-    // determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
-    // {
-    //   if (!is_semi_deterministic(aut))
-    //     throw std::runtime_error
-    //             ("determinize_rabin() requires a semi-deterministic input");
+    // determinization
+    // new complement_semidet
+    spot::twa_graph_ptr
+    determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("determinize_rabin() requires a semi-deterministic input");
 
-    //   auto rabin = determinization_rabin(aut, show_names);
-    //   return rabin.run();
-    // }
+      auto rabin = determinization_rabin(aut, show_names);
+      return rabin.run();
+    }
 
     spot::twa_graph_ptr
     determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names)
