@@ -1,14 +1,14 @@
-// Copyright (c) 2017-2020  The Seminator Authors
+// Copyright (c) 2017-2020  The cola Authors
 //
-// This file is a part of Seminator, a tool for semi-determinization
+// This file is a part of cola, a tool for semi-determinization
 // of omega automata.
 //
-// Seminator is free software: you can redistribute it and/or modify
+// cola is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Seminator is distributed in the hope that it will be useful,
+// cola is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
+//#include "cola.hpp"
+#include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
@@ -30,83 +32,25 @@
 #define FWZ_DEBUG 0
 
 void print_usage(std::ostream& os) {
-  os << "Usage: seminator [OPTION...] [FILENAME...]\n";
+  os << "Usage: cola [OPTION...] [FILENAME...]\n";
 }
 
 void print_help() {
   print_usage(std::cout);
   std::cout <<
-    R"(The tool transforms TGBA into equivalent semi- or cut-deterministic TBA.
+    R"(The tool transforms TLDBA into equivalent deterministic Rabin/Parity automata.
 
-By default, it reads a generalized Büchi automaton (GBA) from standard input
-and converts it into semi-deterministic Büchi automaton (sDBA), runs
-Spot's simplifications on it and outputs the result in the HOA format.
-The main algorithms are based on breakpoint construction. If the automaton
-is already of the requested shape, only the simplifications are run.
+By default, it reads a limit deterministic generalized Büchi automaton (LDGBA) from standard input
+and converts it into deterministic Rabin/Parity automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
 
 Output options:
-    --cd        cut-deterministic automaton
-    --sd        semi-deterministic automaton (default)
-    --complement[=best|spot|pldi|pldib]
-                build a semi-deterministic automaton to complement it using
-                the NCSB implementation of Spot, or the PLDI'18 variant
-                implemented in Seminator
-
-    --ba        SBA output
-    --tba       TBA output
-    --tgba      TGBA output (default)
-
-    --highlight color states of 1st component by violet, 2nd by green,
-                cut-edges by red
-
-    --is-cd     do not run transformation, check whether input is
-                cut-deterministic. Outputs only the cut-deterministic inputs.
-                (Spot's autfilt offers --is-semideterministic check)
-
-Transformation type (T=transition-based, S=state-based):
-    --via-tgba  one-step semi-determinization: TGBA -> sDBA
-    --via-tba   two-steps: TGBA -> TBA -> sDBA
-    --via-sba   two-steps: TGBA -> SBA -> sDBA
-
-  Multiple translation types can be chosen, the one with smallest
-  result will be outputted. If none is chosen, all three are run.
-
-Cut-edges construction:
-    --cut-always        cut-edges for each edge to an accepting SCC
-                        (default, unless --pure)
-    --cut-on-SCC-entry  cut-edges also for edges freshly entering an
-                        accepting SCC
-    --cut-highest-mark  cut-edges on highest marks only (default if --pure)
-
-  Cut-edges are edges between the 1st and 2nd component of the result.
-  They are based on edges of the input automaton.
+    -o FILENAME writes the output from FILENAME instead of stdout
 
 Optimizations:
-    --bscc-avoid[=0|1]          avoid deterministic bottom part of input in 1st
-                                component and jump directly to 2nd component
-    --jump-to-bottommost[=0|1]  remove useless trivial SCCs of 2nd component
-    --powerset-for-weak[=0|1]   avoid breakpoint construction for
-                                inherently weak accepting SCCs and use
-                                powerset construction instead
-    --powerset-on-cut[=0|1]     if s -a-> p needs a cut, create
-                                s -a-> (δ(s),δ_0(s),0) instead of
-                                s -a-> ({p},∅,0).
-    --reuse-deterministic[=0|1] similar to --bscc-avoid, but uses the SCCs
-                                unmodified with (potentialy) TGBA acceptance
-    --skip-levels[=0|1]         allow multiple breakpoints on 1 edge; a trick
-                                well known from degeneralization
-    --scc-aware[=0|1]           scc-aware optimizations
-    --scc0, --no-scc-aware      same as --scc-aware=0
-    --pure                      disable all optimizations except --scc-aware,
-                                also disable pre and post processings and
-                                implies --cut-highest-mark by default
-
-  Pass 1 (or nothing) to enable, or 0 to disable.  All optimizations
-  are enabled by default, unless --pure is specified, in which case
-  only --scc-aware is on.
+    --simulation          use simulaition before determinization
 
 Pre- and Post-processing:
     --preprocess[=0|1]       simplify the input automaton
@@ -128,9 +72,20 @@ void check_cout()
   std::cout.flush();
   if (!std::cout)
     {
-      std::cerr << "seminator: error writing to standard output\n";
+      std::cerr << "cola: error writing to standard output\n";
       exit(2);
     }
+}
+
+void output_file(spot::twa_graph_ptr aut, const char* file)
+{
+  const char* opts = nullptr;
+  std::ofstream outfile;
+  std::string file_name(file);
+  outfile.open(file_name);
+          
+  spot::print_hoa(outfile, aut, opts);
+  outfile.close();
 }
 
 int main(int argc, char* argv[])
@@ -138,7 +93,7 @@ int main(int argc, char* argv[])
     // clock_t startTime, endTime;
     // startTime = clock();
 
-    // Declaration for input options. The rest is in seminator.hpp
+    // Declaration for input options. The rest is in cola.hpp
     // as they need to be included in other files.
     bool cd_check = false;
     bool high = false;
@@ -156,6 +111,12 @@ int main(int argc, char* argv[])
 
     output_type desired_output = TGBA;
 
+    bool use_simulation = false;
+
+    bool debug = false;
+
+    std::string output_filename = "";
+
     auto match_opt =
       [&](const std::string& arg, const std::string& opt)
       {
@@ -163,7 +124,7 @@ int main(int argc, char* argv[])
           {
             if (const char* tmp = om.parse_options(arg.c_str() + 2))
               {
-                std::cerr << "seminator: failed to process option --"
+                std::cerr << "cola: failed to process option --"
                           << tmp << '\n';
                 exit(2);
               }
@@ -177,29 +138,31 @@ int main(int argc, char* argv[])
         std::string arg = argv[i];
 
         // Transformation types
-        if (arg == "--via-sba")
-          jobs |= ViaSBA;
-        else if (arg == "--via-tba")
-          jobs |= ViaTBA;
-        else if (arg == "--via-tgba")
-          jobs |= ViaTGBA;
-        //
-        else if (arg == "--is-cd")
-          cd_check = true;
-        // Cut edges
-        else if (arg == "--cut-on-SCC-entry") {
-          om.set("cut-on-SCC-entry", true);
-          om.set("cut-always", false);
-        }
-        else if (arg == "--cut-always")
-          om.set("cut-always", true);
-        else if (arg == "--cut-highest-mark")
-          {
-            om.set("cut-always", false);
-            om.set("cut-on-SCC-entry", false);
-          }
-        // Optimizations
-        else if (match_opt(arg, "--powerset-for-weak")
+        // if (arg == "--via-sba")
+        //   jobs |= ViaSBA;
+        // else if (arg == "--via-tba")
+        //   jobs |= ViaTBA;
+        // else if (arg == "--via-tgba")
+        //   jobs |= ViaTGBA;
+        // //
+        // else if (arg == "--is-cd")
+        //   cd_check = true;
+        // // Cut edges
+        // else if (arg == "--cut-on-SCC-entry") {
+        //   om.set("cut-on-SCC-entry", true);
+        //   om.set("cut-always", false);
+        // }
+        // else if (arg == "--cut-always")
+        //   om.set("cut-always", true);
+        // else if (arg == "--cut-highest-mark")
+        //   {
+        //     om.set("cut-always", false);
+        //     om.set("cut-on-SCC-entry", false);
+        //   }
+        // // Optimizations
+        // else 
+        if (
+                 match_opt(arg, "--powerset-for-weak")
                  || match_opt(arg, "--jump-to-bottommost")
                  || match_opt(arg, "--bscc-avoid")
                  || match_opt(arg, "--reuse-deterministic")
@@ -237,28 +200,31 @@ int main(int argc, char* argv[])
           }
         else if (arg == "--simplify-input")
           om.set("preprocess", true);
-
+        else if (arg == "--simulation") 
+          use_simulation = true;
         // Prefered output
         else if (arg == "--cd")
           cut_det = true;
         else if (arg == "--sd")
           cut_det = false;
-        else if (arg == "--complement" || arg == "--complement=best")
-          complement = NCSBBest;
-        else if (arg == "--complement=spot")
-          complement = NCSBSpot;
-        else if (arg == "--complement=pldi")
-          complement = NCSBPLDI;
-        else if(arg == "--complement=pldib")
-          complement = NCSBPLDIB;
-        else if(arg == "--complement=pldif")
-          complement = NCSBPLDIF;
-        else if(arg == "--complement=pldibf")
-          complement = NCSBPLDIBF;
-        else if (arg == "--complement=ncb")
-          complement = NCB;
-        else if (arg == "--complement=nsbc")
-          complement = NSBC;
+        else if (arg == "--d")
+          debug = true;
+        // else if (arg == "--complement" || arg == "--complement=best")
+        //   complement = NCSBBest;
+        // else if (arg == "--complement=spot")
+        //   complement = NCSBSpot;
+        // else if (arg == "--complement=pldi")
+        //   complement = NCSBPLDI;
+        // else if(arg == "--complement=pldib")
+        //   complement = NCSBPLDIB;
+        // else if(arg == "--complement=pldif")
+        //   complement = NCSBPLDIF;
+        // else if(arg == "--complement=pldibf")
+        //   complement = NCSBPLDIBF;
+        // else if (arg == "--complement=ncb")
+        //   complement = NCB;
+        // else if (arg == "--complement=nsbc")
+        //   complement = NSBC;
 
         // determinization
         else if (arg == "--determinize=rabin")
@@ -281,7 +247,7 @@ int main(int argc, char* argv[])
           {
             if (argc < i + 1)
               {
-                std::cerr << "seminator: Option -f requires an argument.\n";
+                std::cerr << "cola: Option -f requires an argument.\n";
                 return 1;
               }
             else
@@ -290,6 +256,19 @@ int main(int argc, char* argv[])
                 i++;
               }
           }
+        else if (arg == "-o") 
+        {
+          if (argc < i +1)
+          {
+            std::cerr << "cola: Option -o requires an argument.\n";
+            return 1;
+          }else 
+          {
+            std::string str(argv[i+1]);
+            output_filename = str;
+            i ++;
+          }
+        }
         else if ((arg == "--help") || (arg == "-h"))
           {
             print_help();
@@ -298,9 +277,9 @@ int main(int argc, char* argv[])
           }
         else if (arg == "--version")
           {
-            std::cout << "Seminator " PACKAGE_VERSION
+            std::cout << "cola " PACKAGE_VERSION
               " (using Spot " << spot::version() << ")\n\n"
-              "Copyright (C) 2020  The Seminator Authors.\n"
+              "Copyright (C) 2020  The cola Authors.\n"
               "License GPLv3+: GNU GPL version 3 or later"
               " <http://gnu.org/licenses/gpl.html>.\n"
               "This is free software: you are free to change "
@@ -312,14 +291,14 @@ int main(int argc, char* argv[])
         // removed
         else if (arg == "--cy")
           {
-            std::cerr << ("seminator: "
+            std::cerr << ("cola: "
                           "Invalid option --cy. Use --via-sba -s0 instead.\n");
             return 2;
           }
         // Detection of unsupported options
         else if (arg[0] == '-')
           {
-            std::cerr << "seminator: Unsupported option " << arg << '\n';
+            std::cerr << "cola: Unsupported option " << arg << '\n';
             return 2;
           }
         else
@@ -332,8 +311,8 @@ int main(int argc, char* argv[])
     {
       if (isatty(STDIN_FILENO))
         {
-          std::cerr << "seminator: No automaton to process? "
-            "Run 'seminator --help' for more help.\n";
+          std::cerr << "cola: No automaton to process? "
+            "Run 'cola --help' for more help.\n";
           print_usage(std::cerr);
           return 1;
         }
@@ -347,7 +326,7 @@ int main(int argc, char* argv[])
     if (high && complement)
       {
         std::cerr
-          << "seminator --highlight and --complement are incompatible\n";
+          << "cola --highlight and --complement are incompatible\n";
         return 1;
       }
 
@@ -382,7 +361,7 @@ int main(int argc, char* argv[])
                 if (parsed_aut->filename != "-")
                   std::cerr << parsed_aut->filename << ':';
                 std::cerr << parsed_aut->loc
-                          << ": seminator requires a TGBA on input.\n";
+                          << ": cola requires a TGBA on input.\n";
                 return 1;
               }
 
@@ -484,7 +463,7 @@ int main(int argc, char* argv[])
                     if (complement == NSBC)
                     {
                       // #if FWZ_DEBUG
-                      // spot::print_hoa(std::cout, aut) << '\n';
+                      spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut); //, true);
                       // comp = postprocessor.run(comp);
@@ -497,7 +476,7 @@ int main(int argc, char* argv[])
                     aut = comp;
                   }
 
-                if (determinize)
+                if (determinize && !is_deterministic(aut))
                 {
                   spot::twa_graph_ptr comp = nullptr;
                   spot::postprocessor postprocessor;
@@ -519,6 +498,15 @@ int main(int argc, char* argv[])
                   
                   if (determinize == Parity)
                   {
+                    if(use_simulation) 
+                    {
+                      auto aut2 = simulation(aut);
+                      aut = aut2;
+                    }
+                    if(debug)
+                    {
+                      output_file(aut, "in.hoa");
+                    }
                     comp = from_spot::determinize_tldba(aut, true);
                   }
                     aut = comp;
@@ -551,7 +539,16 @@ int main(int argc, char* argv[])
           
             // spot::print_hoa(outfile, aut, opts);
             // outfile.close();
-            spot::print_hoa(std::cout, aut, opts);
+            if(output_filename != "")
+            {
+              std::ofstream outfile;
+              outfile.open(output_filename);
+              spot::print_hoa(outfile, aut, opts);
+              outfile.close();
+            }else 
+            {
+              spot::print_hoa(std::cout, aut, opts);
+            }
             
           }
       }

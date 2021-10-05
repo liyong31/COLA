@@ -2191,6 +2191,7 @@ namespace from_spot
                     max_rnk = p.second;
                   }
                 }
+              //std::cout << "max_rnk = " << max_rnk << std::endl;
               std::string res = "{";
 
               bool first_state = true;
@@ -2204,7 +2205,7 @@ namespace from_spot
                 }
 
                 res += "}";
-                for(int i = 0; i < max_rnk; i ++) 
+                for(int i = 0; i <= max_rnk; i ++) 
                 {
                   res += ",[";
                   first_state = true;
@@ -2254,101 +2255,121 @@ namespace from_spot
                     void
                     rank_successors(const mstate& ms, unsigned origin, bdd letter)
                     {
-                      std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
+                      // std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
-                      std::cout << "max_rnk = " << max_rnk << std::endl;
-                      std::cout << "letter = " << letter << std::endl;
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
+                      // std::cout << "max_rnk = " << max_rnk << std::endl;
+                      // std::cout << "letter = " << letter << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
                       // first handle nondeterministic states
-                      for (unsigned i = 0; i < nb_states_; ++i)
+                      for (unsigned s = 0; s < nb_states_; ++ s)
                       {
-                        std::cout << "current s = " << i << " ms[] = " << ms[i] << std::endl;
-                        if (ms[i] == RANK_M)
+                        // std::cout << "current s = " << s << " ms[] = " << ms[s] << std::endl;
+                        if (ms[s] == RANK_M)
                           continue;
-                        if (ms[i] == RANK_N)
+                        if (ms[s] == RANK_N)
                         {
-                          std::cout << "nondet state " << i << std::endl;
-                          for (const auto &t: aut_->out(i))
+                          // std::cout << "nondet state " << s << std::endl;
+                          for (const auto &t: aut_->out(s))
                           {
-                            std::cout << "current t = " << t.dst << std::endl;
-                            std::cout << "current cond = " << t.cond << std::endl;
+                            // std::cout << "current t = " << t.dst << std::endl;
+                            // std::cout << "current cond = " << t.cond << std::endl;
                             if (!bdd_implies(letter, t.cond))
                               continue;
-                            std::cout << "Passed " << std::endl;
+                            // std::cout << "Passed " << std::endl;
                             if (is_deter_[si_.scc_of(t.dst)])
                             {
-                              std::cout << "jump to det: " << max_rnk + 1 << std::endl;
+                              // std::cout << "jump to det: " << max_rnk + 1 << std::endl;
                               succ[t.dst] = max_rnk + 1;  
                             } else 
                             {
-                              std::cout << "remain in nondet: " << RANK_N << std::endl;
+                              // std::cout << "remain in nondet: " << RANK_N << std::endl;
                               succ[t.dst] = RANK_N;
                             }
                           }
                         }
                       }
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
                       // now we compute the rank successors
-                      const int INT_MAX = nb_states_ + 1;
+                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                      {
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if (ms[s] == RANK_M || ms[s] == RANK_N)
+                            continue;
+                          if (ms[s] != rnk)
+                            continue;
+                          for (const auto &t: aut_->out(s))
+                          {
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            succ[t.dst] = rnk;
+                          }
+                        }
+                      }
+                      // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
+                      const int INT_MAX = nb_states_ + 2;
                       int min_dcc = INT_MAX;
                       int min_acc = INT_MAX;
                       for(int rnk = max_rnk; rnk >= 0; rnk --)
                       {
                         bool has_succ = false;
                         bool has_acc = false;
-                        for (unsigned i = 0; i < nb_states_; ++i)
+                        for (unsigned s = 0; s < nb_states_; ++s)
                         {
-                          if (ms[i] == RANK_M)
+                          if (ms[s] == RANK_M || ms[s] == RANK_N)
                             continue;
-                          if (ms[i] != rnk)
+                          if (ms[s] != rnk)
                             continue;
                           // exactly the rank is rnk
-                          for (const auto &t: aut_->out(i))
+                          for (const auto &t: aut_->out(s))
                           {
                             if (!bdd_implies(letter, t.cond))
                               continue;
-                            succ[t.dst] = rnk;
-
-                            has_succ = true;
-                            has_acc = has_acc || t.acc;
+                            // exactly the same rank means the existence of an edge from the parent s
+                            if(succ[t.dst] == rnk)
+                            {
+                              has_succ = true;
+                              // std::cout << "s = " << s << " t = " << t.dst << " acc = " << t.acc << std::endl;
+                              has_acc = has_acc || t.acc;
+                            }
                           }
                         }
                         if(! has_succ)
                         {
                           min_dcc = rnk;
-                        }
-                        if(has_acc) 
+                        }else if(has_acc)
                         {
                           min_acc = rnk;
                         }
                       }
-                      std::cout << "min_acc: " << min_acc << std::endl;
-                      std::cout << "min_dcc: " << min_dcc << std::endl;
+                      // std::cout << "min_acc: " << min_acc << std::endl;
+                      // std::cout << "min_dcc: " << min_dcc << std::endl;
 
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
                       int parity;
                       if(min_dcc == INT_MAX && min_acc != INT_MAX) 
                       {
-                        parity = 2 * min_acc;
+                        parity = 2 * (min_acc + 1);
                       }else if(min_dcc != INT_MAX && min_acc == INT_MAX)
                       {
-                        parity = 2 * min_dcc - 1;
+                        parity = 2 * min_dcc + 1;
                       }else if(min_dcc != INT_MAX && min_acc != INT_MAX) 
                       {
-                        parity = std::min(2* min_dcc - 1, 2 * min_acc);
+                        parity = std::min(2* min_dcc + 1, 2 * min_acc + 2);
                       }else {
                         parity = -1;
                       }
                       // now reorgnize the indices
                       std::unordered_map<int, int> new_indices;
                       int index = 0;
-                      for(int i = 0; i <= max_rnk; i ++)
+                      // the succ has at most max_rnk + 1
+                      for(int i = 0; i <= max_rnk + 1; i ++)
                       {
-                        bool existing= false;
-                        for (unsigned i = 0; i < nb_states_; ++i)
+                        bool existing = false;
+                        for (unsigned s = 0; s < nb_states_; ++s)
                         {
-                          if(succ[i] == i)
+                          if(succ[s] == i)
                           {
                             existing = true;
                             break;
@@ -2357,18 +2378,19 @@ namespace from_spot
                         if(existing) 
                         {
                           new_indices.emplace(i, index);
+                          // std::cout << "i = " << i << " idx = " << index << std::endl;
                           index ++;
                         }
                       }
-                      for(unsigned i = 0; i < nb_states_; i ++)
+                      for(unsigned s = 0; s < nb_states_; s ++)
                       {
-                        if(succ[i] != RANK_M && succ[i] != RANK_N)
+                        if(succ[s] != RANK_M && succ[s] != RANK_N)
                         {
                           // update indices
-                          succ[i] = new_indices[succ[i]];
+                          succ[s] = new_indices[succ[s]];
                         }
                       }
-                      std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
                       // add transitions
                       // Create the automaton states
                       unsigned dst = new_state(std::move(succ));
@@ -2377,12 +2399,12 @@ namespace from_spot
                       {
                         unsigned pri = (unsigned)parity;
                         sets_ = std::max(pri + 1, sets_);
-                        std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
+                        // std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
                         res_->new_edge(origin, dst, letter, {pri});
                       }else 
                       {
-                        std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
-                        res_->new_edge(origin, dst, letter);
+                        // std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
+                        res_->new_edge(origin, dst, letter, { 2* nb_states_ + 1});
                       }
                     }
 
@@ -2481,12 +2503,14 @@ namespace from_spot
                         }
                       }
                       // check the number of indices
-                      if(sets_ & 1)
-                      {
-                        sets_ ++;
-                      }
-                          // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
-                      res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                      // if(sets_ & 1)
+                      // {
+                      //   sets_ ++;
+                      // }
+                      //std::cout << "#parity = " << sets_ << std::endl;
+                      // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
+                      unsigned num_sets = 2*nb_states_ + 2;
+                      res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
 
