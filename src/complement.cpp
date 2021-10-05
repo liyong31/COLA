@@ -1870,41 +1870,41 @@ namespace from_spot
                     void
                     rank_successors(const mstate& ms, unsigned origin, bdd letter)
                     {
-                      std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
+                      // std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
-                      std::cout << "max_rnk = " << max_rnk << std::endl;
-                      std::cout << "letter = " << letter << std::endl;
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
+                      // std::cout << "max_rnk = " << max_rnk << std::endl;
+                      // std::cout << "letter = " << letter << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
                       // first handle nondeterministic states
                       for (unsigned s = 0; s < nb_states_; ++ s)
                       {
-                        std::cout << "current s = " << s << " ms[] = " << ms[s] << std::endl;
+                        // std::cout << "current s = " << s << " ms[] = " << ms[s] << std::endl;
                         if (ms[s] == RANK_M)
                           continue;
                         if (ms[s] == RANK_N)
                         {
-                          std::cout << "nondet state " << s << std::endl;
+                          // std::cout << "nondet state " << s << std::endl;
                           for (const auto &t: aut_->out(s))
                           {
-                            std::cout << "current t = " << t.dst << std::endl;
-                            std::cout << "current cond = " << t.cond << std::endl;
+                            // std::cout << "current t = " << t.dst << std::endl;
+                            // std::cout << "current cond = " << t.cond << std::endl;
                             if (!bdd_implies(letter, t.cond))
                               continue;
-                            std::cout << "Passed " << std::endl;
+                            // std::cout << "Passed " << std::endl;
                             if (is_deter_[si_.scc_of(t.dst)])
                             {
-                              std::cout << "jump to det: " << max_rnk + 1 << std::endl;
+                              // std::cout << "jump to det: " << max_rnk + 1 << std::endl;
                               succ[t.dst] = max_rnk + 1;  
                             } else 
                             {
-                              std::cout << "remain in nondet: " << RANK_N << std::endl;
+                              // std::cout << "remain in nondet: " << RANK_N << std::endl;
                               succ[t.dst] = RANK_N;
                             }
                           }
                         }
                       }
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
                       // now we compute the rank successors
                       for(int rnk = max_rnk; rnk >= 0; rnk --)
                       {
@@ -1945,7 +1945,7 @@ namespace from_spot
                             if(succ[t.dst] == rnk)
                             {
                               has_succ = true;
-                              std::cout << "s = " << s << " t = " << t.dst << " acc = " << t.acc << std::endl;
+                              // std::cout << "s = " << s << " t = " << t.dst << " acc = " << t.acc << std::endl;
                               has_acc = has_acc || t.acc;
                             }
                           }
@@ -1958,10 +1958,10 @@ namespace from_spot
                           min_acc = rnk;
                         }
                       }
-                      std::cout << "min_acc: " << min_acc << std::endl;
-                      std::cout << "min_dcc: " << min_dcc << std::endl;
+                      // std::cout << "min_acc: " << min_acc << std::endl;
+                      // std::cout << "min_dcc: " << min_dcc << std::endl;
 
-                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
                       int parity;
                       if(min_dcc == INT_MAX && min_acc != INT_MAX) 
                       {
@@ -1993,7 +1993,7 @@ namespace from_spot
                         if(existing) 
                         {
                           new_indices.emplace(i, index);
-                          std::cout << "i = " << i << " idx = " << index << std::endl;
+                          // std::cout << "i = " << i << " idx = " << index << std::endl;
                           index ++;
                         }
                       }
@@ -2005,7 +2005,7 @@ namespace from_spot
                           succ[s] = new_indices[succ[s]];
                         }
                       }
-                      std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
                       // add transitions
                       // Create the automaton states
                       unsigned dst = new_state(std::move(succ));
@@ -2014,11 +2014,11 @@ namespace from_spot
                       {
                         unsigned pri = (unsigned)parity;
                         sets_ = std::max(pri + 1, sets_);
-                        std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
+                        // std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
                         res_->new_edge(origin, dst, letter, {pri});
                       }else 
                       {
-                        std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
+                        // std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
                         res_->new_edge(origin, dst, letter, { 2* nb_states_ + 1});
                       }
                     }
@@ -2118,11 +2118,11 @@ namespace from_spot
                         }
                       }
                       // check the number of indices
-                      if(sets_ & 1)
-                      {
-                        sets_ ++;
-                      }
-                      std::cout << "#parity = " << sets_ << std::endl;
+                      // if(sets_ & 1)
+                      // {
+                      //   sets_ ++;
+                      // }
+                      //std::cout << "#parity = " << sets_ << std::endl;
                       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
                       unsigned num_sets = 2*nb_states_ + 2;
                       res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
