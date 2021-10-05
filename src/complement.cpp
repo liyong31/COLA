@@ -23,6 +23,17 @@
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/isunamb.hh>
 
+#include <spot/twaalgos/degen.hh>
+#include <spot/twaalgos/simulation.hh>
+#include <spot/twaalgos/determinize.hh>
+#include <spot/twaalgos/parity.hh>
+
+#include <spot/twaalgos/postproc.hh>
+
+#include <spot/parseaut/public.hh>
+#include <spot/twaalgos/hoa.hh>
+#include <spot/misc/version.hh>
+
 #include <types.hpp>
 
 #define FWZ_DEBUG 0
@@ -64,6 +75,14 @@ namespace from_spot
             nsbc_i = 0,
         };
 
+        enum detrb 
+        {
+            detrb_m = -2,     // missing
+            detrb_n = -1,     // non deterministic
+            detrb_bot = 0,    // bottom
+            detrb_d = 1,      // label
+        };
+
         typedef std::vector<ncsb> mstate;
         typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
 
@@ -72,6 +91,9 @@ namespace from_spot
 
         typedef std::vector<nsbc> mcstate;
         typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
+
+        typedef std::vector<detrb> dstate;
+        typedef std::vector<std::pair<unsigned, detrb>> small_dstate;
 
         struct small_mstate_hash
         {
@@ -107,6 +129,21 @@ namespace from_spot
         {
             size_t
             operator()(small_mcstate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+        // determinization
+        struct small_dstate_hash
+        {
+            size_t
+            operator()(small_dstate s) const noexcept
             {
               size_t hash = 0;
               for (const auto& p: s)
@@ -159,6 +196,9 @@ namespace from_spot
 
                     // opt 
                     bool optb_;
+
+                    // on the fly
+                    bool onthefly;
 
                     std::string
                     get_name(const small_mstate& ms)
@@ -331,21 +371,45 @@ namespace from_spot
                           if (!bdd_implies(letter, t.cond))
                             continue;
 
-                          // PLDI: All states from 2nd component go to C only.
-                          // PLDI: We have still only a unique successor
-                          if (is_deter_[si_.scc_of(t.dst)])
+                          if (onthefly)
                           {
-                            if (succs[0][t.dst] == ncsb_m) {
-                              succs[0][t.dst] = ncsb_c;
-                              // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                            
+                            if (t.acc)
+                            {
+                              if (succs[0][t.dst] == ncsb_m) 
+                              {
+                                succs[0][t.dst] = ncsb_c;
                               }
-                          } else
-                            for (auto &succ: succs) {
-                              succ[t.dst] = ncsb_n;
-                              // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
-                            }
+                            }      
+                            else
+                            {
+                              for (auto &succ: succs) 
+                              {
+                                if (succ[t.dst] == ncsb_m) 
+                                {
+                                  succ[t.dst] = ncsb_n;
+                                }
+                              }
+                            }               
+                          } 
+                          else 
+                          {
+                            // PLDI: All states from 2nd component go to C only.
+                            // PLDI: We have still only a unique successor
+                            if (is_deter_[si_.scc_of(t.dst)])
+                            {
+                              if (succs[0][t.dst] == ncsb_m) {
+                                succs[0][t.dst] = ncsb_c;
+                                // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
+                                // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                                }
+                            } else
+                              for (auto &succ: succs) {
+                                succ[t.dst] = ncsb_n;
+                                // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
+                                // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
+                              }
+                          }
                         }
                       }
                       // std::cout << "B states" << std::endl;
@@ -564,9 +628,7 @@ namespace from_spot
                       }
 
                       optb_ = false;
-
-                      // Compute which SCCs are part of the deterministic set.
-                      is_deter_ = spot::semidet_sccs(si_);
+                      onthefly = false;
 
                       if (show_names_)
                       {
@@ -588,10 +650,23 @@ namespace from_spot
                       optb_ = true;
                     }
 
+                    void set_onthefly()
+                    {
+                      onthefly = true;
+                    }
+                    
                     spot::twa_graph_ptr
                     run()
                     {
                       // Main stuff happens here
+
+
+                      if (onthefly == false)
+                      {
+                        // Compute which SCCs are part of the deterministic set.
+                        is_deter_ = spot::semidet_sccs(si_);
+                      }
+                    
 
                       while (!todo_.empty())
                       {
@@ -1454,7 +1529,7 @@ namespace from_spot
               res_->new_edge(origin, dst, letter);
           
 
-              // subset to (N, C, B)
+              // subset to (N, S, B, C)
               // succs.push_back(nb_states_, ncb_m);
               mcstate tmpState(nb_states_, nsbc_m);
 
@@ -1544,7 +1619,6 @@ namespace from_spot
 
               // Generate bdd supports and compatible options for each state.
               // Also check if all its transitions are accepting.
-              // fengwz: check if exists a transition that is accepting
               for (unsigned i = 0; i < nb_states_; ++i)
               {
                 bdd res_support = bddtrue;
@@ -1638,7 +1712,431 @@ namespace from_spot
               return res_;
             }
         };
+        
+        namespace cola
+        {
 
+          const int RANK_N = -1; // nondeterministic
+          const int RANK_M = -2; // missing value
+
+          // states
+          typedef std::vector<int> mstate;
+          typedef std::vector<std::pair<unsigned, int>> small_mstate;
+
+          struct small_mstate_hash
+          {
+            size_t
+            operator()(small_mstate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+          };
+
+          class ldba_determinize
+          {
+            private:
+              // The source automaton.
+              const spot::const_twa_graph_ptr aut_;
+
+              // SCCs information of the source automaton.
+              spot::scc_info si_;
+
+              // Number of states in the input automaton.
+              unsigned nb_states_;
+
+              // The parity automata being built.
+              spot::twa_graph_ptr res_;
+
+              // the number of indices
+              unsigned sets_ = 0;
+
+              // Association between Rank states and state numbers of the
+              // DPA.
+              std::unordered_map<small_mstate, unsigned, small_mstate_hash> rank2n_;
+
+              // States to process.
+              std::deque<std::pair<mstate, unsigned>> todo_;
+
+              // Support for each state of the source automaton.
+              std::vector<bdd> support_;
+
+              // Propositions compatible with all transitions of a state.
+              std::vector<bdd> compat_;
+
+              // Whether a SCC is deterministic or not
+              std::vector<bool> is_deter_;
+
+              // Whether a state only has accepting transitions
+              std::vector<bool> is_accepting_;
+
+              // State names for graphviz display
+              std::vector<std::string>* names_;
+
+              // Show Rank states in state name to help debug
+              bool show_names_;
+
+              int get_max_rank(const mstate& ms) 
+              {
+                int max_rnk = -2;
+                for(int i = 0; i < nb_states_; i ++) 
+                {
+                  if(ms[i] == RANK_M) 
+                    continue;
+                  if(max_rnk < ms[i]) 
+                  {
+                    max_rnk = ms[i];
+                  }
+                }
+                return max_rnk;
+              }
+
+              std::string
+              get_name(const small_mstate& ms)
+              {
+                int max_rnk = -2;
+                for(const auto & p : ms) 
+                {
+                  if(p.second > max_rnk) 
+                  {
+                    max_rnk = p.second;
+                  }
+                }
+              //std::cout << "max_rnk = " << max_rnk << std::endl;
+              std::string res = "{";
+
+              bool first_state = true;
+                for (const auto& p: ms)
+                if (p.second == RANK_N)
+                {
+                    if (!first_state)
+                      res += ",";
+                    first_state = false;
+                    res += std::to_string(p.first);
+                }
+
+                res += "}";
+                for(int i = 0; i <= max_rnk; i ++) 
+                {
+                  res += ",[";
+                  first_state = true;
+                  for (const auto& p: ms)
+                    if (p.second == i)
+                    {
+                      if (!first_state)
+                          res += ",";
+                      first_state = false;
+                      res += std::to_string(p.first);
+                    }
+                  res += "]=" + std::to_string(i);
+                }
+                return res;
+              }
+
+                    small_mstate
+                    to_small_mstate(const mstate& ms)
+                    {
+                      unsigned count = 0;
+                      for (unsigned i = 0; i < nb_states_; ++i)
+                        count+= (ms[i] != RANK_M);
+                      small_mstate small;
+                      small.reserve(count);
+                      for (unsigned i = 0; i < nb_states_; ++i)
+                        if (ms[i] != RANK_M)
+                          small.emplace_back(i, ms[i]);
+                      return small;
+                    }
+
+                    // From a Rank state, looks for a duplicate in the map before
+                    // creating a new state if needed.
+                    unsigned
+                    new_state(mstate&& s)
+                    {
+                      auto p = rank2n_.emplace(to_small_mstate(s), 0);
+                      if (p.second) // This is a new state
+                      {
+                        p.first->second = res_->new_state();
+                        if (show_names_)
+                          names_->push_back(get_name(p.first->first));
+                        todo_.emplace_back(std::move(s), p.first->second);
+                      }
+                      return p.first->second;
+                    }
+
+                    void
+                    rank_successors(const mstate& ms, unsigned origin, bdd letter)
+                    {
+                      std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
+                      mstate succ(nb_states_, RANK_M);
+                      int max_rnk = get_max_rank(ms);
+                      std::cout << "max_rnk = " << max_rnk << std::endl;
+                      std::cout << "letter = " << letter << std::endl;
+                      std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
+                      // first handle nondeterministic states
+                      for (unsigned s = 0; s < nb_states_; ++ s)
+                      {
+                        std::cout << "current s = " << s << " ms[] = " << ms[s] << std::endl;
+                        if (ms[s] == RANK_M)
+                          continue;
+                        if (ms[s] == RANK_N)
+                        {
+                          std::cout << "nondet state " << s << std::endl;
+                          for (const auto &t: aut_->out(s))
+                          {
+                            std::cout << "current t = " << t.dst << std::endl;
+                            std::cout << "current cond = " << t.cond << std::endl;
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            std::cout << "Passed " << std::endl;
+                            if (is_deter_[si_.scc_of(t.dst)])
+                            {
+                              std::cout << "jump to det: " << max_rnk + 1 << std::endl;
+                              succ[t.dst] = max_rnk + 1;  
+                            } else 
+                            {
+                              std::cout << "remain in nondet: " << RANK_N << std::endl;
+                              succ[t.dst] = RANK_N;
+                            }
+                          }
+                        }
+                      }
+                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // now we compute the rank successors
+                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                      {
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if (ms[s] == RANK_M || ms[s] == RANK_N)
+                            continue;
+                          if (ms[s] != rnk)
+                            continue;
+                          for (const auto &t: aut_->out(s))
+                          {
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            succ[t.dst] = rnk;
+                          }
+                        }
+                      }
+                      // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
+                      const int INT_MAX = nb_states_ + 2;
+                      int min_dcc = INT_MAX;
+                      int min_acc = INT_MAX;
+                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                      {
+                        bool has_succ = false;
+                        bool has_acc = false;
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if (ms[s] == RANK_M || ms[s] == RANK_N)
+                            continue;
+                          if (ms[s] != rnk)
+                            continue;
+                          // exactly the rank is rnk
+                          for (const auto &t: aut_->out(s))
+                          {
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            // exactly the same rank means the existence of an edge from the parent s
+                            if(succ[t.dst] == rnk)
+                            {
+                              has_succ = true;
+                              std::cout << "s = " << s << " t = " << t.dst << " acc = " << t.acc << std::endl;
+                              has_acc = has_acc || t.acc;
+                            }
+                          }
+                        }
+                        if(! has_succ)
+                        {
+                          min_dcc = rnk;
+                        }else if(has_acc)
+                        {
+                          min_acc = rnk;
+                        }
+                      }
+                      std::cout << "min_acc: " << min_acc << std::endl;
+                      std::cout << "min_dcc: " << min_dcc << std::endl;
+
+                      std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                      int parity;
+                      if(min_dcc == INT_MAX && min_acc != INT_MAX) 
+                      {
+                        parity = 2 * (min_acc + 1);
+                      }else if(min_dcc != INT_MAX && min_acc == INT_MAX)
+                      {
+                        parity = 2 * min_dcc + 1;
+                      }else if(min_dcc != INT_MAX && min_acc != INT_MAX) 
+                      {
+                        parity = std::min(2* min_dcc + 1, 2 * min_acc + 2);
+                      }else {
+                        parity = -1;
+                      }
+                      // now reorgnize the indices
+                      std::unordered_map<int, int> new_indices;
+                      int index = 0;
+                      // the succ has at most max_rnk + 1
+                      for(int i = 0; i <= max_rnk + 1; i ++)
+                      {
+                        bool existing = false;
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if(succ[s] == i)
+                          {
+                            existing = true;
+                            break;
+                          }
+                        }
+                        if(existing) 
+                        {
+                          new_indices.emplace(i, index);
+                          std::cout << "i = " << i << " idx = " << index << std::endl;
+                          index ++;
+                        }
+                      }
+                      for(unsigned s = 0; s < nb_states_; s ++)
+                      {
+                        if(succ[s] != RANK_M && succ[s] != RANK_N)
+                        {
+                          // update indices
+                          succ[s] = new_indices[succ[s]];
+                        }
+                      }
+                      std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
+                      // add transitions
+                      // Create the automaton states
+                      unsigned dst = new_state(std::move(succ));
+                      
+                      if(parity >= 0) 
+                      {
+                        unsigned pri = (unsigned)parity;
+                        sets_ = std::max(pri + 1, sets_);
+                        std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
+                        res_->new_edge(origin, dst, letter, {pri});
+                      }else 
+                      {
+                        std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
+                        res_->new_edge(origin, dst, letter, { 2* nb_states_ + 1});
+                      }
+                    }
+
+                public:
+                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names)
+                            : aut_(aut),
+                              si_(aut, spot::scc_info_options::ALL),
+                              nb_states_(aut->num_states()),
+                              support_(nb_states_),
+                              compat_(nb_states_),
+                              is_accepting_(nb_states_),
+                              show_names_(show_names)
+                    {
+                      res_ = spot::make_twa_graph(aut->get_dict());
+                      res_->copy_ap_of(aut);
+                      res_->prop_copy(aut,
+                          { false, // state based
+                              false, // inherently_weak
+                              false, false, // deterministic
+                              true, // complete
+                              false // stutter inv
+                              });
+
+                      // Generate bdd supports and compatible options for each state.
+                      // Also check if all its transitions are accepting.
+                      for (unsigned i = 0; i < nb_states_; ++i)
+                      {
+                        bdd res_support = bddtrue;
+                        bdd res_compat = bddfalse;
+                        bool accepting = true;
+                        bool has_transitions = false;
+                        for (const auto& out: aut->out(i))
+                        {
+                          has_transitions = true;
+                          res_support &= bdd_support(out.cond);
+                          res_compat |= out.cond;
+                          if (!out.acc)
+                            accepting = false;
+                        }
+                        support_[i] = res_support;
+                        compat_[i] = res_compat;
+                        is_accepting_[i] = accepting && has_transitions;
+                      }
+                      // Compute which SCCs are part of the deterministic set.
+                      is_deter_ = spot::semidet_sccs(si_);
+
+                      if (show_names_)
+                      {
+                        names_ = new std::vector<std::string>();
+                        res_->set_named_prop("state-names", names_);
+                      }
+
+                      // Because we only handle one initial state, we assume it
+                      // belongs to the N set. (otherwise the automaton would be
+                      // deterministic)
+                      unsigned init_state = aut->get_init_state_number();
+                      mstate new_init_state(nb_states_, RANK_M);
+                      new_init_state[init_state] = RANK_N;
+                      // we assume that the initial state is not in deterministic part
+                      res_->set_init_state(new_state(std::move(new_init_state)));
+                    }
+
+                    spot::twa_graph_ptr
+                    run()
+                    {
+                      // Main stuff happens here
+                      // todo_ is a queue for handling states
+                      while (!todo_.empty())
+                      {
+                        auto top = todo_.front();
+                        todo_.pop_front();
+                        // pop current state, (N, Rnk)
+                        mstate ms = top.first;
+
+                        // Compute support of all available states.
+                        bdd msupport = bddtrue;
+                        bdd n_s_compat = bddfalse;
+                        // compute the occurred variables in the outgoing transitions of ms, stored in msupport 
+                        for (unsigned i = 0; i < nb_states_; ++i)
+                          if (ms[i] != RANK_M)
+                          {
+                            msupport &= support_[i];
+                            if (ms[i] != RANK_M || is_accepting_[i])
+                              n_s_compat |= compat_[i];
+                          }
+
+                        bdd all = n_s_compat;
+                        while (all != bddfalse)
+                        {
+                          bdd one = bdd_satoneset(all, msupport, bddfalse);
+                          all -= one;
+
+                          // Compute all new states available from the generated
+                          // letter.
+                          rank_successors(std::move(ms), top.second, one);
+                        }
+                      }
+                      // check the number of indices
+                      if(sets_ & 1)
+                      {
+                        sets_ ++;
+                      }
+                      std::cout << "#parity = " << sets_ << std::endl;
+                      // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
+                      unsigned num_sets = 2*nb_states_ + 2;
+                      res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
+                      res_->prop_universal(true);
+                      res_->prop_state_acc(false);
+
+                      cleanup_parity_here(res_);
+                      //res_->merge_edges();
+                      return res_;
+                    }
+          };
+        }
+
+         
     }
 
     spot::twa_graph_ptr
@@ -1652,6 +2150,17 @@ namespace from_spot
     }
 
     spot::twa_graph_ptr
+    complement_semidet_onthefly(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+      auto ncsb = ncsb_complementation(aut, show_names);
+      ncsb.set_onthefly();
+      return ncsb.run();
+    }
+
+    spot::twa_graph_ptr
     complement_semidet_opt(const spot::const_twa_graph_ptr& aut, bool show_names)
     {
       if (!is_semi_deterministic(aut))
@@ -1661,6 +2170,19 @@ namespace from_spot
       ncsb.set_opt();
       return ncsb.run();
     }
+
+    spot::twa_graph_ptr
+    complement_semidet_opt_onthefly(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+        throw std::runtime_error
+                ("complement_semidet() requires a semi-deterministic input");
+      auto ncsb = ncsb_complementation(aut, show_names);
+      ncsb.set_opt();
+      ncsb.set_onthefly();
+      return ncsb.run();
+    }
+
 
     // fengwz
     spot::twa_graph_ptr
@@ -1685,6 +2207,31 @@ namespace from_spot
       auto nsbc = nsbc_complementation(aut, show_names);
       return nsbc.run();
     }
+
+    // // determinization
+    // // new complement_semidet
+    // spot::twa_graph_ptr
+    // determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
+    // {
+    //   if (!is_semi_deterministic(aut))
+    //     throw std::runtime_error
+    //             ("determinize_rabin() requires a semi-deterministic input");
+
+    //   auto rabin = determinization_rabin(aut, show_names);
+    //   return rabin.run();
+    // }
+
+    spot::twa_graph_ptr
+    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names)
+    {
+      if (!is_semi_deterministic(aut))
+            throw std::runtime_error
+                    ("determinize_tldba() requires a semi-deterministic input");
+
+      auto det = cola::ldba_determinize(aut, show_names);
+      return det.run();
+    }
+
 }
 
 
