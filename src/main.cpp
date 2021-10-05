@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
+#include "cola.hpp"
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
@@ -149,6 +150,11 @@ int main(int argc, char* argv[])
     jobs_type jobs = 0;
     enum complement_t { NoComplement = 0, NCSBBest, NCSBSpot, NCSBPLDI, NCSBPLDIB, NCSBPLDIF, NCSBPLDIBF, NCB, NSBC };
     complement_t complement = NoComplement;
+
+    // determinization
+    enum determinize_t { NoDeterminize = 0, Rabin, Parity };
+    determinize_t determinize = NoDeterminize;
+
     output_type desired_output = TGBA;
 
     auto match_opt =
@@ -254,6 +260,14 @@ int main(int argc, char* argv[])
           complement = NCB;
         else if (arg == "--complement=nsbc")
           complement = NSBC;
+
+        // determinization
+        else if (arg == "--determinize=rabin")
+          determinize = Rabin;
+        
+        else if (arg == "--determinize=parity")
+          determinize = Parity;
+        
         else if (arg == "--ba")
           desired_output = BA;
         else if (arg == "--tba")
@@ -356,6 +370,7 @@ int main(int argc, char* argv[])
             if (parsed_aut->format_errors(std::cerr))
               return 1;
 
+            // input automata
             spot::twa_graph_ptr aut = parsed_aut->aut;
             spot::twa_graph_ptr myaut = parsed_aut->aut;
 
@@ -470,16 +485,45 @@ int main(int argc, char* argv[])
                     if (complement == NSBC)
                     {
                       // #if FWZ_DEBUG
-                      // spot::print_hoa(std::cout, aut) << '\n';
+                      spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut); //, true);
-                      comp = postprocessor.run(comp);
+                      // comp = postprocessor.run(comp);
+
+                      // comp = from_spot::determinize_tldba(aut, true);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
                       // std::cout << "nsbc states: " << comp->num_states() << ' ';
                       // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
                     aut = comp;
                   }
+
+                if (determinize)
+                {
+                  spot::twa_graph_ptr comp = nullptr;
+                  spot::postprocessor postprocessor;
+
+                  // if (!om.get("postprocess-comp", 1))
+                  //   {
+                  //     // Disable simplifications except acceptance change.
+                  //     postprocessor.set_level(spot::postprocessor::Low);
+                  //     postprocessor.set_pref(spot::postprocessor::Any);
+                  //   }
+
+                  // if (determinize == Rabin)
+                  //   {
+                  //     comp = from_spot::determinize_rabin(aut);
+                  //     // comp = postprocessor.run(comp);
+                  //     // std::cout << "spot states: " << comp->num_states() << ' ';
+                  //     // std::cout << "    edges: " << comp->num_edges() << '\n';
+                  //   }
+                  
+                  if (determinize == Parity)
+                  {
+                    comp = from_spot::determinize_tldba(aut, true);
+                  }
+                    aut = comp;
+                }
               }
             const char* opts = nullptr;
             if (high)
