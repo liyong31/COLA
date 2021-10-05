@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
-#include "cola.hpp"
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
@@ -485,7 +484,7 @@ int main(int argc, char* argv[])
                     if (complement == NSBC)
                     {
                       // #if FWZ_DEBUG
-                      spot::print_hoa(std::cout, aut) << '\n';
+                      // spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut); //, true);
                       // comp = postprocessor.run(comp);
