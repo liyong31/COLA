@@ -10,7 +10,7 @@ The [slice-based algorithm](https://arxiv.org/abs/2005.09125v2) for UNBA complem
 * random_nd.ltl has passed.
 
 ### Installation
-Please run the following steps to compile COLA after git clone from this repo:
+Please run the following steps to compile COLA after gitting clone this repo:
 ```
 autoreconf -i
 ```
