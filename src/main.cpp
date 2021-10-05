@@ -207,7 +207,6 @@ int main(int argc, char* argv[])
           cut_det = true;
         else if (arg == "--sd")
           cut_det = false;
-<<<<<<< HEAD
         else if (arg == "--d")
           debug = true;
         // else if (arg == "--complement" || arg == "--complement=best")
@@ -226,32 +225,11 @@ int main(int argc, char* argv[])
         //   complement = NCB;
         // else if (arg == "--complement=nsbc")
         //   complement = NSBC;
-=======
-        else if (arg == "--complement" || arg == "--complement=best")
-          complement = NCSBBest;
-        else if (arg == "--complement=spot")
-          complement = NCSBSpot;
-        else if (arg == "--complement=pldi")
-          complement = NCSBPLDI;
-        else if(arg == "--complement=pldib")
-          complement = NCSBPLDIB;
-        else if(arg == "--complement=pldif")
-          complement = NCSBPLDIF;
-        else if(arg == "--complement=pldibf")
-          complement = NCSBPLDIBF;
-        else if (arg == "--complement=ncb")
-          complement = NCB;
-        else if (arg == "--complement=nsbc")
-          complement = NSBC;
->>>>>>> e4f2a65796d66912451fc983c8f0ce7d1abeb627
 
         // determinization
         else if (arg == "--determinize=rabin")
           determinize = Rabin;
-<<<<<<< HEAD
-=======
         
->>>>>>> e4f2a65796d66912451fc983c8f0ce7d1abeb627
         else if (arg == "--determinize=parity")
           determinize = Parity;
         
@@ -498,11 +476,7 @@ int main(int argc, char* argv[])
                     aut = comp;
                   }
 
-<<<<<<< HEAD
                 if (determinize && !is_deterministic(aut))
-=======
-                if (determinize)
->>>>>>> e4f2a65796d66912451fc983c8f0ce7d1abeb627
                 {
                   spot::twa_graph_ptr comp = nullptr;
                   spot::postprocessor postprocessor;
