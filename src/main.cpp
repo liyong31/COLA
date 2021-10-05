@@ -26,6 +26,7 @@
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/complement.hh>
+#include <spot/twaalgos/determinize.hh>
 #include <spot/misc/version.hh>
 #include <fstream>
 #include<ctime>
@@ -45,6 +46,8 @@ and converts it into deterministic Rabin/Parity automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
+    --determinize=[spot|parity]
+                    use Spot or our algorithm to obtain deterministic Parity automata
 
 Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
@@ -106,7 +109,7 @@ int main(int argc, char* argv[])
     complement_t complement = NoComplement;
 
     // determinization
-    enum determinize_t { NoDeterminize = 0, Rabin, Parity };
+    enum determinize_t { NoDeterminize = 0, Rabin, Parity, Spot };
     determinize_t determinize = NoDeterminize;
 
     output_type desired_output = TGBA;
@@ -229,10 +232,10 @@ int main(int argc, char* argv[])
         // determinization
         else if (arg == "--determinize=rabin")
           determinize = Rabin;
-        
         else if (arg == "--determinize=parity")
           determinize = Parity;
-        
+        else if (arg == "--determinize=spot")
+          determinize = Spot;
         else if (arg == "--ba")
           desired_output = BA;
         else if (arg == "--tba")
@@ -386,7 +389,7 @@ int main(int argc, char* argv[])
 
                 if (complement)
                   {
-                    spot::twa_graph_ptr comp = nullptr;
+                    spot::twa_graph_ptr res = nullptr;
                     spot::postprocessor postprocessor;
                     // We don't deal with TBA: (1) complement_semidet() returns a
                     // TBA, and (2) in Spot 2.8 spot::postprocessor only knows
@@ -404,8 +407,8 @@ int main(int argc, char* argv[])
 
                     if (complement == NCSBSpot || complement == NCSBBest)
                       {
-                        comp = spot::complement_semidet(aut);
-                        comp = postprocessor.run(comp);
+                        res = spot::complement_semidet(aut);
+                        res = postprocessor.run(res);
                         // std::cout << "spot states: " << comp->num_states() << ' ';
                         // std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
@@ -414,8 +417,8 @@ int main(int argc, char* argv[])
                         spot::twa_graph_ptr comp1 =
                           from_spot::complement_semidet_opt(aut);
                         comp1 = postprocessor.run(comp1);
-                        if (!comp || comp->num_states() > comp1->num_states())
-                          comp = comp1;
+                        if (!res || res->num_states() > comp1->num_states())
+                          res = comp1;
                         // std::cout << "pldib states: " << comp->num_states() << ' ';
                         // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
@@ -424,8 +427,8 @@ int main(int argc, char* argv[])
                         spot::twa_graph_ptr comp3 =
                           from_spot::complement_semidet_onthefly(aut);
                         comp3 = postprocessor.run(comp3);
-                        if (!comp || comp->num_states() > comp3->num_states())
-                          comp = comp3;
+                        if (!res || res->num_states() > comp3->num_states())
+                          res = comp3;
                         // std::cout << "pldif states: " << comp->num_states() << ' ';
                         // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
@@ -434,8 +437,8 @@ int main(int argc, char* argv[])
                         spot::twa_graph_ptr comp4 =
                           from_spot::complement_semidet_opt_onthefly(aut);
                         comp4 = postprocessor.run(comp4);
-                        if (!comp || comp->num_states() > comp4->num_states())
-                          comp = comp4;
+                        if (!res || res->num_states() > comp4->num_states())
+                          res = comp4;
                         // std::cout << "pldibf states: " << comp->num_states() << ' ';
                         // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
@@ -444,8 +447,8 @@ int main(int argc, char* argv[])
                         spot::twa_graph_ptr comp2 =
                           from_spot::complement_semidet(aut);
                         comp2 = postprocessor.run(comp2);
-                        if (!comp || comp->num_states() > comp2->num_states())
-                          comp = comp2;
+                        if (!res || res->num_states() > comp2->num_states())
+                          res = comp2;
                         // std::cout << "pldi states: " << comp->num_states() << ' ';
                         // std::cout << "    edges: " << comp->num_edges() << '\n';
                       }
@@ -454,8 +457,8 @@ int main(int argc, char* argv[])
                       // spot::print_hoa(std::cout, aut) << '\n';
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
-                      comp = from_spot::complement_unambiguous(myaut); //, true);
-                      comp = postprocessor.run(comp);
+                      res = from_spot::complement_unambiguous(myaut); //, true);
+                      res = postprocessor.run(res);
                       // spot::print_hoa(std::cout, comp->num_states()) << '\n';
                       // std::cout << "ncb states: " << comp->num_states() << ' ';
                       // std::cout << "    edges: " << comp->num_edges() << '\n';
@@ -465,7 +468,7 @@ int main(int argc, char* argv[])
                       // #if FWZ_DEBUG
                       spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
-                      comp = from_spot::new_complement_semidet(aut); //, true);
+                      res = from_spot::new_complement_semidet(aut); //, true);
                       // comp = postprocessor.run(comp);
 
                       // comp = from_spot::determinize_tldba(aut, true);
@@ -473,12 +476,12 @@ int main(int argc, char* argv[])
                       // std::cout << "nsbc states: " << comp->num_states() << ' ';
                       // std::cout << "    edges: " << comp->num_edges() << '\n';
                     }
-                    aut = comp;
+                    aut = res;
                   }
 
                 if (determinize && !is_deterministic(aut))
                 {
-                  spot::twa_graph_ptr comp = nullptr;
+                  spot::twa_graph_ptr res = nullptr;
                   spot::postprocessor postprocessor;
 
                   // if (!om.get("postprocess-comp", 1))
@@ -507,9 +510,13 @@ int main(int argc, char* argv[])
                     {
                       output_file(aut, "in.hoa");
                     }
-                    comp = from_spot::determinize_tldba(aut, true);
+                    res = from_spot::determinize_tldba(aut, true);
+                  }else  if(determinize == Spot)
+                  {
+                    // pretty_print, use_scc, use_simulation, use_stutter, aborter
+                    res = spot::tgba_determinize(aut, false, false, use_simulation, false, nullptr);
                   }
-                    aut = comp;
+                    aut = res;
                 }
               }
             const char* opts = nullptr;
