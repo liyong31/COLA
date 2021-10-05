@@ -16,14 +16,14 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = seminator
-lib_LTLIBRARIES = src/libseminator.la
+bin_PROGRAMS = cola
+lib_LTLIBRARIES = src/libcola.la
 
 AM_CPPFLAGS = -I$(srcdir)/src
-seminator_LDADD = -L$(SPOTPREFIX)/lib src/libseminator.la -lspot -lbddx
-src_libseminator_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
+cola_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
+src_libcola_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
 
-src_libseminator_la_SOURCES =			\
+src_libcola_la_SOURCES =			\
   src/breakpoint_twa.cpp			\
   src/breakpoint_twa.hpp			\
   src/bscc.cpp					\
@@ -37,12 +37,12 @@ src_libseminator_la_SOURCES =			\
   src/seminator.hpp				\
   src/types.hpp
 
-seminator_SOURCES = src/main.cpp
+cola_SOURCES = src/main.cpp
 
 if USE_PYTHON
 sempyexecdir = $(pyexecdir)/spot-extra
-sempyexec_PYTHON = python/spot-extra/seminator.py
-sempyexec_LTLIBRARIES = python/spot-extra/_seminator.la
+sempyexec_PYTHON = python/spot-extra/cola.py
+sempyexec_LTLIBRARIES = python/spot-extra/_cola.la
 
 # Debian has an inconsistency where it requires packages to be
 # installed in .../dist-packages, but its sysconfig return
@@ -58,23 +58,23 @@ install-exec-local:
         esac
 endif
 
-MAINTAINERCLEANFILES = python/spot/seminator.cxx
+MAINTAINERCLEANFILES = python/spot/cola.cxx
 
 ## Automake 1.16 fails to remove the __pycache__/* files.
 uninstall-local:
 	rm -rf $(DESTDIR)$(pyexecdir)/spot-extra/__pycache__
 
-python_spot_extra__seminator_la_CPPFLAGS = \
+python_spot_extra__cola_la_CPPFLAGS = \
    -I$(PYTHONINC) -I$(top_srcdir)/src -DSWIG_TYPE_TABLE=spot
-python_spot_extra__seminator_la_SOURCES = python/spot-extra/seminator_wrap.cxx
-python_spot_extra__seminator_la_LDFLAGS = -avoid-version -module $(SYMBOLIC_LDFLAGS)
-python_spot_extra__seminator_la_LIBADD = \
-   src/libseminator.la -L$(SPOTPREFIX)/lib -lspot -lbddx
+python_spot_extra__cola_la_SOURCES = python/spot-extra/cola_wrap.cxx
+python_spot_extra__cola_la_LDFLAGS = -avoid-version -module $(SYMBOLIC_LDFLAGS)
+python_spot_extra__cola_la_LIBADD = \
+   src/libcola.la -L$(SPOTPREFIX)/lib -lspot -lbddx
 
 SWIGFLAGS = -c++ -python -py3 -O -I$(SPOTPREFIX)/include -I$(top_srcdir)/src
 
-${srcdir}/python/spot-extra/seminator_wrap.cxx: python/spot-extra/seminator.i src/seminator.hpp
-	$(SWIG) $(SWIGFLAGS) $(srcdir)/python/spot-extra/seminator.i
+${srcdir}/python/spot-extra/cola_wrap.cxx: python/spot-extra/cola.i src/seminator.hpp
+	$(SWIG) $(SWIGFLAGS) $(srcdir)/python/spot-extra/cola.i
 ## work around https://github.com/swig/swig/issues/1553
 	$(PERL) -pi -e 's/^#define SWIG_Python_CallFunctor.*/#define SWIG_Python_CallFunctor(functor, obj) PyObject_CallFunctionObjArgs(functor, obj, NULL);/' $@
 
@@ -122,7 +122,7 @@ EXTRA_DIST =					\
   ChangeLog.md					\
   formulae/random_sd.ltl			\
   formulae/random_nd.ltl			\
-  python/spot-extra/seminator.i			\
+  python/spot-extra/cola.i			\
   tests/ipnbdoctest.py				\
   $(shell_TESTS)				\
   $(ipynb_TESTS)				\
