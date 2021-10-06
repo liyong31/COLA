@@ -33,6 +33,7 @@
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
+#include <spot/twa/acc.hh>
 
 #include <types.hpp>
 
@@ -2021,9 +2022,9 @@ namespace from_spot
                       }else 
                       {
                         // std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
-                        sets_ = std::max(MAX_PRI, sets_);
-                        res_->new_edge(origin, dst, letter, { MAX_PRI });
-                        //res_->new_edge(origin, dst, letter);
+                        //sets_ = std::max(MAX_PRI, sets_);
+                        //res_->new_edge(origin, dst, letter, { MAX_PRI });
+                        res_->new_edge(origin, dst, letter);
                       }
                     }
 
@@ -2128,13 +2129,33 @@ namespace from_spot
                           rank_successors(std::move(ms), top.second, one);
                         }
                       }
+                      // now copy 
                       // check the number of indices
-                      sets_ += sets_ & 1;
-                      //std::cout << "#parity = " << sets_ << std::endl;
+                      unsigned max_odd_pri = -1;
+                      // sets_ stores the maximal priority has ever seen
+                      if(sets_ & 1)
+                      {
+                        max_odd_pri = sets_;
+                      }else 
+                      {
+                        max_odd_pri = sets_ + 1;
+                      }
+                      //std::cout << "max odd pri = " << max_odd_pri << std::endl;
+                      //sets_ += sets_ & 1;
+                      //std::cout << "#parity = " << sets_ << " max_pri = " << 2 * nb_det_states_ + 1 << std::endl;
+                      for (auto& t: res_->edges())
+                      {
+                        //std::cout << t.src << " -> " << t.dst << " " << t.cond << " " << t.acc << " " << t.acc.has(2*nb_det_states_ + 1) << std::endl;
+                        if (t.acc.count() <= 0)
+                          {
+                            t.acc = spot::acc_cond::mark_t{max_odd_pri};
+                          }
+                       // std::cout << t.src << " -> " << t.dst << " " << t.cond << " " << "updated: " << t.acc << std::endl;
+                      }
                       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
-                      //unsigned num_sets = 2*nb_det_states_ + 2;
-                      res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                      unsigned num_sets = max_odd_pri + 1;
                       //res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                      res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
                     
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
