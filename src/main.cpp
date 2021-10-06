@@ -63,6 +63,7 @@ Pre- and Post-processing:
                              (default)
     -s0, --no-reductions     same as --postprocess=0 --preprocess=0
                              --postprocess-comp=0
+    --merge-transitions      merge transitions in the output automaton
 
 Miscellaneous options:
   -h, --help    print this help
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
     output_type desired_output = TGBA;
 
     bool use_simulation = false;
-
+    bool merge_transitions = false;
     bool debug = false;
 
     std::string output_filename = "";
@@ -212,6 +213,8 @@ int main(int argc, char* argv[])
           cut_det = false;
         else if (arg == "--d")
           debug = true;
+        else if (arg == "--merge-transitions")
+          merge_transitions = true;
         // else if (arg == "--complement" || arg == "--complement=best")
         //   complement = NCSBBest;
         // else if (arg == "--complement=spot")
@@ -546,6 +549,11 @@ int main(int argc, char* argv[])
           
             // spot::print_hoa(outfile, aut, opts);
             // outfile.close();
+            if(merge_transitions)
+            {
+              //std::cout << "reach here, merge transitions" << std::endl;
+              aut->merge_edges();
+            }
             if(output_filename != "")
             {
               std::ofstream outfile;
