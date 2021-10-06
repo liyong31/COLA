@@ -1749,6 +1749,8 @@ namespace from_spot
               // Number of states in the input automaton.
               unsigned nb_states_;
 
+              unsigned nb_det_states_;
+
               // The parity automata being built.
               spot::twa_graph_ptr res_;
 
@@ -2009,17 +2011,19 @@ namespace from_spot
                       // add transitions
                       // Create the automaton states
                       unsigned dst = new_state(std::move(succ));
-                      
+                      const unsigned MAX_PRI = 2* nb_det_states_ + 1;
                       if(parity >= 0) 
                       {
                         unsigned pri = (unsigned)parity;
-                        sets_ = std::max(pri + 1, sets_);
+                        sets_ = std::max(pri, sets_);
                         // std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
                         res_->new_edge(origin, dst, letter, {pri});
                       }else 
                       {
                         // std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
-                        res_->new_edge(origin, dst, letter, { 2* nb_states_ + 1});
+                        sets_ = std::max(MAX_PRI, sets_);
+                        res_->new_edge(origin, dst, letter, { MAX_PRI });
+                        //res_->new_edge(origin, dst, letter);
                       }
                     }
 
@@ -2065,7 +2069,15 @@ namespace from_spot
                       }
                       // Compute which SCCs are part of the deterministic set.
                       is_deter_ = spot::semidet_sccs(si_);
-
+                      nb_det_states_ = 0;
+                      for(unsigned i = 0; i < nb_states_; i ++)
+                      {
+                        if(is_deter_[si_.scc_of(i)])
+                        {
+                          nb_det_states_ ++;
+                        }
+                      }
+                      //std::cout << "#S = " << nb_states_ << " #D = " << nb_det_states_ << std::endl;
                       if (show_names_)
                       {
                         names_ = new std::vector<std::string>();
@@ -2098,12 +2110,12 @@ namespace from_spot
                         bdd msupport = bddtrue;
                         bdd n_s_compat = bddfalse;
                         // compute the occurred variables in the outgoing transitions of ms, stored in msupport 
-                        for (unsigned i = 0; i < nb_states_; ++i)
-                          if (ms[i] != RANK_M)
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                          if (ms[s] != RANK_M)
                           {
-                            msupport &= support_[i];
-                            if (ms[i] != RANK_M || is_accepting_[i])
-                              n_s_compat |= compat_[i];
+                            msupport &= support_[s];
+                            if (ms[s] != RANK_M || is_accepting_[s])
+                              n_s_compat |= compat_[s];
                           }
 
                         bdd all = n_s_compat;
@@ -2111,21 +2123,19 @@ namespace from_spot
                         {
                           bdd one = bdd_satoneset(all, msupport, bddfalse);
                           all -= one;
-
                           // Compute all new states available from the generated
                           // letter.
                           rank_successors(std::move(ms), top.second, one);
                         }
                       }
                       // check the number of indices
-                      // if(sets_ & 1)
-                      // {
-                      //   sets_ ++;
-                      // }
+                      sets_ += sets_ & 1;
                       //std::cout << "#parity = " << sets_ << std::endl;
                       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
-                      unsigned num_sets = 2*nb_states_ + 2;
-                      res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
+                      //unsigned num_sets = 2*nb_det_states_ + 2;
+                      res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                      //res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                    
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
 
