@@ -1976,8 +1976,6 @@ namespace from_spot
                 }
               }
 
-              int miss = true;
-
               int init = true;
 
               for (int i = 0; i < n_states_; ++i)
@@ -2686,7 +2684,6 @@ namespace from_spot
         throw std::runtime_error
                 ("determinize_rabin() requires a semi-deterministic input");
       
-      show_names = true;
       auto rabin = determinization_rabin(aut, show_names);
       return rabin.run();
     }
