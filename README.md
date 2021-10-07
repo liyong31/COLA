@@ -25,3 +25,5 @@ Then you will get an executable file named **cola** !
 
 ### Determinization
 Input an LDBA named "filename", and run ```./cola --determinize=parity filename```, then you will get an equivalence deterministic parity automaton !
+
+Also, run ```./cola --determinize=rabin filename``` to get an equivalence deterministic rabin automaton.
