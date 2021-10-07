@@ -33,4 +33,6 @@ libtool
 # RStudio and R tmp files + atom tmpfiles
 data/.R*
 .tags
+src/.libs
+src/.deps
 
