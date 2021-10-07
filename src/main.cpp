@@ -495,8 +495,12 @@ int main(int argc, char* argv[])
 
                   if (determinize == Rabin)
                   {
-                    spot::print_hoa(std::cout, aut) << '\n';
-                    comp = from_spot::determinize_rabin(aut);
+                    if (debug)
+                    {
+                      spot::print_hoa(std::cout, aut) << '\n';
+                    }
+                    
+                    res = from_spot::determinize_rabin(aut, true);
                     // comp->merge_edges();
                     // comp = postprocessor.run(comp);
                     // std::cout << "spot states: " << comp->num_states() << ' ';
