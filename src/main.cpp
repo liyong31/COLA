@@ -500,7 +500,7 @@ int main(int argc, char* argv[])
                       spot::print_hoa(std::cout, aut) << '\n';
                     }
                     
-                    res = from_spot::determinize_rabin(aut, true);
+                    res = from_spot::determinize_rabin(aut, debug);
                     // comp->merge_edges();
                     // comp = postprocessor.run(comp);
                     // std::cout << "spot states: " << comp->num_states() << ' ';
@@ -518,7 +518,7 @@ int main(int argc, char* argv[])
                     {
                       output_file(aut, "in.hoa");
                     }
-                    res = from_spot::determinize_tldba(aut, true);
+                    res = from_spot::determinize_tldba(aut, debug);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
