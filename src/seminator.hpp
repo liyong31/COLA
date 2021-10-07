@@ -82,7 +82,7 @@ namespace from_spot {
   /// The automaton \a aut should be a semideterminisitc.
   /// Output a deterministic rabin automaton
   spot::twa_graph_ptr
-  determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false)
+  determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
   
   spot::twa_graph_ptr
   determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names);

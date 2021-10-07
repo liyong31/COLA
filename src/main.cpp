@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
-//#include "cola.hpp"
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
@@ -463,7 +462,7 @@ int main(int argc, char* argv[])
                     if (complement == NSBC)
                     {
                       // #if FWZ_DEBUG
-                      spot::print_hoa(std::cout, aut) << '\n';
+                      // spot::print_hoa(std::cout, aut) << '\n';
                       // #endif
                       comp = from_spot::new_complement_semidet(aut); //, true);
                       // comp = postprocessor.run(comp);
@@ -490,7 +489,9 @@ int main(int argc, char* argv[])
 
                   if (determinize == Rabin)
                   {
+                    spot::print_hoa(std::cout, aut) << '\n';
                     comp = from_spot::determinize_rabin(aut);
+                    // comp->merge_edges();
                     // comp = postprocessor.run(comp);
                     // std::cout << "spot states: " << comp->num_states() << ' ';
                     // std::cout << "    edges: " << comp->num_edges() << '\n';

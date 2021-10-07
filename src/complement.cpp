@@ -75,13 +75,11 @@ namespace from_spot
             nsbc_i = 0,
         };
 
-        enum detrb 
-        {
-            detrb_m = -2,     // missing
-            detrb_n = -1,     // non deterministic
-            detrb_bot = 0,    // bottom
-            detrb_d = 1,      // label
-        };
+       
+        const int detrb_m = -2;     // missing
+        const int detrb_n = -1;     // non deterministic
+        const int detrb_bot = 0;    // bottom
+        const int detrb_d = 1;      // label
 
         typedef std::vector<ncsb> mstate;
         typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
@@ -92,8 +90,9 @@ namespace from_spot
         typedef std::vector<nsbc> mcstate;
         typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
 
-        typedef std::vector<detrb> dstate;
-        typedef std::vector<std::pair<unsigned, detrb>> small_dstate;
+        typedef std::vector<int> dstate;
+        typedef std::vector<std::pair<int, int>> small_dstate;
+        std::unordered_map<int, int> labelIndex;
 
         struct small_mstate_hash
         {
@@ -1724,21 +1723,21 @@ namespace from_spot
             spot::scc_info si_;
 
             // Number of states in the input automaton.
-            unsigned n_states_;
+            int n_states_;
 
             // Number of states in Q_D
-            unsigned d_states_ = 1;
-            unsigned rabin = 0;
+            int d_states_ = 1;
+            int rabin = 0;
 
             // The complement being built.
             spot::twa_graph_ptr res_;
 
             // Association between NCSB states and state numbers of the
             // complement.
-            std::unordered_map<small_dstate, unsigned, small_dstate_hash> rabin2n_;
+            std::unordered_map<small_dstate, int, small_dstate_hash> rabin2n_;
 
             // States to process.
-            std::deque<std::pair<dstate, unsigned>> todo_;
+            std::deque<std::pair<dstate, int>> todo_;
 
             // Support for each state of the source automaton.
             std::vector<bdd> support_;
@@ -1761,11 +1760,13 @@ namespace from_spot
             std::string
             get_name(const small_dstate& ms)
             {
+              // std::cout << "ddd" << std::endl;
               std::string res = "{";
 
               // N
               bool first_state = true;
               for (const auto& p: ms)
+              {
                 if (p.second == detrb_n)
                 {
                   if (!first_state)
@@ -1773,12 +1774,14 @@ namespace from_spot
                   first_state = false;
                   res += ("N:" + std::to_string(p.first));
                 }
+              }
 
               res += "},{";
               
               // (state, bottom)
               first_state = true;
               for (const auto& p: ms)
+              {
                 if (p.second == detrb_bot)
                 {
                   if (!first_state)
@@ -1787,20 +1790,16 @@ namespace from_spot
                   res += ("(" + std::to_string(p.first) + ", bot)");
                 }
 
-              res += "},{";
-
-              // (state, label)
-              first_state = true;
-              for (const auto& p: ms)
+                // (state, label)
+                // first_state = true;
                 if (p.second >= detrb_d)
                 {
                   if (!first_state)
                     res += ",";
                   first_state = false;
-                  res += ("(" + std::to_string(p.first) + ", " + p.second + " )");
+                  res += ("(" + std::to_string(p.first) + ", " + std::to_string(p.second) + " )");
                 }
-
-              res += "},{";
+              }
 
               return res + "}";
             }
@@ -1808,12 +1807,12 @@ namespace from_spot
             small_dstate
             to_small_dstate(const dstate& ms)
             {
-              unsigned count = 0;
-              for (unsigned i = 0; i < n_states_; ++i)
-                count+= (ms[i] != detrb_m);
+              int count = 0;
+              for (int i = 0; i < n_states_; ++i)
+                count += (ms[i] != detrb_m);
               small_dstate small;
               small.reserve(count);
-              for (unsigned i = 0; i < n_states_; ++i)
+              for (int i = 0; i < n_states_; ++i)
                 if (ms[i] != detrb_m)
                   small.emplace_back(i, ms[i]);
               return small;
@@ -1821,7 +1820,7 @@ namespace from_spot
 
             // looks for a duplicate in the map before
             // creating a new state if needed.
-            unsigned
+            int
             new_state(dstate&& s)
             {
               auto p = rabin2n_.emplace(to_small_dstate(s), 0);
@@ -1836,19 +1835,14 @@ namespace from_spot
             }
 
             void
-            rabin_successors(dstate&& ms, unsigned origin, bdd letter)
+            rabin_successors(dstate&& ms, int origin, bdd letter)
             {
-              // std::vector <dstate> succs;
-              // succs.emplace_back(n_states_, nsbc_m);
+              // std::cout << "ms: " << get_name(to_small_dstate(ms)) << " letter: " << letter << "   ";
               dstate succ(n_states_, detrb_m);
-
-              #if FWZ_DEBUG
-              std::cout << "letter: " << letter << '\n';
-              std::cout << "input: " << get_name(to_small_dstate(ms)) << '\n';
-              #endif
-
+              
+             
               // At first, all states in Q_D is set to bottom
-              for (unsigned i = 0; i < n_states_; ++i)
+              for (int i = 0; i < n_states_; ++i)
               {
                 // i is in Q_D
                 if (is_deter_[si_.scc_of(i)])
@@ -1857,38 +1851,57 @@ namespace from_spot
                 }
               }
 
-              // Handle \delta_D(\alpha(g), a)
-              int minLable = INT32_MAX;
-              int maxLable = 0;
-              for (unsigned i = 0; i < n_states_; ++i)
+              int minLabel = INT32_MAX;
+              for (int i = 0; i < n_states_; ++i)
               {
                 if (ms[i] < detrb_d)
                   continue;
-
-                if (ms[i] < minLable)
+                
+                if (ms[i] < minLabel)
                 {
-                  minLable = ms[i];
+                  minLabel = ms[i];
                 }
+              }
 
-                if (ms[i] > maxLable)
+              int jumpLabel = 0;
+              for (int i = 1; i <= d_states_; i++)
+              {
+                // find the min label that does not appear in ms
+                if (std::find(ms.begin(), ms.end(), i) == ms.end())
                 {
-                  maxLable = ms[i];
-                }
-
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-                  
-                  // only one successor
-                  succ[t.dst] = minLable;      
-                 
+                  jumpLabel = i;
                   break;
                 }
               }
 
+              // Handle \delta_D(\alpha(g), a)
+             
+              // bool isAcceptTrans = false;
+              
+              for (int i = 0; i < n_states_; ++i)
+              {
+                if (ms[i] < detrb_d)
+                  continue;
+                
+                if (!labelIndex.count(ms[i]))
+                {
+                  int tmp = labelIndex.size() + 1;
+                  labelIndex.emplace(ms[i], tmp);
+                }
+              
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  // only one successor
+                  succ[t.dst] = minLabel;     
+                  break;
+                }
+              }
+            
               // Handle N states.
-              for (unsigned i = 0; i < n_states_; ++i)
+              for (int i = 0; i < n_states_; ++i)
               {
                 if (ms[i] != detrb_n)
                   continue;
@@ -1907,7 +1920,12 @@ namespace from_spot
                     // and only consider the situation that g(t.dst) < detrb_d
                     if (succ[t.dst] < detrb_d)
                     {
-                      succ[t.dst] = maxLable + 1;
+                      succ[t.dst] = jumpLabel;
+                      if (!labelIndex.count(succ[t.dst]))
+                      {
+                        int tmp = labelIndex.size() + 1;
+                        labelIndex.emplace(succ[t.dst], tmp);
+                      }
                     }
                   } 
                   else
@@ -1916,51 +1934,86 @@ namespace from_spot
                   }
                 }
               }
-      
-              unsigned dst = new_state(std::move(succ)); 
+             
               // accepting state
               // Ri = {(N,g) | i \notin beta(g)
               // Ai = {(N,g) | i \in g(F)}
               // `(Fin(0)&Inf(1))|(Fin(2)&Inf(3))|...|(Fin(2n-2)&Inf(2n-1))`
-              // std::cout << "d_states_: " << d_states_ << std::endl;
-             
-              bool reject = true;
-              bool accept = false;
-              
-              for (unsigned label = 1; label <= d_states_; label++)
+
+              dstate succBackup(n_states_, detrb_m);
+              for (int i = 0; i < n_states_; ++i)
               {
-                for (int i = 0; i < n_states_; i++)
-                { 
-                  if (ms[i] == label)
+                succBackup[i] = succ[i];
+              }
+              // std::cout << "next: " << get_name(to_small_dstate(succBackup)) << std::endl;
+             
+              int dst = new_state(std::move(succ)); 
+              int flag = false;
+
+              for (int i = 0; i < n_states_; ++i)
+              {
+                if (ms[i] < detrb_d)
+                  continue;
+              
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+
+                  // only one successor
+                  if (t.acc || is_accepting_[t.dst])
                   {
-                    for (const auto &t: aut_->out(i))
+                    if (ms[i] == succBackup[t.dst])
                     {
-                      if (!bdd_implies(letter, t.cond))
-                        continue;
-
-                      // if label disappears, reject this transition
-                      if (succ[t.dst] == label)
-                      {
-                        reject = false;
-
-                        // if label exists, and the transition is accepting, accept it
-                        if (t.acc)
-                        {
-                          accept = true;
-                        }
-                      }
+                      res_->new_edge(origin, dst, letter, {(unsigned) 2 * labelIndex[ms[i]] - 1});
+                      res_->merge_edges();
+                      flag = true; 
                     }
+                    break;
                   }
-                }
-                if (reject == true)
-                {
-                  res_->new_edge(origin, dst, letter, {2 * (label - 1)});
-                }
-                if (accept == true)
-                {
-                  res_->new_edge(origin, dst, letter, {2 * label - 1});
+                 
                 }
               }
+
+              int miss = true;
+
+              int init = true;
+
+              for (int i = 0; i < n_states_; ++i)
+              {
+                if (ms[i] < detrb_d)
+                  continue;
+                init = false;
+                for (const auto &t: aut_->out(i))
+                {
+                  if (!bdd_implies(letter, t.cond))
+                    continue;
+                  if (succBackup[t.dst] != ms[i])
+                  {
+                    res_->new_edge(origin, dst, letter, {(unsigned) 2 * labelIndex[ms[i]] - 2});
+                    res_->merge_edges();
+                    flag = true;
+                  } 
+                }
+                
+              }
+              if (init == true)
+              {
+                for (int i = 0; i < n_states_; i++)
+                {
+                  if (succBackup[i] < detrb_d)
+                    continue;
+                  res_->new_edge(origin, dst, letter, {(unsigned) 2 * (labelIndex[succBackup[i]] - 1)});
+                  res_->merge_edges();
+                  flag = true; 
+                }
+              }
+              
+              if (flag == false)
+              {
+                res_->new_edge(origin, dst, letter);
+              }
+              
             }
 
 
@@ -1990,7 +2043,7 @@ namespace from_spot
 
               // Generate bdd supports and compatible options for each state.
               // Also check if all its transitions are accepting.
-              for (unsigned i = 0; i < n_states_; ++i)
+              for (int i = 0; i < n_states_; ++i)
               {
                 bdd res_support = bddtrue;
                 bdd res_compat = bddfalse;
@@ -2010,8 +2063,6 @@ namespace from_spot
                 is_accepting_[i] = accepting && has_transitions;
               }
 
-
-
               // Compute which SCCs are part of the deterministic set.
               is_deter_ = spot::semidet_sccs(si_);
 
@@ -2024,10 +2075,10 @@ namespace from_spot
               // Because we only handle one initial state, we assume it
               // belongs to the N set. (otherwise the automaton would be
               // deterministic)
-              unsigned init_state = aut->get_init_state_number();
+              int init_state = aut->get_init_state_number();
               dstate new_init_state(n_states_, detrb_m);
               new_init_state[init_state] = detrb_n;
-              for (unsigned i = 0; i < n_states_; ++i)
+              for (int i = 0; i < n_states_; ++i)
               {
                 if (is_deter_[si_.scc_of(i)])
                 {
@@ -2054,13 +2105,14 @@ namespace from_spot
                 // Compute support of all available states.
                 bdd msupport = bddtrue;
                 bdd n_s_compat = bddfalse;
-                bdd c_compat = bddtrue;
-                bool c_empty = true;
-                for (unsigned i = 0; i < n_states_; ++i)
+                // bdd c_compat = bddtrue;
+                // bool c_empty = true;
+                for (int i = 0; i < n_states_; ++i)
                   if (ms[i] != detrb_m)
                   {
-                    msupport &= support_[i];                
-                    n_s_compat |= compat_[i];
+                    msupport &= support_[i];   
+                    if (ms[i] != detrb_m || is_accepting_[i])             
+                      n_s_compat |= compat_[i];
                   }
 
                 bdd all;
@@ -2089,11 +2141,13 @@ namespace from_spot
                 }
               }
               
-              std::cout << "dstates_: " << d_states_ << std::endl;
-              res_->set_acceptance(d_states_, spot::acc_cond::acc_code::rabin(d_states_));
-              res_->prop_universal(true);
+              int tmpMax = labelIndex.size();
+            
+              // std::cout << "d_states_: " << d_states_ << " tmpMax: " << tmpMax << std::endl;
+              res_->set_acceptance(2 * tmpMax, spot::acc_cond::acc_code::rabin(tmpMax));
+              // res_->prop_universal(true);
               res_->prop_state_acc(false);
-              // res_->merge_edges();
+              res_->merge_edges();
               return res_;
             }
         };
@@ -2594,14 +2648,14 @@ namespace from_spot
     }
 
     // determinization
-    // new complement_semidet
     spot::twa_graph_ptr
     determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
     {
       if (!is_semi_deterministic(aut))
         throw std::runtime_error
                 ("determinize_rabin() requires a semi-deterministic input");
-
+      
+      show_names = true;
       auto rabin = determinization_rabin(aut, show_names);
       return rabin.run();
     }
