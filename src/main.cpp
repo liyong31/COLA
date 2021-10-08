@@ -45,14 +45,14 @@ and converts it into deterministic Rabin/Parity automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|parity]
-                    use Spot or our algorithm to obtain deterministic Parity automata
+    --determinize=[spot|parity|rabin]
+                    use Spot or our algorithm to obtain deterministic Parity or Rabin automata
 
 Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
 
 Optimizations:
-    --simulation          use simulaition before determinization
+    --simulation          use simulation before parity determinization
 
 Pre- and Post-processing:
     --preprocess[=0|1]       simplify the input automaton
