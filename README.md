@@ -1,15 +1,16 @@
-# COmpLementing nondeterministic büchi Automata
-Complement algorithms implementation for UNBA (Unambiguous Nondeterministic Büchi Automata) and SDBA (Semi-Deterministic Büchi Automata).
+# COLA: a complementation and determinization library for Büchi automata
+Cola includes complement algorithms for unambiguous nondeterministic Büchi automata (UNBA) and limit deterministic Büchi automata (LDBA), as well as a determinization algorithm for LDBAs.
+Cola has been built on top of [Seminator](https://github.com/mklokocka/seminator).
 
-### First version 2021.6.28
-The [slice-based algorithm](https://arxiv.org/abs/2005.09125v2) for UNBA complementation is implemented as a function in [Seminator](https://github.com/mklokocka/seminator). 
 
-### 2021.7.2
-* Fixed bugs in NCB algorithm implementation. 
-* NSBC algorithm is implemented.
-* random_nd.ltl has passed.
+### List of algorithms
+Complementing UNBA: the [slice-based algorithm](https://arxiv.org/abs/2005.09125v2)
+Determinizing LDBA: in submission
 
-### Installation
+### Requirements
+* [Spot](https://spot.lrde.epita.fr/)
+
+### Compilation
 Please run the following steps to compile COLA after gitting clone this repo:
 ```
 autoreconf -i
@@ -24,6 +25,5 @@ make
 Then you will get an executable file named **cola** !
 
 ### Determinization
-Input an LDBA named "filename", and run ```./cola --determinize=parity filename```, then you will get an equivalence deterministic parity automaton !
-
-Also, run ```./cola --determinize=rabin filename``` to get an equivalence deterministic rabin automaton.
+Input an LDBA named "filename", and run ```./cola --determinize=parity filename```, then you will get an equivalent deterministic parity automaton (DPA) on standard output!
+To output the DPA to a file, use ```./cola --determinize=parity filename -o out_filename```

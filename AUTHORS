@@ -1,3 +1,5 @@
+Authors for Seminator
+
 - Mikulas Klokocka
   Implemented the original versions of Seminator (1.0 and 1.1).
 
@@ -8,3 +10,11 @@
 
 - Alexandre Duret-Lutz
   Python bindings, cleanups, and packaging for version 2.0..
+
+Authors for Cola
+
+- Weizhi Feng
+  Implemented the NSBC and LDBA-to-DRA algorithms
+ 
+- Yong Li
+  Implemented the LDBA-to-DPA algorithm
