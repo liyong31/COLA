@@ -289,7 +289,6 @@ namespace from_spot
                     ncsb_successors(mstate&& ms, unsigned origin, bdd letter)
                     {
 
-                      // std::cout << "current state: " << get_name(to_small_mstate(ms)) << std::endl;
                       std::vector <mstate> succs;
                       succs.emplace_back(nb_states_, ncsb_m);
 
@@ -297,7 +296,6 @@ namespace from_spot
                       std::vector <bool> acc_succs;
                       acc_succs.push_back(false);
 
-                      // std::cout << "S states" << std::endl;
                       // Handle S states.
                       //
                       // Treated first because we can escape early if the letter
@@ -317,16 +315,13 @@ namespace from_spot
                             return;
 
                           succs[0][t.dst] = ncsb_s;
-                          // std::cout << "State " << i << " to " << t.dst << " in s via " << letter << std::endl;
-                          // std::cout << "next " << t.dst << " with ncsb_s" << std::endl;
-
                           // No need to look for other compatible transitions
                           // for this state; it's in the deterministic part of
                           // the automaton
                           break;
                         }
                       }
-                      // std::cout << "C states" << std::endl;
+  
                       // record the set of states that come via accepting transitions
                       std::vector<bool> c_succs (nb_states_, false);
                       // Handle C states.
@@ -347,12 +342,10 @@ namespace from_spot
                           if (succs[0][t.dst] == ncsb_m) 
                           {
                             succs[0][t.dst] = ncsb_c;
-                            // std::cout << "orig State " << i << " to " << t.dst << " in c via " << letter << std::endl;
-                            // std::cout << "orig next " << t.dst << " with ncsb_c" << std::endl;
+                           
                             if(optb_ && c_succs[t.dst] == false) {
                               c_succs[t.dst] = true;
-                              // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
+                              
                             }
                           }
                           // No need to look for other compatible transitions
@@ -361,7 +354,7 @@ namespace from_spot
                           break;
                         }
                       }
-                      // std::cout << "N states" << std::endl;
+                     
                       // Handle N states.
                       for (unsigned i = 0; i < nb_states_; ++i)
                       {
@@ -401,19 +394,15 @@ namespace from_spot
                             {
                               if (succs[0][t.dst] == ncsb_m) {
                                 succs[0][t.dst] = ncsb_c;
-                                // std::cout << "State " << i << " to " << t.dst << " in c via " << letter << std::endl;
-                                // std::cout << "next " << t.dst << " with ncsb_c" << std::endl;
                                 }
                             } else
                               for (auto &succ: succs) {
                                 succ[t.dst] = ncsb_n;
-                                // std::cout << "State " << i << " to " << t.dst << " in n via " << letter << std::endl;
-                                // std::cout << "next " << t.dst << " with ncsb_n" << std::endl;
                               }
                           }
                         }
                       }
-                      // std::cout << "B states" << std::endl;
+                     
                       // PLDI: Handle B states. We need to know what remained in C'.
                       // PLDI: We first move all successors to B', and then pereform
                       // branching in next pass
@@ -432,10 +421,8 @@ namespace from_spot
                           has_succ = true;
                           if (succs[0][t.dst] == ncsb_c) {
                               succs[0][t.dst] = ncsb_cb;
-                              // std::cout << "State " << i << " to " << t.dst << " in B via " << letter << std::endl;
-                              // std::cout << "next " << t.dst << " with ncsb_cb" << std::endl;
                           }
-                          // std::cout << "B' is not empty" << std::endl;
+                         
                           // PLDI: If t is not accepting and t.dst in S, stop
                           // because t.src should have been i S already.
                           if (!t.acc && (succs[0][t.dst] == ncsb_s))
@@ -472,17 +459,11 @@ namespace from_spot
                                 succs.push_back(succs[j]);
                                 succs.back()[t.dst] = ncsb_s;
                                 acc_succs.push_back(false);
-                                // std::cout << "State " << i << " to " << t.dst << " in branching B via " << letter << std::endl;
-                                // std::cout << "next " << t.dst << " with ncsb_s" << std::endl;
                               }
                             }
                           }
                         }
                       }
-                      // for(int k = 0; k < succs.size(); k ++) {
-                      //   std::cout << k << " th state" << std::endl;
-                      //   std::cout << "next state: " << get_name(to_small_mstate(succs[k])) << std::endl;
-                      // }
 
                       // PLDI: For each possible successor check if B' might be empty
                       // If yes, double the successors for each state in C', make edges
@@ -501,7 +482,6 @@ namespace from_spot
                             }
                           }
 
-                          // std::cout << "current next state: " << get_name(to_small_mstate(succs[j])) << std::endl;
                           if (b_empty)
                           {
                             //PLDI: for each state s in C', move it to B'
@@ -509,7 +489,7 @@ namespace from_spot
                             // of all succs in new_succs where s is in S'
                             for (unsigned i = 0; i < nb_states_; ++i) {
                               // without lazyOpt
-                              // std::cout << "orig state " << i << " " << succs[j][i] << std::endl; 
+                            
                               if(optb_ ) {
                                 // only copy states in C' to B'
                                 // note here that the states in B' after branching may not occur in C'
@@ -524,14 +504,14 @@ namespace from_spot
                               }
                               
                               succs[j][i] = ncsb_cb;
-                              // std::cout << "new state  " << i << "  ncsb_cb" << std::endl; 
+                              
                             }
-                            // std::cout << "branching C states, B is empty" << std::endl;
+                            
                             // Set edge as accepting
                             acc_succs[j] = true;
                             std::vector <mstate> new_succs; // Store clones of current succ
                             new_succs.push_back(succs[j]);
-                            // std::cout << "states for branching: " << get_name(to_small_mstate(succs[j])) << std::endl;
+                           
                             //PLDI: for each state s in C'
                             // if s is not accepting make a clone
                             // of all succs in new_succs where s is in S'
@@ -557,7 +537,6 @@ namespace from_spot
                                   // Make copy of k with i moved from C to S
                                   new_succs.push_back(new_succs[k]);
                                   new_succs.back()[i] = ncsb_s;
-                                  // std::cout << "states after branching: " << get_name(to_small_mstate(new_succs.back())) << std::endl;
                                 }
                               }
                               // new_succs[0] is succ[j] with C -> CB
@@ -581,14 +560,11 @@ namespace from_spot
                         if (acc_succs[j])
                         {
                           unsigned dst = new_state(std::move(succs[j]));
-                          // std::cout << "next state: acc" << std::endl;
-                          // std::cout << origin << " to {0} " << dst << " via letter "<< letter << std::endl;
+                
                           res_->new_edge(origin, dst, letter, {0});
                         } else {
                           unsigned dst = new_state(std::move(succs[j]));
                           res_->new_edge(origin, dst, letter);
-                          // std::cout << "next state: " << std::endl;
-                          // std::cout << origin << " to " << dst << " via letter "<< letter << std::endl;
                         }
                       }
                     }
@@ -859,7 +835,6 @@ namespace from_spot
               succs.emplace_back(nb_states_, ncb_m);
 
               std::unordered_map <unsigned, unsigned> dstSrc;
-              // std::unordered_map <unsigned, unsigned> srcDst;
 
               // Handle N states first beacause C' needs N'
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -878,11 +853,6 @@ namespace from_spot
                   dstSrc.emplace(t.dst, i);
                 }
               }
-
-              // for (auto& i: dstSrc)
-              // {
-              //   srcDst.emplace(i.second, i.first);
-              // }
 
               // Handle C states: (C,a) \cup (N' \cap F)
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -939,21 +909,6 @@ namespace from_spot
                     break;
                   }
 
-                #if FWZ_DEBUG
-                // print current mstate
-                std::cout << "\nNCB to NCB: ";
-                for (unsigned i = 0; i < nb_states_; ++i)
-                {
-                  std::cout << "state " << i << " ncb: " << ms[i] << " ";
-                }
-                std::cout << " to ";
-                for (unsigned i = 0; i < nb_states_; ++i)
-                {
-                  std::cout << "state " << i << " ncb: " << succ[i] << " ";
-                }
-                std::cout << "\n";
-                #endif
-
                 // accepting state
                 // new edge: origin to dst
                 // if b set in dst is empty, label this edge as an accepting edge
@@ -997,21 +952,6 @@ namespace from_spot
 
               for (auto& succ: succs)
               {
-                #if FWZ_DEBUG
-                // print current mstate
-                std::cout << "init to init: ";
-                for (unsigned i = 0; i < nb_states_; ++i)
-                {
-                  std::cout << "state " << i << " ncb: " << ms[i] << " ";
-                }
-                std::cout << " to ";
-                for (unsigned i = 0; i < nb_states_; ++i)
-                {
-                  std::cout << "state " << i << " ncb: " << succ[i] << " ";
-                }
-                std::cout << "\n";
-                #endif
-
                 unsigned dst = new_state(std::move(succ));
                 res_->new_edge(origin, dst, letter);
               }
@@ -1030,21 +970,6 @@ namespace from_spot
                 tmpState[i] = ncb_n;
               }
 
-              #if FWZ_DEBUG
-              // print current NCB state
-              std::cout << "\nequiv NCB: ";
-              for (unsigned i = 0; i < nb_states_; ++i)
-              {
-                std::cout << "state " << i << " ncb: " << ms[i] << " ";
-              }
-              std::cout << " == ";
-              for (unsigned i = 0; i < nb_states_; ++i)
-              {
-                std::cout << "state " << i << " ncb: " << tmpState[i] << " ";
-              }
-              std::cout << "\n";
-              #endif
-
               acc_successors(std::move(tmpState), origin, letter);
             }
 
@@ -1052,10 +977,6 @@ namespace from_spot
             void
             ncb_successors(macrostate&& ms, unsigned origin, bdd letter)
             {
-              #if FWZ_DEBUG
-              std::cout << "\nletter: " << letter << std::endl;
-              #endif
-
               int flag = 1;
               for (unsigned i = 0; i < nb_states_; ++i)
               {
@@ -1073,16 +994,6 @@ namespace from_spot
                   break;
                 }
               }
-
-              #if FWZ_DEBUG
-              // print current mstate
-              std::cout << "current: ";
-              for (unsigned i = 0; i < nb_states_; ++i)
-              {
-                std::cout << "state " << i << " ncb: " << ms[i] << " ";
-              }
-              std::cout << "\n";
-              #endif
 
               if (flag == 1)
               {
@@ -1352,16 +1263,8 @@ namespace from_spot
             {
               // Here if we just define a mcstate succ is also ok 
               // It remains to be optimized
-              // std::vector <mcstate> succs;
-              // succs.emplace_back(nb_states_, nsbc_m);
               mcstate succ(nb_states_, nsbc_m);
 
-              #if FWZ_DEBUG
-              std::cout << "letter: " << letter << '\n';
-              std::cout << "input: " << get_name(to_small_mcstate(ms)) << '\n';
-              #endif
-
-              // std::vector<bool> visit(nb_states_, false);
               // Handle S states. 
               for (unsigned i = 0; i < nb_states_; ++i)
               {
@@ -1373,10 +1276,6 @@ namespace from_spot
                   if (!bdd_implies(letter, t.cond))
                     continue;
 
-                  // if (visit[t.dst] == true)
-                  // {
-                  //   succs.push_back(succs[0]);
-                  // }
                   if (t.acc)
                   {
                     if (succ[t.dst] != nsbc_s)
@@ -1386,11 +1285,6 @@ namespace from_spot
                   {
                     succ[t.dst] = nsbc_s;
                   }
-                  // else
-                  // {
-                  //   succs.back()[t.dst] = nsbc_s;
-                  // }
-                  // visit[t.dst] = true;
                 }     
               }
                
@@ -1408,11 +1302,7 @@ namespace from_spot
                 {
                   if (!bdd_implies(letter, t.cond))
                     continue;
-                  // for (auto& succ : succs)
-                  // {
-                  //   if (succ[t.dst] != nsbc_s)
-                  //     succ[t.dst] = nsbc_b;
-                  // }   
+
                   if (succ[t.dst] != nsbc_s)
                     succ[t.dst] = nsbc_b;    
                   break;
@@ -1441,11 +1331,6 @@ namespace from_spot
                   }
                 }
               }
-
-              #if FWZ_DEBUG
-              std::cout << "after handle s states: " << get_name(to_small_mcstate(succs[0])) << '\n';
-              #endif
-           
 
               // Handle C states.
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -1505,10 +1390,7 @@ namespace from_spot
             void 
             init_successors(mcstate&& ms, unsigned origin, bdd letter)
             {
-              // std::vector<mcstate> succs;
-              // succs.emplace_back(nb_states_, nsbc_m);
               mcstate succ(nb_states_, nsbc_m);
-
 
               // subset to subset
               for (unsigned i = 0; i < nb_states_; ++i)
@@ -1560,11 +1442,6 @@ namespace from_spot
                   tmpState[i] = nsbc_n;
               }
 
-              #if FWZ_DEBUG
-               // print current NCB state
-              std::cout << "\nequiv NSBC: ";
-              std::cout << get_name(to_small_mcstate(ms)) << " == " << get_name(to_small_mcstate(tmpState)) << '\n';
-              #endif
               acc_successors(std::move(tmpState), origin, letter);
             }
 
@@ -1583,16 +1460,6 @@ namespace from_spot
                 else
                   flag = 0;
               }
-
-              // #if FWZ_DEBUG
-              // // print current mstate
-              // std::cout << "current: ";
-              // for (unsigned i = 0; i < nb_states_; ++i)
-              // {
-              //   std::cout << "state " << i << " ncb: " << ms[i] << " ";
-              // }
-              // std::cout << "\n";
-              // #endif
 
               if (flag == 1)
               {
@@ -1762,7 +1629,6 @@ namespace from_spot
             std::string
             get_name(const small_dstate& ms)
             {
-              // std::cout << "ddd" << std::endl;
               std::string res = "{";
 
               // N
@@ -1839,10 +1705,8 @@ namespace from_spot
             void
             rabin_successors(dstate&& ms, int origin, bdd letter)
             {
-              // std::cout << "ms: " << get_name(to_small_dstate(ms)) << " letter: " << letter << "   ";
               dstate succ(n_states_, detrb_m);
-              
-             
+                  
               // At first, all states in Q_D is set to bottom
               for (int i = 0; i < n_states_; ++i)
               {
@@ -1877,8 +1741,6 @@ namespace from_spot
               }
 
               // Handle \delta_D(\alpha(g), a)
-             
-              // bool isAcceptTrans = false;
               
               for (int i = 0; i < n_states_; ++i)
               {
@@ -1947,7 +1809,6 @@ namespace from_spot
               {
                 succBackup[i] = succ[i];
               }
-              // std::cout << "next: " << get_name(to_small_dstate(succBackup)) << std::endl;
              
               int dst = new_state(std::move(succ)); 
               int flag = false;
@@ -2027,10 +1888,6 @@ namespace from_spot
                       is_accepting_(n_states_),
                       show_names_(show_names)
             {
-              // res_ = spot::make_twa_graph(aut->get_dict());
-              // res_->copy_ap_of(aut);
-              // // res_->set_buchi();
-
               res_ = spot::make_twa_graph(aut->get_dict());
               res_->copy_ap_of(aut);
               res_->prop_copy(aut,
@@ -2105,8 +1962,7 @@ namespace from_spot
                 // Compute support of all available states.
                 bdd msupport = bddtrue;
                 bdd n_s_compat = bddfalse;
-                // bdd c_compat = bddtrue;
-                // bool c_empty = true;
+                
                 for (int i = 0; i < n_states_; ++i)
                   if (ms[i] != detrb_m)
                   {
@@ -2117,19 +1973,6 @@ namespace from_spot
 
                 bdd all;
                 all = n_s_compat;
-
-                // // Get a dstate from todo_
-                // // 1. dstate -> (letter that not appears) empty set
-                // // 2. dstate -> (appearing letter) other dstate 
-                // if (all != bddtrue)
-                // {
-                //   dstate empty_state(n_states_, detrb_m);
-                //   res_->new_edge(top.second,
-                //                   new_state(std::move(empty_state)),
-                //                   !all,
-                //                   {0});
-                // }
-
                 
                 while (all != bddfalse)
                 {
@@ -2143,9 +1986,8 @@ namespace from_spot
               
               int tmpMax = labelIndex.size();
             
-              // std::cout << "d_states_: " << d_states_ << " tmpMax: " << tmpMax << std::endl;
               res_->set_acceptance(2 * tmpMax, spot::acc_cond::acc_code::rabin(tmpMax));
-              // res_->prop_universal(true);
+             
               res_->prop_state_acc(false);
               res_->merge_edges();
               return res_;
@@ -2247,7 +2089,7 @@ namespace from_spot
                     max_rnk = p.second;
                   }
                 }
-              //std::cout << "max_rnk = " << max_rnk << std::endl;
+          
               std::string res = "{";
 
               bool first_state = true;
@@ -2311,41 +2153,32 @@ namespace from_spot
                     void
                     rank_successors(const mstate& ms, unsigned origin, bdd letter)
                     {
-                      // std::cout << "Current state: " << get_name(to_small_mstate(ms)) << std::endl;
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
-                      // std::cout << "max_rnk = " << max_rnk << std::endl;
-                      // std::cout << "letter = " << letter << std::endl;
-                      // std::cout << "Current next: " << get_name(to_small_mstate(succ)) << std::endl;
+                     
                       // first handle nondeterministic states
                       for (unsigned s = 0; s < nb_states_; ++ s)
                       {
-                        // std::cout << "current s = " << s << " ms[] = " << ms[s] << std::endl;
                         if (ms[s] == RANK_M)
                           continue;
                         if (ms[s] == RANK_N)
                         {
-                          // std::cout << "nondet state " << s << std::endl;
                           for (const auto &t: aut_->out(s))
                           {
-                            // std::cout << "current t = " << t.dst << std::endl;
-                            // std::cout << "current cond = " << t.cond << std::endl;
                             if (!bdd_implies(letter, t.cond))
                               continue;
-                            // std::cout << "Passed " << std::endl;
+                           
                             if (is_deter_[si_.scc_of(t.dst)])
                             {
-                              // std::cout << "jump to det: " << max_rnk + 1 << std::endl;
                               succ[t.dst] = max_rnk + 1;  
                             } else 
                             {
-                              // std::cout << "remain in nondet: " << RANK_N << std::endl;
                               succ[t.dst] = RANK_N;
                             }
                           }
                         }
                       }
-                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
+                  
                       // now we compute the rank successors
                       for(int rnk = max_rnk; rnk >= 0; rnk --)
                       {
@@ -2386,7 +2219,6 @@ namespace from_spot
                             if(succ[t.dst] == rnk)
                             {
                               has_succ = true;
-                              // std::cout << "s = " << s << " t = " << t.dst << " acc = " << t.acc << std::endl;
                               has_acc = has_acc || t.acc;
                             }
                           }
@@ -2399,10 +2231,7 @@ namespace from_spot
                           min_acc = rnk;
                         }
                       }
-                      // std::cout << "min_acc: " << min_acc << std::endl;
-                      // std::cout << "min_dcc: " << min_dcc << std::endl;
 
-                      // std::cout << "Current next: " << get_name(to_small_mstate(succ))  << std::endl;
                       int parity;
                       if(min_dcc == INT_MAX && min_acc != INT_MAX) 
                       {
@@ -2434,7 +2263,6 @@ namespace from_spot
                         if(existing) 
                         {
                           new_indices.emplace(i, index);
-                          // std::cout << "i = " << i << " idx = " << index << std::endl;
                           index ++;
                         }
                       }
@@ -2446,7 +2274,7 @@ namespace from_spot
                           succ[s] = new_indices[succ[s]];
                         }
                       }
-                      // std::cout << "Current next after organize: " << get_name(to_small_mstate(succ))  << std::endl;
+          
                       // add transitions
                       // Create the automaton states
                       unsigned dst = new_state(std::move(succ));
@@ -2455,13 +2283,10 @@ namespace from_spot
                       {
                         unsigned pri = (unsigned)parity;
                         sets_ = std::max(pri, sets_);
-                        // std::cout << "trans: " << origin << " -  {" << pri << "} -> "<< dst << ": " << letter << std::endl;
+                       
                         res_->new_edge(origin, dst, letter, {pri});
                       }else 
                       {
-                        // std::cout << "trans: " << origin << " -> " << dst << ": " << letter << std::endl;
-                        //sets_ = std::max(MAX_PRI, sets_);
-                        //res_->new_edge(origin, dst, letter, { MAX_PRI });
                         res_->new_edge(origin, dst, letter);
                       }
                     }
@@ -2516,7 +2341,7 @@ namespace from_spot
                           nb_det_states_ ++;
                         }
                       }
-                      //std::cout << "#S = " << nb_states_ << " #D = " << nb_det_states_ << std::endl;
+      
                       if (show_names_)
                       {
                         names_ = new std::vector<std::string>();
@@ -2578,28 +2403,24 @@ namespace from_spot
                       {
                         max_odd_pri = sets_ + 1;
                       }
-                      //std::cout << "max odd pri = " << max_odd_pri << std::endl;
-                      //sets_ += sets_ & 1;
-                      //std::cout << "#parity = " << sets_ << " max_pri = " << 2 * nb_det_states_ + 1 << std::endl;
+                     
                       for (auto& t: res_->edges())
                       {
-                        //std::cout << t.src << " -> " << t.dst << " " << t.cond << " " << t.acc << " " << t.acc.has(2*nb_det_states_ + 1) << std::endl;
                         if (t.acc.count() <= 0)
                           {
                             t.acc = spot::acc_cond::mark_t{max_odd_pri};
                           }
-                       // std::cout << t.src << " -> " << t.dst << " " << t.cond << " " << "updated: " << t.acc << std::endl;
                       }
                       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
                       unsigned num_sets = max_odd_pri + 1;
-                      //res_->set_acceptance(sets_, spot::acc_cond::acc_code::parity_min_even(sets_));
+                     
                       res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
                     
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
 
                       cleanup_parity_here(res_);
-                      //res_->merge_edges();
+                      
                       return res_;
                     }
           };

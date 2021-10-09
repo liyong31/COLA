@@ -84,6 +84,10 @@ namespace from_spot {
   spot::twa_graph_ptr
   determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
   
+  /// \brief Determinization
+  /// 
+  /// The automaton \a aut should be a semideterminisitc.
+  /// Output a deterministic parity automaton
   spot::twa_graph_ptr
   determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names);
 
