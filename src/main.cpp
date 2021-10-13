@@ -22,6 +22,7 @@
 #include "cutdet.hpp"
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
+#include <spot/twaalgos/isunamb.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/complement.hh>
@@ -47,6 +48,8 @@ Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
     --determinize=[spot|parity|rabin]
                     use Spot or our algorithm to obtain deterministic Parity or Rabin automata
+    --type 
+            Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
 
 Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
@@ -114,6 +117,7 @@ int main(int argc, char* argv[])
     bool use_simulation = false;
     bool merge_transitions = false;
     bool debug = false;
+    bool aut_type = false;
 
     std::string output_filename = "";
 
@@ -136,31 +140,6 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; i++)
       {
         std::string arg = argv[i];
-
-        // Transformation types
-        // if (arg == "--via-sba")
-        //   jobs |= ViaSBA;
-        // else if (arg == "--via-tba")
-        //   jobs |= ViaTBA;
-        // else if (arg == "--via-tgba")
-        //   jobs |= ViaTGBA;
-        // //
-        // else if (arg == "--is-cd")
-        //   cd_check = true;
-        // // Cut edges
-        // else if (arg == "--cut-on-SCC-entry") {
-        //   om.set("cut-on-SCC-entry", true);
-        //   om.set("cut-always", false);
-        // }
-        // else if (arg == "--cut-always")
-        //   om.set("cut-always", true);
-        // else if (arg == "--cut-highest-mark")
-        //   {
-        //     om.set("cut-always", false);
-        //     om.set("cut-on-SCC-entry", false);
-        //   }
-        // // Optimizations
-        // else 
         if (
                  match_opt(arg, "--powerset-for-weak")
                  || match_opt(arg, "--jump-to-bottommost")
@@ -211,6 +190,8 @@ int main(int argc, char* argv[])
           debug = true;
         else if (arg == "--merge-transitions")
           merge_transitions = true;
+        else if (arg == "--type")
+          aut_type = true;
         // else if (arg == "--complement" || arg == "--complement=best")
         //   complement = NCSBBest;
         // else if (arg == "--complement=spot")
@@ -356,6 +337,29 @@ int main(int argc, char* argv[])
 
             if (!aut)
               break;
+
+            if(aut_type)
+            {
+              bool type = false;
+              if(is_cut_deterministic(aut))
+              {
+                type = true;
+                std::cout << "cut-deterministic" << std::endl;
+              }else
+              if(is_semi_deterministic(aut))
+              {
+                type = true;
+                std::cout << "limit-deterministic" << std::endl;
+              }
+              if(is_unambiguous(aut))
+              {
+                std::cout << "unambiguous" << std::endl;
+              }else if(! type)
+              {
+                std::cout << "nondeterministic" << std::endl;
+              }
+              break;
+            }
 
             // Check if input is TGBA
             if (!aut->acc().is_generalized_buchi())
