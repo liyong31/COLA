@@ -50,6 +50,8 @@ Input options:
                     use Spot or our algorithm to obtain deterministic Parity or Rabin automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
+    --unambiguous
+            Check whether the input is unambiguous and use this fact in determinization
 
 Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
@@ -118,6 +120,7 @@ int main(int argc, char* argv[])
     bool merge_transitions = false;
     bool debug = false;
     bool aut_type = false;
+    bool use_unambiguous = false;
 
     std::string output_filename = "";
 
@@ -192,6 +195,8 @@ int main(int argc, char* argv[])
           merge_transitions = true;
         else if (arg == "--type")
           aut_type = true;
+        else if (arg == "--unambiguous")
+          use_unambiguous = true;
         // else if (arg == "--complement" || arg == "--complement=best")
         //   complement = NCSBBest;
         // else if (arg == "--complement=spot")
@@ -378,7 +383,10 @@ int main(int argc, char* argv[])
               }
             else
               {
-                aut = semi_determinize(aut, cut_det, jobs, &om);
+                if(! is_semi_deterministic(aut))
+                {
+                  aut = semi_determinize(aut, cut_det, jobs, &om);
+                }
                 if (auto old_n = parsed_aut->aut->get_named_prop<std::string>
                     ("automaton-name"))
                   {
@@ -485,7 +493,7 @@ int main(int argc, char* argv[])
                     {
                       output_file(aut, "in.hoa");
                     }
-                    res = from_spot::determinize_tldba(aut, debug);
+                    res = from_spot::determinize_tldba(aut, debug, use_unambiguous);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter

@@ -2038,6 +2038,9 @@ namespace from_spot
               // the number of indices
               unsigned sets_ = 0;
 
+              // use ambiguous
+              bool use_unambiguous_;
+
               // Association between Rank states and state numbers of the
               // DPA.
               std::unordered_map<small_mstate, unsigned, small_mstate_hash> rank2n_;
@@ -2090,34 +2093,34 @@ namespace from_spot
                   }
                 }
           
-              std::string res = "{";
+                std::string res = "{";
 
-              bool first_state = true;
-                for (const auto& p: ms)
-                if (p.second == RANK_N)
-                {
-                    if (!first_state)
-                      res += ",";
-                    first_state = false;
-                    res += std::to_string(p.first);
-                }
-
-                res += "}";
-                for(int i = 0; i <= max_rnk; i ++) 
-                {
-                  res += ",[";
-                  first_state = true;
+                bool first_state = true;
                   for (const auto& p: ms)
-                    if (p.second == i)
-                    {
+                  if (p.second == RANK_N)
+                  {
                       if (!first_state)
-                          res += ",";
+                        res += ",";
                       first_state = false;
                       res += std::to_string(p.first);
-                    }
-                  res += "]=" + std::to_string(i);
-                }
-                return res;
+                  }
+
+                  res += "}";
+                  for(int i = 0; i <= max_rnk; i ++) 
+                  {
+                    res += ",[";
+                    first_state = true;
+                    for (const auto& p: ms)
+                      if (p.second == i)
+                      {
+                        if (!first_state)
+                            res += ",";
+                        first_state = false;
+                        res += std::to_string(p.first);
+                      }
+                    res += "]=" + std::to_string(i);
+                  }
+                  return res;
               }
 
                     small_mstate
@@ -2155,19 +2158,40 @@ namespace from_spot
                     {
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
-                     
+                      std::vector<bool> incoming(nb_states_, false);
+                      std::vector<bool> ignores(nb_states_, false);
                       // first handle nondeterministic states
                       for (unsigned s = 0; s < nb_states_; ++ s)
                       {
+                        // missing states
                         if (ms[s] == RANK_M)
                           continue;
+                        // nondeterministic states
                         if (ms[s] == RANK_N)
                         {
                           for (const auto &t: aut_->out(s))
                           {
                             if (!bdd_implies(letter, t.cond))
                               continue;
-                           
+                            // it is legal to ignore the states have two incoming transitions
+                            // in unambiguous Buchi automaton
+                            if(use_unambiguous_) 
+                            {
+                              if(incoming[t.dst])
+                              {
+                                // this is the second incoming transitions
+                                ignores[t.dst] = true;
+                              }else 
+                              {
+                                incoming[t.dst] = true;
+                              }
+                            }
+                            if(ignores[t.dst])
+                            {
+                                // ignore this state
+                                continue;
+                            }
+                            
                             if (is_deter_[si_.scc_of(t.dst)])
                             {
                               succ[t.dst] = max_rnk + 1;  
@@ -2192,6 +2216,21 @@ namespace from_spot
                           {
                             if (!bdd_implies(letter, t.cond))
                               continue;
+                            if(use_unambiguous_) 
+                            {
+                              if(incoming[t.dst])
+                              {
+                                // this is the second incoming transitions
+                                ignores[t.dst] = true;
+                              }else 
+                              {
+                                incoming[t.dst] = true;
+                              }
+                            }
+                            if(ignores[t.dst])
+                            {
+                              continue;
+                            }
                             succ[t.dst] = rnk;
                           }
                         }
@@ -2292,7 +2331,7 @@ namespace from_spot
                     }
 
                 public:
-                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names)
+                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, bool use_unambiguous)
                             : aut_(aut),
                               si_(aut, spot::scc_info_options::ALL),
                               nb_states_(aut->num_states()),
@@ -2341,7 +2380,8 @@ namespace from_spot
                           nb_det_states_ ++;
                         }
                       }
-      
+                      // optimize with the fact of being unambiguous
+                      use_unambiguous_ = use_unambiguous && is_unambiguous(aut);
                       if (show_names_)
                       {
                         names_ = new std::vector<std::string>();
@@ -2511,13 +2551,13 @@ namespace from_spot
     }
 
     spot::twa_graph_ptr
-    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names)
+    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, bool use_unambiguous)
     {
       if (!is_semi_deterministic(aut))
             throw std::runtime_error
                     ("determinize_tldba() requires a semi-deterministic input");
 
-      auto det = cola::ldba_determinize(aut, show_names);
+      auto det = cola::ldba_determinize(aut, show_names, use_unambiguous);
       return det.run();
     }
 
