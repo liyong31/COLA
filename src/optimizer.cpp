@@ -1,3 +1,18 @@
+// Copyright (C) 2017-2020  The Seminator Authors
+// Copyright (C) 2021  The COLA Authors
+// COLA is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// COLA is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "optimizer.hpp"
 
 #include <spot/twaalgos/simulation.hh>
@@ -7,6 +22,13 @@
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
+optimizer::optimizer(optimizer& other)
+: aut_(other.aut_)
+{
+  this->implies_ = other.implies_;
+  this->support_ = other.support_;
+}
+
 optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter)
         : aut_(aut)
         {
@@ -14,15 +36,11 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
             if(use_simulation) 
             {
 
-                      std::cout << "output simulation" << std::endl;
+                      //std::cout << "output simulation" << std::endl;
                       std::vector<bdd> implications;
                       auto aut_tmp = spot::scc_filter(aut);
                       auto aut2 = simulation(aut_tmp, &implications);
                       aut = aut2;
-                      // for(int i = 0; i < implications.size(); i ++)
-                      // {
-                      //     std::cout << "Index " << i << " : " << implications[i] << std::endl;
-                      // }
                       // now compute 
                       spot::scc_info_options scc_opt = spot::scc_info_options::TRACK_SUCCS;
                       // We do need to track states in SCC for stutter invariance (see below how
@@ -30,7 +48,9 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
                       if (use_stutter && aut->prop_stutter_invariant())
                         scc_opt = spot::scc_info_options::TRACK_SUCCS | spot::scc_info_options::TRACK_STATES;
                      spot::scc_info scc = spot::scc_info(aut, scc_opt);
-
+                     
+                     // copied to optimizer
+                     //scc_ = scc;
                       // If use_simulation is false, implications is empty, so nothing is built
                       std::vector<std::vector<char>> implies(
                           implications.size(),

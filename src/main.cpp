@@ -399,7 +399,11 @@ int main(int argc, char* argv[])
             }
             
             optimizer opt(aut, use_simulation, use_stutter);
-            opt.output_simulation();      
+            if(!determinize) 
+            {
+              opt.output_simulation();     
+              return 0;
+            }
 
             // Check if input is TGBA
             if (!aut->acc().is_generalized_buchi())
@@ -523,6 +527,9 @@ int main(int argc, char* argv[])
                     if(debug)
                     {
                       output_file(aut, "in.hoa");
+                      // std::cout << "start simulation output" << std::endl;
+                      opt.output_simulation();
+                      // std::cout << "end simulation output" << std::endl;
                     }
                     res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous);
                   }else  if(determinize == Spot)

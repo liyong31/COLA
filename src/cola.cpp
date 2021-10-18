@@ -2034,7 +2034,7 @@ namespace from_spot
               // Number of states in the input automaton.
               unsigned nb_states_;
 
-              unsigned nb_det_states_;
+              // unsigned nb_det_states_;
 
               // The parity automata being built.
               spot::twa_graph_ptr res_;
@@ -2166,8 +2166,10 @@ namespace from_spot
                         {
                           // if j is not reached at this level
                           if(i == j || ms[j] == RANK_M || ms[i] == RANK_M) continue;
+                          std::cout << "start simulated" << std::endl;
                           if(opt_.simulate(j, i)) 
                           {
+                            std::cout << "simulated" << std::endl;
                             ms[i] = RANK_M;
                           }
                         }
@@ -2340,7 +2342,7 @@ namespace from_spot
                       // add transitions
                       // Create the automaton states
                       unsigned dst = new_state(std::move(succ));
-                      const unsigned MAX_PRI = 2* nb_det_states_ + 1;
+                      // const unsigned MAX_PRI = 2* nb_det_states_ + 1;
                       if(parity >= 0) 
                       {
                         unsigned pri = (unsigned)parity;
@@ -2373,7 +2375,9 @@ namespace from_spot
                               true, // complete
                               false // stutter inv
                               });
-
+                      // std::cout << "Output simulation" << std::endl;
+                      opt_.output_simulation();
+                      // std::cout << "End output" << " NumS " << nb_states_ << std::endl;
                       // Generate bdd supports and compatible options for each state.
                       // Also check if all its transitions are accepting.
                       for (unsigned i = 0; i < nb_states_; ++i)
@@ -2394,16 +2398,20 @@ namespace from_spot
                         compat_[i] = res_compat;
                         is_accepting_[i] = accepting && has_transitions;
                       }
+                      // std::cout << "now deterministic part: " << std::endl;
                       // Compute which SCCs are part of the deterministic set.
                       is_deter_ = spot::semidet_sccs(si_);
-                      nb_det_states_ = 0;
-                      for(unsigned i = 0; i < nb_states_; i ++)
-                      {
-                        if(is_deter_[si_.scc_of(i)])
-                        {
-                          nb_det_states_ ++;
-                        }
-                      }
+                      //std::cout << "now deterministic part over " << is_deter_.size() << std::endl;
+                      //nb_det_states_ = 0;
+                      // for(unsigned i = 0; i < nb_states_; i ++)
+                      // {
+                      //   std::cout << "scc = " << si_.scc_of(i) << std::endl;
+                        //if(is_deter_[si_.scc_of(i)])
+                        //{
+                        //  nb_det_states_ ++;
+                        //}
+                      // }
+                      // std::cout << "deterministic part computing " << std::endl;
                       // optimize with the fact of being unambiguous
                       use_unambiguous_ = use_unambiguous && is_unambiguous(aut);
                       if (show_names_)
@@ -2411,11 +2419,12 @@ namespace from_spot
                         names_ = new std::vector<std::string>();
                         res_->set_named_prop("state-names", names_);
                       }
-
+                      // std::cout << "NumS: " << nb_states_ << std::endl;
                       // Because we only handle one initial state, we assume it
                       // belongs to the N set. (otherwise the automaton would be
                       // deterministic)
                       unsigned init_state = aut->get_init_state_number();
+                      // std::cout << "Init: " << init_state << std::endl;
                       mstate new_init_state(nb_states_, RANK_M);
                       new_init_state[init_state] = RANK_N;
                       // we assume that the initial state is not in deterministic part

@@ -1,3 +1,18 @@
+// Copyright (C) 2017-2020  The Seminator Authors
+// Copyright (C) 2021  The COLA Authors
+// COLA is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// COLA is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #pragma once
 
 #include <set>
@@ -6,15 +21,17 @@
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
 #include <spot/twaalgos/hoa.hh>
+//#include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
 class optimizer
 {
 
     private:
-        spot::twa_graph_ptr aut_;
+        const spot::twa_graph_ptr aut_;
         // Simplifications options
         std::vector<std::vector<char>> implies_;
+        //spot::scc_info scc_;
         std::vector<bdd> support_;
     
         // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
@@ -22,7 +39,8 @@ class optimizer
         find_scc_paths(const spot::scc_info& scc);
 
     public:
-        optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
+        optimizer(const spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
+        optimizer(optimizer& other);
 
     void output_simulation()
     {
