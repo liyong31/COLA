@@ -397,13 +397,6 @@ int main(int argc, char* argv[])
               }
               break;
             }
-            
-            optimizer opt(aut, use_simulation, use_stutter);
-            if(!determinize) 
-            {
-              opt.output_simulation();     
-              return 0;
-            }
 
             // Check if input is TGBA
             if (!aut->acc().is_generalized_buchi())
@@ -422,10 +415,10 @@ int main(int argc, char* argv[])
               }
             else
               {
-                if(! is_semi_deterministic(aut))
-                {
+                // if(! is_semi_deterministic(aut))
+                // {
                   aut = semi_determinize(aut, cut_det, jobs, &om);
-                }
+                // }
                 if (auto old_n = parsed_aut->aut->get_named_prop<std::string>
                     ("automaton-name"))
                   {
@@ -521,6 +514,12 @@ int main(int argc, char* argv[])
                     res = from_spot::determinize_rabin(aut, debug);
                   }
 
+                  optimizer opt(aut, use_simulation, use_stutter);
+                  if(!determinize) 
+                  {
+                    opt.output_simulation();     
+                    return 0;
+                  }
                   
                   if (determinize == Parity)
                   {
