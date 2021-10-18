@@ -16,6 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "optimizer.hpp"
+
 #include <deque>
 #include <map>
 
@@ -2027,6 +2029,8 @@ namespace from_spot
               // SCCs information of the source automaton.
               spot::scc_info si_;
 
+              optimizer opt_;
+
               // Number of states in the input automaton.
               unsigned nb_states_;
 
@@ -2152,6 +2156,23 @@ namespace from_spot
                       }
                       return p.first->second;
                     }
+                    // remove a state i if it is simulated by a state j
+                    void 
+                    merge_redundant_states(mstate& ms)
+                    {
+                      for(unsigned i = 0; i < nb_states_; i ++)
+                      {
+                        for(unsigned j = 0; j < nb_states_; j ++)
+                        {
+                          // if j is not reached at this level
+                          if(i == j || ms[j] == RANK_M || ms[i] == RANK_M) continue;
+                          if(opt_.simulate(j, i)) 
+                          {
+                            ms[i] = RANK_M;
+                          }
+                        }
+                      }
+                    }
 
                     void
                     rank_successors(const mstate& ms, unsigned origin, bdd letter)
@@ -2235,6 +2256,8 @@ namespace from_spot
                           }
                         }
                       }
+                      // remove redudant states
+                      merge_redundant_states(succ);
                       // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
                       const int INT_MAX = nb_states_ + 2;
                       int min_dcc = INT_MAX;
@@ -2285,7 +2308,7 @@ namespace from_spot
                         parity = -1;
                       }
                       // now reorgnize the indices
-                      std::unordered_map<int, int> new_indices;
+                      std::unordered_map<int, int> ord_func;
                       int index = 0;
                       // the succ has at most max_rnk + 1
                       for(int i = 0; i <= max_rnk + 1; i ++)
@@ -2301,7 +2324,7 @@ namespace from_spot
                         }
                         if(existing) 
                         {
-                          new_indices.emplace(i, index);
+                          ord_func.emplace(i, index);
                           index ++;
                         }
                       }
@@ -2310,7 +2333,7 @@ namespace from_spot
                         if(succ[s] != RANK_M && succ[s] != RANK_N)
                         {
                           // update indices
-                          succ[s] = new_indices[succ[s]];
+                          succ[s] = ord_func[succ[s]];
                         }
                       }
           
@@ -2331,8 +2354,9 @@ namespace from_spot
                     }
 
                 public:
-                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, bool use_unambiguous)
+                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_unambiguous)
                             : aut_(aut),
+                              opt_(opt),
                               si_(aut, spot::scc_info_options::ALL),
                               nb_states_(aut->num_states()),
                               support_(nb_states_),
@@ -2551,13 +2575,13 @@ namespace from_spot
     }
 
     spot::twa_graph_ptr
-    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, bool use_unambiguous)
+    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous)
     {
       if (!is_semi_deterministic(aut))
             throw std::runtime_error
                     ("determinize_tldba() requires a semi-deterministic input");
 
-      auto det = cola::ldba_determinize(aut, show_names, use_unambiguous);
+      auto det = cola::ldba_determinize(aut, show_names, opt, use_unambiguous);
       return det.run();
     }
 

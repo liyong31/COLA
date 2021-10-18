@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
+#include "optimizer.hpp"
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
@@ -29,7 +30,7 @@
 #include <spot/twaalgos/determinize.hh>
 #include <spot/misc/version.hh>
 #include <fstream>
-#include<ctime>
+#include <ctime>
 #define FWZ_DEBUG 0
 
 void print_usage(std::ostream& os) {
@@ -57,7 +58,8 @@ Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
 
 Optimizations:
-    --simulation          use simulation before parity determinization
+    --simulation          Use simulation before parity determinization
+    --stutter             Use stutter invariance for determinization
 
 Pre- and Post-processing:
     --preprocess[=0|1]       simplify the input automaton
@@ -96,6 +98,30 @@ void output_file(spot::twa_graph_ptr aut, const char* file)
   outfile.close();
 }
 
+  // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
+  // std::vector<char>
+  // find_scc_paths(const spot::scc_info& scc)
+  // {
+  //   unsigned scccount = scc.scc_count();
+  //   std::vector<char> res(scccount * scccount, 0);
+  //   for (unsigned i = 0; i != scccount; ++i)
+  //     res[i + scccount * i] = 1;
+  //   for (unsigned i = 0; i != scccount; ++i)
+  //     {
+  //       unsigned ibase = i * scccount;
+  //       for (unsigned d: scc.succ(i))
+  //         {
+  //           // we necessarily have d < i because of the way SCCs are
+  //           // numbered, so we can build the transitive closure by
+  //           // just ORing any SCC reachable from d.
+  //           unsigned dbase = d * scccount;
+  //           for (unsigned j = 0; j != scccount; ++j)
+  //             res[ibase + j] |= res[dbase + j];
+  //         }
+  //     }
+  //   return res;
+  // }
+
 int main(int argc, char* argv[])
 {
     // Declaration for input options. The rest is in cola.hpp
@@ -121,6 +147,7 @@ int main(int argc, char* argv[])
     bool debug = false;
     bool aut_type = false;
     bool use_unambiguous = false;
+    bool use_stutter = false;
 
     std::string output_filename = "";
 
@@ -197,6 +224,8 @@ int main(int argc, char* argv[])
           aut_type = true;
         else if (arg == "--unambiguous")
           use_unambiguous = true;
+        else if (arg == "--stutter")
+          use_stutter = true;
         // else if (arg == "--complement" || arg == "--complement=best")
         //   complement = NCSBBest;
         // else if (arg == "--complement=spot")
@@ -346,12 +375,15 @@ int main(int argc, char* argv[])
             if(aut_type)
             {
               bool type = false;
-              if(is_cut_deterministic(aut))
+              if(is_deterministic(aut))
+              {
+                type = true;
+                std::cout << "deterministic" << std::endl;
+              }else if(is_cut_deterministic(aut))
               {
                 type = true;
                 std::cout << "cut-deterministic" << std::endl;
-              }else
-              if(is_semi_deterministic(aut))
+              }else if(is_semi_deterministic(aut))
               {
                 type = true;
                 std::cout << "limit-deterministic" << std::endl;
@@ -365,6 +397,9 @@ int main(int argc, char* argv[])
               }
               break;
             }
+            
+            optimizer opt(aut, use_simulation, use_stutter);
+            opt.output_simulation();      
 
             // Check if input is TGBA
             if (!aut->acc().is_generalized_buchi())
@@ -481,19 +516,15 @@ int main(int argc, char* argv[])
                     }
                     res = from_spot::determinize_rabin(aut, debug);
                   }
+
                   
                   if (determinize == Parity)
                   {
-                    if(use_simulation) 
-                    {
-                      auto aut2 = simulation(aut);
-                      aut = aut2;
-                    }
                     if(debug)
                     {
                       output_file(aut, "in.hoa");
                     }
-                    res = from_spot::determinize_tldba(aut, debug, use_unambiguous);
+                    res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter

@@ -15,7 +15,7 @@
 
 #pragma once
 
-class tba_complementation
+namespace cola
 {
     
 

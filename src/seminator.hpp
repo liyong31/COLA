@@ -17,6 +17,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
+#include "optimizer.hpp"
+
 #include <set>
 #include <spot/twaalgos/postproc.hh>
 #include <spot/misc/optionmap.hh>
@@ -89,7 +91,7 @@ namespace from_spot {
   /// The automaton \a aut should be a semideterminisitc.
   /// Output a deterministic parity automaton
   spot::twa_graph_ptr
-  determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, bool use_unambiguous);
+  determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous);
 
 }
 
