@@ -557,10 +557,12 @@ int main(int argc, char* argv[])
               std::ofstream outfile;
               outfile.open(output_filename);
               spot::print_hoa(outfile, aut, opts);
+              outfile << "\n";
               outfile.close();
             }else 
             {
               spot::print_hoa(std::cout, aut, opts);
+              std::cout << "\n";
             }
             
           }

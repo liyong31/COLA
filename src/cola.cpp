@@ -2166,10 +2166,10 @@ namespace from_spot
                         {
                           // if j is not reached at this level
                           if(i == j || ms[j] == RANK_M || ms[i] == RANK_M) continue;
-                          std::cout << "start simulated" << std::endl;
+                          //std::cout << "start simulated" << std::endl;
                           if(opt_.simulate(j, i)) 
                           {
-                            std::cout << "simulated" << std::endl;
+                            // std::cout << "simulated" << std::endl;
                             ms[i] = RANK_M;
                           }
                         }
@@ -2376,7 +2376,7 @@ namespace from_spot
                               false // stutter inv
                               });
                       // std::cout << "Output simulation" << std::endl;
-                      opt_.output_simulation();
+                      // opt_.output_simulation();
                       // std::cout << "End output" << " NumS " << nb_states_ << std::endl;
                       // Generate bdd supports and compatible options for each state.
                       // Also check if all its transitions are accepting.
