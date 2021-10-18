@@ -31,6 +31,8 @@ src_libcola_la_SOURCES =			\
   src/cola.cpp            \
   src/cutdet.cpp				\
   src/cutdet.hpp				\
+  src/optimizer.cpp				\
+  src/optimizer.hpp				\
   src/powerset.cpp				\
   src/powerset.hpp				\
   src/seminator.cpp				\
