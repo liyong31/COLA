@@ -2044,6 +2044,9 @@ namespace from_spot
 
               // use ambiguous
               bool use_unambiguous_;
+              
+              // use stutter
+              bool use_stutter_;
 
               // Association between Rank states and state numbers of the
               // DPA.
@@ -2156,6 +2159,25 @@ namespace from_spot
                       }
                       return p.first->second;
                     }
+
+                    bool exists(mstate& s)
+                    {
+                      return rank2n_.end() == rank2n_.find(to_small_mstate(s));
+                    }
+
+                    bool
+                    is_smaller(const mstate& fst, const mstate& snd)
+                    {                    
+                      for(unsigned s = 0; s < nb_states_; s ++)
+                      {
+                        if(fst[s] == snd[s]) continue;
+                        else if(fst[s] < snd[s]) return true;
+                        else if(fst[s] > snd[s]) return false;
+                      }
+                      return false;
+                    }
+
+
                     // remove a state i if it is simulated by a state j
                     void 
                     merge_redundant_states(mstate& ms)
@@ -2177,7 +2199,7 @@ namespace from_spot
                     }
 
                     void
-                    rank_successors(const mstate& ms, unsigned origin, bdd letter)
+                    rank_successors(const mstate& ms, unsigned origin, bdd letter, mstate& nxt, int& color)
                     {
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
@@ -2338,27 +2360,97 @@ namespace from_spot
                           succ[s] = ord_func[succ[s]];
                         }
                       }
-          
-                      // add transitions
-                      // Create the automaton states
-                      unsigned dst = new_state(std::move(succ));
-                      // const unsigned MAX_PRI = 2* nb_det_states_ + 1;
-                      if(parity >= 0) 
-                      {
-                        unsigned pri = (unsigned)parity;
-                        sets_ = std::max(pri, sets_);
-                       
-                        res_->new_edge(origin, dst, letter, {pri});
-                      }else 
-                      {
-                        res_->new_edge(origin, dst, letter);
-                      }
+
+                      nxt = succ;
+                      color = parity;
                     }
 
+                void
+                get_stutter_state(const mstate& curr, unsigned origin, bdd letter, mstate& succ, int& color)
+                {
+                  mstate ms(nb_states_, RANK_M);
+                  for(unsigned s = 0; s < nb_states_; s ++)
+                  {
+                    ms[s] = curr[s];
+                  }
+                  std::vector<mstate> stutter_path;
+                  if (use_stutter_ && aut_->prop_stutter_invariant())
+                  {
+                    
+                    // The path is usually quite small (3-4 states), so it's
+                    // not worth setting up a hash table to detect a cycle.
+                    stutter_path.clear();
+                    std::vector<mstate>::iterator cycle_seed;
+                    int mincolor = -1;
+                    // stutter forward until we   cycle
+                    for (;;)
+                      {
+                        // any duplicate value, if any, is usually close to
+                        // the end, so search backward.
+                        auto it = std::find(stutter_path.rbegin(),
+                                            stutter_path.rend(), ms);
+                        if (it != stutter_path.rend())
+                          {
+                            cycle_seed = (it + 1).base();
+                            break;
+                          }
+                        stutter_path.emplace_back(std::move(ms));
+                        // next state
+                        mstate tmp_succ;
+                        int tmp_color = -1;
+                        rank_successors(stutter_path.back(), origin, letter, tmp_succ, tmp_color);
+                        ms = tmp_succ;
+                        if(tmp_color != -1 && mincolor != -1)
+                        {
+                          mincolor = std::min(tmp_color, mincolor);
+                        }else if(tmp_color != -1)
+                        {
+                          mincolor = tmp_color;
+                        }
+                      }
+                    // check whether this ms has been seen before
+                    bool in_seen = exists(*cycle_seed);
+                    for (auto it = cycle_seed + 1; it < stutter_path.end(); ++it)
+                      {
+                        if (in_seen)
+                          {
+                            // if *cycle_seed is already in seen, replace
+                            // it with a smaller state also in seen.
+                            if (exists(*it)
+                                && is_smaller(*it, *cycle_seed))
+                              cycle_seed = it;
+                          }
+                        else
+                          {
+                            // if *cycle_seed is not in seen, replace it
+                            // either with a state in seen or with a smaller
+                            // state
+                            if (exists(*it))
+                              {
+                                cycle_seed = it;
+                                in_seen = true;
+                              }
+                            else if (is_smaller(*it, *cycle_seed))
+                              {
+                                cycle_seed = it;
+                              }
+                          }
+                      }
+                    succ = std::move(*cycle_seed);
+                    color = mincolor;
+                  }
+                else
+                  {
+                    rank_successors(ms, origin, letter, succ, color);
+                  }
+
+                }
+
                 public:
-                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_unambiguous)
+                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_unambiguous, bool use_stutter)
                             : aut_(aut),
                               opt_(opt),
+                              use_stutter_(use_stutter),
                               si_(aut, spot::scc_info_options::ALL),
                               nb_states_(aut->num_states()),
                               support_(nb_states_),
@@ -2458,11 +2550,31 @@ namespace from_spot
                         bdd all = n_s_compat;
                         while (all != bddfalse)
                         {
-                          bdd one = bdd_satoneset(all, msupport, bddfalse);
-                          all -= one;
+                          bdd letter = bdd_satoneset(all, msupport, bddfalse);
+                          all -= letter;
                           // Compute all new states available from the generated
                           // letter.
-                          rank_successors(std::move(ms), top.second, one);
+
+                          mstate succ;
+                          int color = -1;
+                          //rank_successors(std::move(ms), top.second, letter, succ, color);
+                          get_stutter_state(std::move(ms), top.second, letter, succ, color);
+                          
+                          unsigned origin = top.second;
+                          // add transitions
+                          // Create the automaton states
+                          unsigned dst = new_state(std::move(succ));
+                          // const unsigned MAX_PRI = 2* nb_det_states_ + 1;
+                          if(color >= 0) 
+                          {
+                            unsigned pri = (unsigned)color;
+                            sets_ = std::max(pri, sets_);
+                          
+                            res_->new_edge(origin, dst, letter, {pri});
+                          }else 
+                          {
+                            res_->new_edge(origin, dst, letter);
+                          }
                         }
                       }
                       // now copy 
@@ -2488,7 +2600,8 @@ namespace from_spot
                       unsigned num_sets = max_odd_pri + 1;
                      
                       res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
-                    
+                      if (aut_->prop_complete().is_true())
+                        res_->prop_complete(true);
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
 
@@ -2584,13 +2697,13 @@ namespace from_spot
     }
 
     spot::twa_graph_ptr
-    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous)
+    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous, bool use_stutter)
     {
       if (!is_semi_deterministic(aut))
             throw std::runtime_error
                     ("determinize_tldba() requires a semi-deterministic input");
 
-      auto det = cola::ldba_determinize(aut, show_names, opt, use_unambiguous);
+      auto det = cola::ldba_determinize(aut, show_names, opt, use_unambiguous, use_stutter);
       return det.run();
     }
 

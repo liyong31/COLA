@@ -417,7 +417,7 @@ int main(int argc, char* argv[])
               {
                 // if(! is_semi_deterministic(aut))
                 // {
-                  aut = semi_determinize(aut, cut_det, jobs, &om);
+                aut = semi_determinize(aut, cut_det, jobs, &om);
                 // }
                 if (auto old_n = parsed_aut->aut->get_named_prop<std::string>
                     ("automaton-name"))
@@ -530,7 +530,7 @@ int main(int argc, char* argv[])
                       opt.output_simulation();
                       // std::cout << "end simulation output" << std::endl;
                     }
-                    res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous);
+                    res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous, use_stutter);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
