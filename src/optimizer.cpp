@@ -58,6 +58,8 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
                       {
                         std::vector<char> is_connected = find_scc_paths(scc);
                         unsigned sccs = scc.scc_count();
+                        std::vector<std::vector<char>> reach_sccs(aut_->num_states(), std::vector<char> (aut_->num_states(), 2));
+                        is_connected_ = reach_sccs;
                         bool something_implies_something = false;
                         for (unsigned i = 0; i != implications.size(); ++i)
                           {
@@ -74,11 +76,13 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
                             bool i_implies_something = false;
                             for (unsigned j = 0; j != implications.size(); ++j)
                               {
+                                //reachable states
                                 if (!scc.reachable_state(j))
                                   continue;
                                 // SCC i is reachable from SCC j
+                                is_connected_[i][j] = is_connected[sccs * scc.scc_of(j) + scc_of_i];
                                 // j simulates i and j cannot reach i
-                                bool i_implies_j = !is_connected[sccs * scc.scc_of(j) + scc_of_i] && 
+                                bool i_implies_j = //!is_connected[sccs * scc.scc_of(j) + scc_of_i] && 
                                   bdd_implies(implications[i], implications[j]);
                                 implies[i][j] = i_implies_j;
                                 i_implies_something |= i_implies_j;
@@ -131,6 +135,8 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
                           1,
                           std::vector<char>(0, 0));
                 implies_ = implies;
+                std::vector<std::vector<char>> is_connected(1, std::vector<char>(0, 0));
+                is_connected_ = is_connected;
             }           
 
         }

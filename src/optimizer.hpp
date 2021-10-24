@@ -31,6 +31,8 @@ class optimizer
         const spot::twa_graph_ptr aut_;
         // Simplifications options
         std::vector<std::vector<char>> implies_;
+        // is connected 
+        std::vector<std::vector<char>> is_connected_;
         //spot::scc_info scc_;
         std::vector<bdd> support_;
     
@@ -54,6 +56,32 @@ class optimizer
 
             }
         }              
+    }
+
+    void output_reach()
+    {
+        for(int i = 0; i < is_connected_.size(); i ++)
+        {
+            for(int j = 0; j < is_connected_[i].size(); j ++)
+            {
+                if(i == j) continue;
+                std::cout << j << " reaches " << i << " : " << (unsigned)(is_connected_[i][j]) << " " << reach(j, i) << std::endl;
+            }
+        }
+    }
+
+    // state i reach state j
+    char reach(unsigned i, unsigned j)
+    {
+        if(i == j) return true;
+        if(j < is_connected_.size() && i < is_connected_[j].size())
+        {
+            // j is reachable from i
+            return is_connected_[j][i];
+        }else 
+        {
+            return 2;
+        }
     }
 
     // check whether state i simulates state j

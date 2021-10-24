@@ -2189,13 +2189,20 @@ namespace from_spot
                           // if j is not reached at this level
                           if(i == j || ms[j] == RANK_M || ms[i] == RANK_M) continue;
                           //std::cout << "start simulated" << std::endl;
-                          if(opt_.simulate(j, i)) 
+                          // j simulates i and j cannot reach i
+                          if(opt_.simulate(j, i) && opt_.reach(j, i) == 0) 
                           {
                             // std::cout << "simulated" << std::endl;
                             ms[i] = RANK_M;
                           }
+                          // (j, k1) and (i, k2), if j simulates i and k1 <= k2, then remove k2
+                          if(opt_.simulate(j, i) && ms[j] > RANK_N && ms[j] < ms[i] )
+                          {
+                            ms[i] = RANK_M;
+                          } 
                         }
                       }
+                      
                     }
 
                     void
@@ -2364,7 +2371,7 @@ namespace from_spot
                       nxt = succ;
                       color = parity;
                     }
-
+                // copied and adapted from deterministic.cc in Spot
                 void
                 get_stutter_state(const mstate& curr, unsigned origin, bdd letter, mstate& succ, int& color)
                 {

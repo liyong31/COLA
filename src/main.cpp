@@ -499,7 +499,7 @@ int main(int argc, char* argv[])
                     }
                     aut = res;
                   }
-
+                
                 if (determinize && !is_deterministic(aut))
                 {
                   spot::twa_graph_ptr res = nullptr;
@@ -517,10 +517,11 @@ int main(int argc, char* argv[])
                   optimizer opt(aut, use_simulation, use_stutter);
                   if(!determinize) 
                   {
-                    opt.output_simulation();     
+                    std::cout << "Output simulation !!! " << std::endl;
+                    opt.output_simulation();    
+                    opt.output_reach(); 
                     return 0;
                   }
-                  
                   if (determinize == Parity)
                   {
                     if(debug)
@@ -528,6 +529,7 @@ int main(int argc, char* argv[])
                       output_file(aut, "in.hoa");
                       // std::cout << "start simulation output" << std::endl;
                       opt.output_simulation();
+                      opt.output_reach(); 
                       // std::cout << "end simulation output" << std::endl;
                     }
                     res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous, use_stutter);
