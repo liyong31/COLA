@@ -2196,7 +2196,7 @@ namespace from_spot
                             ms[i] = RANK_M;
                           }
                           // (j, k1) and (i, k2), if j simulates i and k1 <= k2, then remove k2
-                          if(opt_.simulate(j, i) && ms[j] > RANK_N && ms[j] < ms[i] )
+                          if(opt_.simulate(j, i) && ms[j] > RANK_N && ms[j] <= ms[i] )
                           {
                             ms[i] = RANK_M;
                           } 
