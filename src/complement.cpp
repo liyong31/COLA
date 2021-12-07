@@ -17,7 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "optimizer.hpp"
-#include "struct.hpp"
+//#include "struct.hpp"
 
 #include <deque>
 #include <map>
@@ -42,6 +42,8 @@
 #include <types.hpp>
 
 #define FWZ_DEBUG 0
+
+// This file contains various complementation algorithms 
 
 // This contains a modified version of Spot 2.8's complement_semidet()
 // function (spot/twaalgos/complement.cc).  It will likely be

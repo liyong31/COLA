@@ -137,8 +137,28 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
                 implies_ = implies;
                 std::vector<std::vector<char>> is_connected(1, std::vector<char>(0, 0));
                 is_connected_ = is_connected;
-            }           
-
+            }
+            // now compute the representative
+            unsigned num_states = aut_->num_states();
+            std::vector<unsigned> representative(num_states, -1);
+            for(unsigned s = 0; s < num_states; s ++)
+            {
+              representative[s] = s;
+            } 
+            // now compute the representative
+            for(unsigned s = 0; s < num_states; s ++)
+            {
+              for(unsigned t = 0; t < num_states; t ++)
+              {
+                if(s == t) continue;
+                if(simulate(s, t) && simulate(t, s))
+                {
+                  representative[s] = std::max(representative[s], t);
+                  representative[t] = std::max(representative[t], s);
+                }
+              }
+            } 
+            repr_ = representative;         
         }
 
 std::vector<char>

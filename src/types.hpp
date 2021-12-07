@@ -1,4 +1,5 @@
 // Copyright (c) 2017-2020  The Seminator Authors
+// Copyright (C) 2021  The COLA Authors
 //
 // This file is a part of Seminator, a tool for semi-determinization
 // of omega automata.
@@ -74,3 +75,114 @@ typedef std::unique_ptr<succ_vect> succ_vect_ptr;
 typedef const spot::option_map* const_om_ptr;
 
 static const state_set empty_set;
+
+// for complementation and determinization
+        enum ncsb
+        {
+            ncsb_n = 0,       // non deterministic
+            ncsb_c = 2 ,       // needs check
+            ncsb_cb = 3,      // needs check AND in breakpoint
+            ncsb_s = 4,       // safe
+            ncsb_m = 1,       // missing
+        };
+
+        // fengwz
+        enum ncb
+        {
+            ncb_i = 1,  // init phase
+            ncb_n = 6,  // 110
+            ncb_c = 2,  // 10
+            ncb_b = 3,  // 11
+            ncb_m = 0,
+        };
+
+        // N S B C do not intersect each other 
+        enum nsbc
+        {
+            nsbc_n = 1,       // non deterministic
+            nsbc_s = 4,       // safe
+            nsbc_b = 3,       // needs check AND in breakpoint
+            nsbc_c = 2 ,      // needs check 
+            nsbc_m = -1,       // missing
+            nsbc_i = 0,
+        };
+
+       
+        const int detrb_m = -2;     // missing
+        const int detrb_n = -1;     // non deterministic
+        const int detrb_bot = 0;    // bottom
+        const int detrb_d = 1;      // label
+
+        typedef std::vector<ncsb> mstate;
+        typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
+
+        typedef std::vector<ncb> macrostate;
+        typedef std::vector<std::pair<unsigned, ncb>> small_macrostate;
+
+        typedef std::vector<nsbc> mcstate;
+        typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
+
+        typedef std::vector<int> dstate;
+        typedef std::vector<std::pair<int, int>> small_dstate;
+        
+
+        struct small_mstate_hash
+        {
+            size_t
+            operator()(small_mstate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+        // fengwz
+        struct small_macrostate_hash
+        {
+            size_t
+            operator()(small_macrostate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+        // new semi complement
+        struct small_mcstate_hash
+        {
+            size_t
+            operator()(small_mcstate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+        // determinization
+        struct small_dstate_hash
+        {
+            size_t
+            operator()(small_dstate s) const noexcept
+            {
+              size_t hash = 0;
+              for (const auto& p: s)
+              {
+                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
+              }
+              return hash;
+            }
+        };
+
+

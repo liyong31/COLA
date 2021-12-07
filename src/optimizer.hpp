@@ -33,6 +33,8 @@ class optimizer
         std::vector<std::vector<char>> implies_;
         // is connected 
         std::vector<std::vector<char>> is_connected_;
+        // representative for every state
+        std::vector<unsigned> repr_;
         //spot::scc_info scc_;
         std::vector<bdd> support_;
     
@@ -68,6 +70,19 @@ class optimizer
                 std::cout << j << " reaches " << i << " : " << (unsigned)(is_connected_[i][j]) << " " << reach(j, i) << std::endl;
             }
         }
+    }
+
+    void output_repr()
+    {
+        for(unsigned i = 0; i < aut_->num_states(); i ++)
+        {
+             std::cout << i << " repr " << repr_[i]  << std::endl;
+        }
+    }
+
+    unsigned get_repr(unsigned s)
+    {
+        return repr_[s];
     }
 
     // state i reach state j

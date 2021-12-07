@@ -18,7 +18,7 @@
 
 
 #include "optimizer.hpp"
-#include "struct.hpp"
+//#include "struct.hpp"
 
 #include <deque>
 #include <map>
