@@ -54,45 +54,6 @@ namespace from_spot {
   spot::twa_graph_ptr
   complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
-  spot::twa_graph_ptr
-  complement_semidet_opt(const spot::const_twa_graph_ptr &aut, bool show_names = false);
-
-  spot::twa_graph_ptr
-  complement_semidet_onthefly(const spot::const_twa_graph_ptr &aut, bool show_names = false);
-
-  spot::twa_graph_ptr
-  complement_semidet_opt_onthefly(const spot::const_twa_graph_ptr &aut, bool show_names = false);
-
-  /// \brief Complement a unambiguous TωA
-  ///
-  /// The automaton \a aut should be unambiguous.
-  ///
-  /// Uses the NCSB algorithm described by Y. Li, M.Y. Vardi, and L. Zhang (GandALF'20)
-  spot::twa_graph_ptr
-  complement_unambiguous(const spot::const_twa_graph_ptr &aut, bool show_names = false);
-
-  /// \brief Complement a semideterministic TωA
-  ///
-  /// The automaton \a aut should be semideterministic.
-  ///
-  /// Uses the NCB algorithm described by Y. Li
-  spot::twa_graph_ptr
-  new_complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
-
-  /// \brief Determinization
-  /// 
-  /// The automaton \a aut should be a semideterminisitc.
-  /// Output a deterministic rabin automaton
-  spot::twa_graph_ptr
-  determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
-  
-  /// \brief Determinization
-  /// 
-  /// The automaton \a aut should be a semideterminisitc.
-  /// Output a deterministic parity automaton
-  spot::twa_graph_ptr
-  determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous, bool use_stutter);
-
 }
 
 typedef std::set<unsigned> state_set;

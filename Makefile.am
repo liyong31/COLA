@@ -33,9 +33,10 @@ src_libcola_la_SOURCES =			\
   src/bscc.cpp					\
   src/bscc.hpp					\
   src/cola.hpp			\
-  src/cola.cpp			\
+  src/complement.cpp			\
   src/cutdet.cpp				\
   src/cutdet.hpp				\
+  src/determinize.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
   src/powerset.cpp				\

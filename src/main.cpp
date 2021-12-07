@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
+#include "cola.hpp"
 #include "optimizer.hpp"
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
@@ -456,7 +457,7 @@ int main(int argc, char* argv[])
                     if(complement == NCSBPLDIB || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp1 =
-                          from_spot::complement_semidet_opt(aut);
+                          cola::complement_semidet_opt(aut);
                         comp1 = postprocessor.run(comp1);
                         if (!res || res->num_states() > comp1->num_states())
                           res = comp1;
@@ -464,7 +465,7 @@ int main(int argc, char* argv[])
                     if(complement == NCSBPLDIF || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp3 =
-                          from_spot::complement_semidet_onthefly(aut);
+                          cola::complement_semidet_onthefly(aut);
                         comp3 = postprocessor.run(comp3);
                         if (!res || res->num_states() > comp3->num_states())
                           res = comp3;
@@ -472,7 +473,7 @@ int main(int argc, char* argv[])
                     if(complement == NCSBPLDIBF || complement == NCSBBest) 
                     {
                         spot::twa_graph_ptr comp4 =
-                          from_spot::complement_semidet_opt_onthefly(aut);
+                          cola::complement_semidet_opt_onthefly(aut);
                         comp4 = postprocessor.run(comp4);
                         if (!res || res->num_states() > comp4->num_states())
                           res = comp4;
@@ -480,7 +481,7 @@ int main(int argc, char* argv[])
                     if (complement == NCSBPLDI || complement == NCSBBest)
                       {
                         spot::twa_graph_ptr comp2 =
-                          from_spot::complement_semidet(aut);
+                          spot::complement_semidet(aut);
                         comp2 = postprocessor.run(comp2);
                         if (!res || res->num_states() > comp2->num_states())
                           res = comp2;
@@ -489,12 +490,12 @@ int main(int argc, char* argv[])
                     {
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
-                      res = from_spot::complement_unambiguous(myaut); //, true);
+                      res = cola::complement_unambiguous(myaut); //, true);
                       res = postprocessor.run(res);
                     }
                     if (complement == NSBC)
                     {
-                      res = from_spot::new_complement_semidet(aut); //, true);
+                      res = cola::new_complement_semidet(aut); //, true);
                       // res = postprocessor.run(res);
                     }
                     aut = res;
@@ -511,17 +512,18 @@ int main(int argc, char* argv[])
                     {
                       spot::print_hoa(std::cout, aut) << '\n';
                     }
-                    res = from_spot::determinize_rabin(aut, debug);
+                    res = cola::determinize_rabin(aut, debug);
                   }
 
                   optimizer opt(aut, use_simulation, use_stutter);
-                  if(!determinize) 
-                  {
-                    std::cout << "Output simulation !!! " << std::endl;
-                    opt.output_simulation();    
-                    opt.output_reach(); 
-                    return 0;
-                  }
+                  // if(!determinize) 
+                  // {
+                  //   std::cout << "Output simulation !!! " << std::endl;
+                  //   opt.output_simulation();    
+                  //   opt.output_reach(); 
+                   
+                  //   return 0;
+                  // }
                   if (determinize == Parity)
                   {
                     if(debug)
@@ -530,9 +532,10 @@ int main(int argc, char* argv[])
                       // std::cout << "start simulation output" << std::endl;
                       opt.output_simulation();
                       opt.output_reach(); 
+                      opt.output_repr();
                       // std::cout << "end simulation output" << std::endl;
                     }
-                    res = from_spot::determinize_tldba(aut, debug, opt, use_unambiguous, use_stutter);
+                    res = cola::determinize_tldba(aut, debug, opt, use_unambiguous, use_stutter);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
