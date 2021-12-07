@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+## The COLA Authors:
+##
+## Removed some unnecessary configurations for COLA (e.g. the python binding for Seminator)
+
 AC_DEFUN([AX_CHECK_COMPILE_FLAG],
 [AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
 AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
@@ -30,33 +34,8 @@ AS_IF([test x"AS_VAR_GET(CACHEVAR)" = xyes], [$2], [$3])
 AS_VAR_POPDEF([CACHEVAR])dnl
 ])dnl AX_CHECK_COMPILE_FLAGS
 
-AC_DEFUN([adl_CHECK_PYTHON],
- [AM_PATH_PYTHON([3.3])
-  case $PYTHON in
-    [[\\/$]]* | ?:[[\\/]]* );;
-    *) AC_MSG_ERROR([The PYTHON variable must be set to an absolute filename.]);;
-  esac
-  AC_CACHE_CHECK([for $am_display_PYTHON includes directory],
-    [adl_cv_python_inc],
-    [adl_cv_python_inc=`$PYTHON -c "import sys; from distutils import sysconfig;]
-[sys.stdout.write(sysconfig.get_python_inc())" 2>/dev/null`])
-  AC_SUBST([PYTHONINC], [$adl_cv_python_inc])
-  adl_save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$adl_save_CPPFLAGS -I$PYTHONINC"
-  AC_CHECK_HEADERS([Python.h],,
-                   [AC_MSG_ERROR([Python's development headers are not installed.
-
-The package to install is often called python3-devel, but that name
-might be different in your distribution.  Note that if you do not plan
-to use Spot's Python bindings, you may also disable their compilation
-by running
-  ./configure --disable-python
-and in this case you do not need python3-devel installed.])])
-  CPPFLAGS=$adl_save_CPPFLAGS
-])
-
 AC_PREREQ([2.63])
-AC_INIT([seminator], [2.0dev])
+AC_INIT([cola], [0.0dev])
 AC_CONFIG_AUX_DIR([tools])
 AM_INIT_AUTOMAKE([1.11 gnu tar-ustar color-tests parallel-tests
                   subdir-objects foreign])
@@ -129,19 +108,11 @@ AC_SUBST([SPOTPREFIX], [$with_spot])
 
 LT_INIT
 
-AM_CONDITIONAL([USE_PYTHON], [test "x${enable_python:-yes}" = xyes])
-
-if test "x${enable_python:-yes}" = xyes; then
-  AC_MSG_NOTICE([You may configure with --disable-python ]dnl
-[if you do not need Python bindings.])
-  adl_CHECK_PYTHON
-fi
-
 AC_CHECK_PROG([PERL], [perl], [perl])
 # Debian has a binary for SWIG 3.0 named swig3.0 and they kept swig as
 # an alias for swig-2.0.  Let's use the former when available.
 AC_CHECK_PROGS([SWIG], [swig3.0 swig], [swig])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([tests/pyrun], [chmod +x tests/pyrun])
+
 AC_OUTPUT
