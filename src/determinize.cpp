@@ -22,6 +22,7 @@
 
 #include <deque>
 #include <map>
+#include <set>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -463,7 +464,9 @@ namespace cola
 
           // states
           typedef std::vector<int> mstate;
-          typedef std::vector<std::pair<unsigned, int>> small_mstate;
+          typedef std::pair<unsigned, int> label;
+          // state and labelling pairs
+          typedef std::vector<label> small_mstate;
 
           struct small_mstate_hash
           {
@@ -507,9 +510,12 @@ namespace cola
               // use stutter
               bool use_stutter_;
 
-              // Association between Rank states and state numbers of the
+              // Association between labelling states and state numbers of the
               // DPA.
               std::unordered_map<small_mstate, unsigned, small_mstate_hash> rank2n_;
+
+              // bisimulate map
+              std::unordered_map<small_mstate, std::set<mstate>, small_mstate_hash> bisim2n_;
 
               // States to process.
               std::deque<std::pair<mstate, unsigned>> todo_;
@@ -602,12 +608,62 @@ namespace cola
                           small.emplace_back(i, ms[i]);
                       return small;
                     }
+                    
+                    struct compare_pair
+                    {
+                      bool
+                      operator() (const label& lhs,
+                                  const label& rhs) const
+                      {
+                        if( lhs.second < rhs.second)
+                        {
+                          return true;
+                        }else if(lhs.second > rhs.second) 
+                        {
+                          return false;
+                        }else 
+                        {
+                          return lhs.first < rhs.second;
+                        }
+                      }
+                    };
+                    small_mstate
+                    to_bisim_small_mstate(const mstate& ms)
+                    {
+                        small_mstate sm = to_small_mstate(ms);
+                        std::sort(sm.begin(), sm.end(), compare_pair());
+                        // output sorted pairs
+                        int count = 1;
+                        small_mstate res;
+                        res.reserve(sm.size());
+                        for(label p : sm)
+                        {
+                          // std::cout << "(" << p.first << ", " << p.second << ") ";
+                          if(p.second == RANK_N)
+                          {
+                            res.emplace_back(p.first, p.second);
+                          }else 
+                          {
+                            res.emplace_back(p.first, count);
+                            count ++;
+                          }
+                        }
+                        // std::cout << "\nSorted Unique:\n";
+                        // for(label p : res)
+                        // {
+                        //   std::cout << "( " << p.first << ", " << p.second << ") ";
+                        // }
+                        // std::cout << "\n";
+                        return res;
+                    }
 
                     // From a Rank state, looks for a duplicate in the map before
                     // creating a new state if needed.
                     unsigned
                     new_state(mstate&& s)
                     {
+                      //small_mstate repr = to_bisim_small_mstate(s);
+                      //auto p = rank2n_.emplace(repr, 0);
                       auto p = rank2n_.emplace(to_small_mstate(s), 0);
                       if (p.second) // This is a new state
                       {
@@ -617,6 +673,23 @@ namespace cola
                         todo_.emplace_back(std::move(s), p.first->second);
                       }
                       return p.first->second;
+                    }
+
+                    unsigned 
+                    new_bisim_state(mstate& ms)
+                    {
+                      small_mstate res = to_bisim_small_mstate(ms);
+                      auto p = bisim2n_.find(res);
+                      if(p == bisim2n_.end())
+                      {
+                        std::set<mstate> mset;
+                        mset.insert(ms);
+                        bisim2n_[res] = mset;
+                      }else 
+                      {
+                        p->second.insert(ms);
+                      }
+                      return 0;
                     }
 
                     bool exists(mstate& s)
@@ -661,7 +734,42 @@ namespace cola
                           } 
                         }
                       }
-                      
+                    }
+
+                    void
+                    make_compact_ranking(mstate& ms)
+                    {
+                      int max_rnk = get_max_rank(ms);
+                      // now reorgnize the indices
+                      std::unordered_map<int, int> ord_func;
+                      int index = 0;
+                      // the succ has at most max_rnk + 1
+                      for(int i = 0; i <= max_rnk + 1; i ++)
+                      {
+                        bool existing = false;
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if(ms[s] == i)
+                          {
+                            existing = true;
+                            break;
+                          }
+                        }
+                        if(existing) 
+                        {
+                          ord_func.emplace(i, index);
+                          index ++;
+                        }
+                      }
+                      for(unsigned s = 0; s < nb_states_; s ++)
+                      {
+                        if(ms[s] != RANK_M && ms[s] != RANK_N)
+                        {
+                          // update indices
+                          ms[s] = ord_func[ms[s]];
+                        }
+                      }
+
                     }
 
                     void
@@ -672,6 +780,7 @@ namespace cola
                       std::vector<bool> incoming(nb_states_, false);
                       std::vector<bool> ignores(nb_states_, false);
                       // first handle nondeterministic states
+                      std::vector<unsigned> coming_states;
                       for (unsigned s = 0; s < nb_states_; ++ s)
                       {
                         // missing states
@@ -702,10 +811,17 @@ namespace cola
                                 // ignore this state
                                 continue;
                             }
-                            
+                            // BETTER: transition when seeing deterministic states
                             if (is_deter_[si_.scc_of(t.dst)])
+                            // only transition to labelling if seeing accepting transitions or states
+                            //if(t.acc || is_accepting_[t.dst])
                             {
-                              succ[t.dst] = max_rnk + 1;  
+                              if(succ[t.dst] < RANK_N) 
+                              {
+                                coming_states.push_back(t.dst);
+                                succ[t.dst] = max_rnk + 1; //Sharing labels 
+                                //succ[t.dst] = ++ max_rnk;  
+                              }
                             } else 
                             {
                               succ[t.dst] = RANK_N;
@@ -713,7 +829,14 @@ namespace cola
                           }
                         }
                       }
-                  
+                      // give labelling to coming_states
+                      std::sort(coming_states.begin(), coming_states.end());
+                      for(unsigned s : coming_states)
+                      {
+                        // std::cout << " " << s;
+                        succ[s] = ++max_rnk;
+                      }
+                      // std::cout << "\n";
                       // now we compute the rank successors
                       for(int rnk = max_rnk; rnk >= 0; rnk --)
                       {
@@ -826,6 +949,9 @@ namespace cola
                           succ[s] = ord_func[succ[s]];
                         }
                       }
+
+                       // now we find whether there is bisimulate-states
+                      //new_bisim_state(succ);
 
                       nxt = succ;
                       color = parity;
@@ -1043,6 +1169,17 @@ namespace cola
                           }
                         }
                       }
+                      // // now I output states
+                      // for(auto p = bisim2n_.begin(); p != bisim2n_.end(); p ++)
+                      // {
+                      //   std::cout << "bisim repr = " << get_name(p->first) << ":\n";
+                      //   for(auto ms : p->second)
+                      //   {
+                      //     std::cout << get_name(to_small_mstate(ms)) << " ";
+                      //   }
+                      //   std::cout << "\n";
+                      // }
+                      // std::cout << "size: = " << bisim2n_.size() << std::endl;
                       // now copy 
                       // check the number of indices
                       unsigned max_odd_pri = -1;
