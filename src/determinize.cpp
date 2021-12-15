@@ -45,420 +45,6 @@
 
 namespace cola
 {
-// determinization
-        std::unordered_map<int, int> labelIndex;
-        class determinization_rabin
-        {
-        private:
-            // The source automaton.
-            const spot::const_twa_graph_ptr aut_;
-
-            // SCCs information of the source automaton.
-            spot::scc_info si_;
-
-            // Number of states in the input automaton.
-            int n_states_;
-
-            // Number of states in Q_D
-            int d_states_ = 1;
-            int rabin = 0;
-
-            // The complement being built.
-            spot::twa_graph_ptr res_;
-
-            // Association between NCSB states and state numbers of the
-            // complement.
-            std::unordered_map<small_dstate, int, small_dstate_hash> rabin2n_;
-
-            // States to process.
-            std::deque<std::pair<dstate, int>> todo_;
-
-            // Support for each state of the source automaton.
-            std::vector<bdd> support_;
-
-            // Propositions compatible with all transitions of a state.
-            std::vector<bdd> compat_;
-
-            // Whether a SCC is deterministic or not
-            std::vector<bool> is_deter_;
-
-            // Whether a state only has accepting transitions
-            std::vector<bool> is_accepting_;
-
-            // State names for graphviz display
-            std::vector<std::string>* names_;
-
-            // Show NCSB states in state name to help debug
-            bool show_names_;
-
-            std::string
-            get_name(const small_dstate& ms)
-            {
-              std::string res = "{";
-
-              // N
-              bool first_state = true;
-              for (const auto& p: ms)
-              {
-                if (p.second == detrb_n)
-                {
-                  if (!first_state)
-                    res += ",";
-                  first_state = false;
-                  res += ("N:" + std::to_string(p.first));
-                }
-              }
-
-              res += "},{";
-              
-              // (state, bottom)
-              first_state = true;
-              for (const auto& p: ms)
-              {
-                if (p.second == detrb_bot)
-                {
-                  if (!first_state)
-                    res += ",";
-                  first_state = false;
-                  res += ("(" + std::to_string(p.first) + ", bot)");
-                }
-
-                // (state, label)
-                // first_state = true;
-                if (p.second >= detrb_d)
-                {
-                  if (!first_state)
-                    res += ",";
-                  first_state = false;
-                  res += ("(" + std::to_string(p.first) + ", " + std::to_string(p.second) + " )");
-                }
-              }
-
-              return res + "}";
-            }
-
-            small_dstate
-            to_small_dstate(const dstate& ms)
-            {
-              int count = 0;
-              for (int i = 0; i < n_states_; ++i)
-                count += (ms[i] != detrb_m);
-              small_dstate small;
-              small.reserve(count);
-              for (int i = 0; i < n_states_; ++i)
-                if (ms[i] != detrb_m)
-                  small.emplace_back(i, ms[i]);
-              return small;
-            }
-
-            // looks for a duplicate in the map before
-            // creating a new state if needed.
-            int
-            new_state(dstate&& s)
-            {
-              auto p = rabin2n_.emplace(to_small_dstate(s), 0);
-              if (p.second) // This is a new state
-              {
-                p.first->second = res_->new_state();
-                if (show_names_)
-                  names_->push_back(get_name(p.first->first));
-                todo_.emplace_back(std::move(s), p.first->second);
-              }
-              return p.first->second;
-            }
-
-            void
-            rabin_successors(dstate&& ms, int origin, bdd letter)
-            {
-              dstate succ(n_states_, detrb_m);
-                  
-              // At first, all states in Q_D is set to bottom
-              for (int i = 0; i < n_states_; ++i)
-              {
-                // i is in Q_D
-                if (is_deter_[si_.scc_of(i)])
-                {
-                  succ[i] = detrb_bot;
-                }
-              }
-
-              int minLabel = INT32_MAX;
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (ms[i] < detrb_d)
-                  continue;
-                
-                if (ms[i] < minLabel)
-                {
-                  minLabel = ms[i];
-                }
-              }
-
-              int jumpLabel = 0;
-              for (int i = 1; i <= d_states_; i++)
-              {
-                // find the min label that does not appear in ms
-                if (std::find(ms.begin(), ms.end(), i) == ms.end())
-                {
-                  jumpLabel = i;
-                  break;
-                }
-              }
-
-              // Handle \delta_D(\alpha(g), a)
-              
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (ms[i] < detrb_d)
-                  continue;
-                
-                if (!labelIndex.count(ms[i]))
-                {
-                  int tmp = labelIndex.size() + 1;
-                  labelIndex.emplace(ms[i], tmp);
-                }
-              
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-
-                  // only one successor
-                  succ[t.dst] = minLabel;     
-                  break;
-                }
-              }
-            
-              // Handle N states.
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (ms[i] != detrb_n)
-                  continue;
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-
-                  // t.dst is in Q_D
-                  if (is_deter_[si_.scc_of(t.dst)])
-                  {
-                    // if g(t.dst) >= detrb_d, 
-                    // means it has been given a label, 
-                    // and means it is a successor of some state in Q_D,
-                    // then we should skip it,
-                    // and only consider the situation that g(t.dst) < detrb_d
-                    if (succ[t.dst] < detrb_d)
-                    {
-                      succ[t.dst] = jumpLabel;
-                      if (!labelIndex.count(succ[t.dst]))
-                      {
-                        int tmp = labelIndex.size() + 1;
-                        labelIndex.emplace(succ[t.dst], tmp);
-                      }
-                    }
-                  } 
-                  else
-                  {
-                    succ[t.dst] = detrb_n;
-                  }
-                }
-              }
-             
-              // accepting state
-              // Ri = {(N,g) | i \notin beta(g)
-              // Ai = {(N,g) | i \in g(F)}
-              // `(Fin(0)&Inf(1))|(Fin(2)&Inf(3))|...|(Fin(2n-2)&Inf(2n-1))`
-
-              dstate succBackup(n_states_, detrb_m);
-              for (int i = 0; i < n_states_; ++i)
-              {
-                succBackup[i] = succ[i];
-              }
-             
-              int dst = new_state(std::move(succ)); 
-              int flag = false;
-
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (ms[i] < detrb_d)
-                  continue;
-              
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-
-                  // only one successor
-                  if (t.acc || is_accepting_[t.dst])
-                  {
-                    if (ms[i] == succBackup[t.dst])
-                    {
-                      res_->new_edge(origin, dst, letter, {(unsigned) 2 * labelIndex[ms[i]] - 1});
-                      res_->merge_edges();
-                      flag = true; 
-                    }
-                    break;
-                  }
-                 
-                }
-              }
-
-              int init = true;
-
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (ms[i] < detrb_d)
-                  continue;
-                init = false;
-                for (const auto &t: aut_->out(i))
-                {
-                  if (!bdd_implies(letter, t.cond))
-                    continue;
-                  if (succBackup[t.dst] != ms[i])
-                  {
-                    res_->new_edge(origin, dst, letter, {(unsigned) 2 * labelIndex[ms[i]] - 2});
-                    res_->merge_edges();
-                    flag = true;
-                  } 
-                }
-                
-              }
-              if (init == true)
-              {
-                for (int i = 0; i < n_states_; i++)
-                {
-                  if (succBackup[i] < detrb_d)
-                    continue;
-                  res_->new_edge(origin, dst, letter, {(unsigned) 2 * (labelIndex[succBackup[i]] - 1)});
-                  res_->merge_edges();
-                  flag = true; 
-                }
-              }
-              
-              if (flag == false)
-              {
-                res_->new_edge(origin, dst, letter);
-              }
-              
-            }
-
-
-        public:
-            determinization_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
-                    : aut_(aut),
-                      si_(aut),
-                      n_states_(aut->num_states()),
-                      support_(n_states_),
-                      compat_(n_states_),
-                      is_accepting_(n_states_),
-                      show_names_(show_names)
-            {
-              res_ = spot::make_twa_graph(aut->get_dict());
-              res_->copy_ap_of(aut);
-              res_->prop_copy(aut,
-                   { false, // state based
-                       false, // inherently_weak
-                       false, false, // deterministic
-                       true, // complete
-                       false // stutter inv
-                       });
-
-              // Generate bdd supports and compatible options for each state.
-              // Also check if all its transitions are accepting.
-              for (int i = 0; i < n_states_; ++i)
-              {
-                bdd res_support = bddtrue;
-                bdd res_compat = bddfalse;
-                
-                bool accepting = true;
-                bool has_transitions = false;
-                for (const auto& out: aut->out(i))
-                {
-                  has_transitions = true;
-                  res_support &= bdd_support(out.cond);
-                  res_compat |= out.cond;
-                  if (!out.acc)
-                    accepting = false;
-                }
-                support_[i] = res_support;
-                compat_[i] = res_compat;
-                is_accepting_[i] = accepting && has_transitions;
-              }
-
-              // Compute which SCCs are part of the deterministic set.
-              is_deter_ = spot::semidet_sccs(si_);
-
-              if (show_names_)
-              {
-                names_ = new std::vector<std::string>();
-                res_->set_named_prop("state-names", names_);
-              }
-
-              // Because we only handle one initial state, we assume it
-              // belongs to the N set. (otherwise the automaton would be
-              // deterministic)
-              int init_state = aut->get_init_state_number();
-              dstate new_init_state(n_states_, detrb_m);
-              new_init_state[init_state] = detrb_n;
-              for (int i = 0; i < n_states_; ++i)
-              {
-                if (is_deter_[si_.scc_of(i)])
-                {
-                  d_states_++;
-                  new_init_state[i] = detrb_bot;
-                }
-              }
-
-              res_->set_init_state(new_state(std::move(new_init_state)));
-            }
-
-            spot::twa_graph_ptr
-            run()
-            {
-              // Main stuff happens here
-
-              while (!todo_.empty())
-              {
-                auto top = todo_.front();
-                todo_.pop_front();
-
-                dstate ms = top.first;
-
-                // Compute support of all available states.
-                bdd msupport = bddtrue;
-                bdd n_s_compat = bddfalse;
-                
-                for (int i = 0; i < n_states_; ++i)
-                  if (ms[i] != detrb_m)
-                  {
-                    msupport &= support_[i];   
-                    if (ms[i] != detrb_m || is_accepting_[i])             
-                      n_s_compat |= compat_[i];
-                  }
-
-                bdd all;
-                all = n_s_compat;
-                
-                while (all != bddfalse)
-                {
-                  bdd one = bdd_satoneset(all, msupport, bddfalse);
-                  all -= one;
-
-                  // Compute all new states available from the generated letter.
-                  rabin_successors(std::move(ms), top.second, one);
-                }
-              }
-              
-              int tmpMax = labelIndex.size();
-            
-              res_->set_acceptance(2 * tmpMax, spot::acc_cond::acc_code::rabin(tmpMax));
-             
-              res_->prop_state_acc(false);
-              res_->merge_edges();
-              return res_;
-            }
-        };
-
           const int RANK_N = -1; // nondeterministic
           const int RANK_M = -2; // missing value
 
@@ -506,6 +92,8 @@ namespace cola
 
               // use ambiguous
               bool use_unambiguous_;
+
+              bool use_scc_;
               
               // use stutter
               bool use_stutter_;
@@ -772,8 +360,8 @@ namespace cola
 
                     }
 
-                    void
-                    rank_successors(const mstate& ms, unsigned origin, bdd letter, mstate& nxt, int& color)
+                    mstate
+                    compute_succ(const mstate& ms, bdd letter)
                     {
                       mstate succ(nb_states_, RANK_M);
                       int max_rnk = get_max_rank(ms);
@@ -781,6 +369,7 @@ namespace cola
                       std::vector<bool> ignores(nb_states_, false);
                       // first handle nondeterministic states
                       std::vector<unsigned> coming_states;
+                      std::vector<unsigned> acc_coming_states;
                       for (unsigned s = 0; s < nb_states_; ++ s)
                       {
                         // missing states
@@ -818,6 +407,13 @@ namespace cola
                             {
                               if(succ[t.dst] < RANK_N) 
                               {
+                                // if(t.acc || is_accepting_[t.dst])
+                                // {
+                                //   acc_coming_states.push_back(t.dst);
+                                // }else 
+                                // {
+                                //   coming_states.push_back(t.dst);
+                                // }
                                 coming_states.push_back(t.dst);
                                 succ[t.dst] = max_rnk + 1; //Sharing labels 
                                 //succ[t.dst] = ++ max_rnk;  
@@ -829,7 +425,6 @@ namespace cola
                           }
                         }
                       }
-                      // give labelling to coming_states
                       std::sort(coming_states.begin(), coming_states.end());
                       for(unsigned s : coming_states)
                       {
@@ -866,6 +461,140 @@ namespace cola
                               continue;
                             }
                             succ[t.dst] = rnk;
+                          }
+                        }
+                      }
+                      return succ;
+                    }
+
+                    void
+                    rank_successors(const mstate& ms, unsigned origin, bdd letter, mstate& nxt, int& color)
+                    {
+                      mstate succ(nb_states_, RANK_M);
+                      int max_rnk = get_max_rank(ms);
+                      std::vector<bool> incoming(nb_states_, false);
+                      std::vector<bool> ignores(nb_states_, false);
+                      // first handle nondeterministic states
+                      std::vector<unsigned> coming_states;
+                      //std::vector<unsigned> acc_coming_states;
+                      for (unsigned s = 0; s < nb_states_; ++ s)
+                      {
+                        // missing states
+                        if (ms[s] == RANK_M)
+                          continue;
+                        // nondeterministic states
+                        if (ms[s] == RANK_N)
+                        {
+                          for (const auto &t: aut_->out(s))
+                          {
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            // it is legal to ignore the states have two incoming transitions
+                            // in unambiguous Buchi automaton
+                            if(use_unambiguous_) 
+                            {
+                              if(incoming[t.dst])
+                              {
+                                // this is the second incoming transitions
+                                ignores[t.dst] = true;
+                              }else 
+                              {
+                                incoming[t.dst] = true;
+                              }
+                            }
+                            if(ignores[t.dst])
+                            {
+                                // ignore this state
+                                continue;
+                            }
+                            
+                            bool jump = false;
+                            if(use_scc_)
+                            {
+                              // only transition to labelling if it is in an accepting SCC
+                              jump = si_.is_accepting_scc(si_.scc_of(t.dst));
+                            }else 
+                            {
+                              // transition when seeing deterministic states
+                              jump = is_deter_[si_.scc_of(t.dst)];
+                            }
+                            if(jump)
+                            {
+                              if(succ[t.dst] < RANK_N) 
+                              {
+                                // if(t.acc || is_accepting_[t.dst])
+                                // {
+                                //   acc_coming_states.push_back(t.dst);
+                                // }else 
+                                // {
+                                //   coming_states.push_back(t.dst);
+                                // }
+                                coming_states.push_back(t.dst);
+                                succ[t.dst] = max_rnk + 1; //Sharing labels 
+                                //succ[t.dst] = ++ max_rnk;  
+                              }
+                            } else 
+                            {
+                              succ[t.dst] = RANK_N;
+                            }
+                          }
+                        }
+                      }
+                      // give labelling to coming_states
+                      // std::sort(acc_coming_states.begin(), acc_coming_states.end());
+                      // for(unsigned s : acc_coming_states)
+                      // {
+                      //   // std::cout << " " << s;
+                      //   succ[s] = ++max_rnk;
+                      // }
+                      std::sort(coming_states.begin(), coming_states.end());
+                      for(unsigned s : coming_states)
+                      {
+                        // std::cout << " " << s;
+                        succ[s] = ++max_rnk;
+                      }
+                      // std::cout << "\n";
+                      // now we compute the rank successors
+                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                      {
+                        for (unsigned s = 0; s < nb_states_; ++s)
+                        {
+                          if (ms[s] == RANK_M || ms[s] == RANK_N)
+                            continue;
+                          if (ms[s] != rnk)
+                            continue;
+                          for (const auto &t: aut_->out(s))
+                          {
+                            if (!bdd_implies(letter, t.cond))
+                              continue;
+                            if(use_unambiguous_) 
+                            {
+                              if(incoming[t.dst])
+                              {
+                                // this is the second incoming transitions
+                                ignores[t.dst] = true;
+                              }else 
+                              {
+                                incoming[t.dst] = true;
+                              }
+                            }
+                            if(ignores[t.dst])
+                            {
+                              continue;
+                            }
+                            // NORMAL way, inherit the labelling
+                            //succ[t.dst] = rnk;
+                            int update_rnk = RANK_N;
+                            // get out of an SCC to another and it is not accepting
+                              if(use_scc_ && si_.scc_of(s) != si_.scc_of(t.dst) 
+                                && !si_.is_accepting_scc(si_.scc_of(t.dst)))
+                              {
+                                update_rnk = RANK_N; // go back to nondeterministic part
+                              }else 
+                              {
+                                update_rnk = rnk;
+                              }
+                            succ[t.dst] = update_rnk;
                           }
                         }
                       }
@@ -1039,9 +768,10 @@ namespace cola
                 }
 
                 public:
-                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_unambiguous, bool use_stutter)
+                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_scc, bool use_unambiguous, bool use_stutter)
                             : aut_(aut),
                               opt_(opt),
+                              use_scc_(use_scc),
                               use_stutter_(use_stutter),
                               si_(aut, spot::scc_info_options::ALL),
                               nb_states_(aut->num_states()),
@@ -1214,26 +944,15 @@ namespace cola
                     }
           };
 
-        // determinization
-    spot::twa_graph_ptr
-    determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names)
-    {
-      if (!is_semi_deterministic(aut))
-        throw std::runtime_error
-                ("determinize_rabin() requires a semi-deterministic input");
-      
-      auto rabin = determinization_rabin(aut, show_names);
-      return rabin.run();
-    }
 
     spot::twa_graph_ptr
-    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_unambiguous, bool use_stutter)
+    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter)
     {
       if (!is_semi_deterministic(aut))
             throw std::runtime_error
                     ("determinize_tldba() requires a semi-deterministic input");
 
-      auto det = cola::ldba_determinize(aut, show_names, opt, use_unambiguous, use_stutter);
+      auto det = cola::ldba_determinize(aut, show_names, opt, use_scc, use_unambiguous, use_stutter);
       return det.run();
     }
 }

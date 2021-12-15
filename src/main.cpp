@@ -1,6 +1,6 @@
-// Copyright (c) 2017-2020  The cola Authors
+// Copyright (C) 2021  The COLA Authors
 //
-// This file is a part of cola, a tool for semi-determinization
+// This file is a part of cola, a tool for complementation and determinization
 // of omega automata.
 //
 // cola is free software: you can redistribute it and/or modify
@@ -17,11 +17,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "config.h"
-#include <unistd.h>
 #include "seminator.hpp"
 #include "cutdet.hpp"
 #include "cola.hpp"
 #include "optimizer.hpp"
+
+#include <unistd.h>
+#include <fstream>
+#include <ctime>
+
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
@@ -30,9 +34,7 @@
 #include <spot/twaalgos/complement.hh>
 #include <spot/twaalgos/determinize.hh>
 #include <spot/misc/version.hh>
-#include <fstream>
-#include <ctime>
-#define FWZ_DEBUG 0
+
 
 void print_usage(std::ostream& os) {
   os << "Usage: cola [OPTION...] [FILENAME...]\n";
@@ -41,15 +43,15 @@ void print_usage(std::ostream& os) {
 void print_help() {
   print_usage(std::cout);
   std::cout <<
-    R"(The tool transforms TLDBA into equivalent deterministic Rabin/Parity automata.
+    R"(The tool transforms TLDBA into equivalent deterministic Parity automata.
 
 By default, it reads a limit deterministic generalized Büchi automaton (LDGBA) from standard input
-and converts it into deterministic Rabin/Parity automata.
+and converts it into deterministic Parity automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|parity|rabin]
-                    use Spot or our algorithm to obtain deterministic Parity or Rabin automata
+    --determinize=[spot|parity]
+                    use Spot or our algorithm to obtain deterministic Parity automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --unambiguous
@@ -59,17 +61,16 @@ Output options:
     -o FILENAME writes the output from FILENAME instead of stdout
 
 Optimizations:
-    --simulation          Use simulation before parity determinization
+    --simulation          Use simulation before determinization
     --stutter             Use stutter invariance for determinization
+    --use-scc             Use SCC information for determinization
 
 Pre- and Post-processing:
-    --preprocess[=0|1]       simplify the input automaton
+    --preprocess[=0|1]       simplify the input automaton (default)
     --postprocess[=0|1]      simplify the output of the semi-determinization
                              algorithm (default)
-    --postprocess-comp[=0|1] simplify the output of the complementation
+    --postprocess-det[=0|1]  simplify the output of the determinization
                              (default)
-    -s0, --no-reductions     same as --postprocess=0 --preprocess=0
-                             --postprocess-comp=0
     --merge-transitions      merge transitions in the output automaton
 
 Miscellaneous options:
@@ -99,30 +100,6 @@ void output_file(spot::twa_graph_ptr aut, const char* file)
   outfile.close();
 }
 
-  // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
-  // std::vector<char>
-  // find_scc_paths(const spot::scc_info& scc)
-  // {
-  //   unsigned scccount = scc.scc_count();
-  //   std::vector<char> res(scccount * scccount, 0);
-  //   for (unsigned i = 0; i != scccount; ++i)
-  //     res[i + scccount * i] = 1;
-  //   for (unsigned i = 0; i != scccount; ++i)
-  //     {
-  //       unsigned ibase = i * scccount;
-  //       for (unsigned d: scc.succ(i))
-  //         {
-  //           // we necessarily have d < i because of the way SCCs are
-  //           // numbered, so we can build the transitive closure by
-  //           // just ORing any SCC reachable from d.
-  //           unsigned dbase = d * scccount;
-  //           for (unsigned j = 0; j != scccount; ++j)
-  //             res[ibase + j] |= res[dbase + j];
-  //         }
-  //     }
-  //   return res;
-  // }
-
 int main(int argc, char* argv[])
 {
     // Declaration for input options. The rest is in cola.hpp
@@ -138,80 +115,32 @@ int main(int argc, char* argv[])
     complement_t complement = NoComplement;
 
     // determinization
-    enum determinize_t { NoDeterminize = 0, Rabin, Parity, Spot };
+    enum determinize_t { NoDeterminize = 0, Parity, Spot };
     determinize_t determinize = NoDeterminize;
 
-    output_type desired_output = TGBA;
+    output_type desired_output = TBA;
 
+    // options 
     bool use_simulation = false;
     bool merge_transitions = false;
     bool debug = false;
     bool aut_type = false;
     bool use_unambiguous = false;
     bool use_stutter = false;
+    bool post_process = true;
+    bool use_scc = false;
 
     std::string output_filename = "";
-
-    auto match_opt =
-      [&](const std::string& arg, const std::string& opt)
-      {
-        if (arg.compare(0, opt.size(), opt) == 0)
-          {
-            if (const char* tmp = om.parse_options(arg.c_str() + 2))
-              {
-                std::cerr << "cola: failed to process option --"
-                          << tmp << '\n';
-                exit(2);
-              }
-            return true;
-          }
-        return false;
-      };
 
     for (int i = 1; i < argc; i++)
       {
         std::string arg = argv[i];
-        if (
-                 match_opt(arg, "--powerset-for-weak")
-                 || match_opt(arg, "--jump-to-bottommost")
-                 || match_opt(arg, "--bscc-avoid")
-                 || match_opt(arg, "--reuse-deterministic")
-                 || match_opt(arg, "--skip-levels")
-                 || match_opt(arg, "--scc-aware")
-                 || match_opt(arg, "--powerset-on-cut")
-                 || match_opt(arg, "--preprocess")
-                 || match_opt(arg, "--postprocess")
-                 || match_opt(arg, "--postprocess-comp"))
-          {
-          }
-        else if (arg == "--scc0")
-          om.set("scc-aware", false);
-        else if (arg == "--no-scc-aware")
-          om.set("scc-aware", false);
-        else if (arg == "--pure")
-          {
-            om.set("bscc-avoid", false);
-            om.set("powerset-for-weak", false);
-            om.set("reuse-deterministic", false);
-            om.set("jump-to-bottommost", false);
-            om.set("bscc-avoid", false);
-            om.set("skip-levels", false);
-            om.set("powerset-on-cut", false);
-            om.set("postprocess", false);
-            om.set("postprocess-comp", false);
-            om.set("preprocess", false);
-            om.set("cut-always", false);
-            om.set("cut-on-SCC-entry", false);
-          }
-        else if (arg == "-s0" || arg == "--no-reductions")
-          {
-            om.set("postprocess", false);
-            om.set("preprocess", false);
-          }
-        else if (arg == "--simplify-input")
-          om.set("preprocess", true);
+        if (arg == "--postprocess-det=0")
+          post_process = false;
         else if (arg == "--simulation") 
           use_simulation = true;
+        else if (arg == "--use-scc")
+          use_scc = true;
         // Prefered output
         else if (arg == "--cd")
           cut_det = true;
@@ -227,40 +156,10 @@ int main(int argc, char* argv[])
           use_unambiguous = true;
         else if (arg == "--stutter")
           use_stutter = true;
-        // else if (arg == "--complement" || arg == "--complement=best")
-        //   complement = NCSBBest;
-        // else if (arg == "--complement=spot")
-        //   complement = NCSBSpot;
-        // else if (arg == "--complement=pldi")
-        //   complement = NCSBPLDI;
-        // else if(arg == "--complement=pldib")
-        //   complement = NCSBPLDIB;
-        // else if(arg == "--complement=pldif")
-        //   complement = NCSBPLDIF;
-        // else if(arg == "--complement=pldibf")
-        //   complement = NCSBPLDIBF;
-        // else if (arg == "--complement=ncb")
-        //   complement = NCB;
-        // else if (arg == "--complement=nsbc")
-        //   complement = NSBC;
-
-        // determinization
-        else if (arg == "--determinize=rabin")
-          determinize = Rabin;
         else if (arg == "--determinize=parity")
           determinize = Parity;
         else if (arg == "--determinize=spot")
           determinize = Spot;
-        else if (arg == "--ba")
-          desired_output = BA;
-        else if (arg == "--tba")
-          desired_output = TBA;
-        else if (arg == "--tgba")
-          desired_output = TGBA;
-
-        else if (arg == "--highlight")
-          high = true;
-
         else if (arg == "-f")
           {
             if (argc < i + 1)
@@ -341,17 +240,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (high && complement)
-      {
-        std::cerr
-          << "cola --highlight and --complement are incompatible\n";
-        return 1;
-      }
-
     if (jobs == 0)
       jobs = AllJobs;
 
-    om.set("output", complement ? TBA : desired_output);
+    om.set("output", desired_output);
 
     auto dict = spot::make_bdd_dict();
 
@@ -368,7 +260,6 @@ int main(int argc, char* argv[])
 
             // input automata
             spot::twa_graph_ptr aut = parsed_aut->aut;
-            spot::twa_graph_ptr myaut = parsed_aut->aut;
 
             if (!aut)
               break;
@@ -416,20 +307,7 @@ int main(int argc, char* argv[])
               }
             else
               {
-                // if(! is_semi_deterministic(aut))
-                // {
                 aut = semi_determinize(aut, cut_det, jobs, &om);
-                // }
-                if (auto old_n = parsed_aut->aut->get_named_prop<std::string>
-                    ("automaton-name"))
-                  {
-                    auto name =
-                      new std::string(((aut->num_sets() == 1)
-                                       ? "sDBA for " : "sDGBA for ") + *old_n);
-                    if (cut_det)
-                      (*name)[0] = 'c';
-                    aut->set_named_prop("automaton-name", name);
-                  }
 
                 if (complement)
                   {
@@ -490,7 +368,7 @@ int main(int argc, char* argv[])
                     {
                       // myaut is directly input automata
                       // aut is semi_determinize(myaut)
-                      res = cola::complement_unambiguous(myaut); //, true);
+                      res = cola::complement_unambiguous(aut); //, true);
                       res = postprocessor.run(res);
                     }
                     if (complement == NSBC)
@@ -504,26 +382,8 @@ int main(int argc, char* argv[])
                 if (determinize && !is_deterministic(aut))
                 {
                   spot::twa_graph_ptr res = nullptr;
-                  spot::postprocessor postprocessor;
-
-                  if (determinize == Rabin)
-                  {
-                    if (debug)
-                    {
-                      spot::print_hoa(std::cout, aut) << '\n';
-                    }
-                    res = cola::determinize_rabin(aut, debug);
-                  }
 
                   optimizer opt(aut, use_simulation, use_stutter);
-                  // if(!determinize) 
-                  // {
-                  //   std::cout << "Output simulation !!! " << std::endl;
-                  //   opt.output_simulation();    
-                  //   opt.output_reach(); 
-                   
-                  //   return 0;
-                  // }
                   if (determinize == Parity)
                   {
                     if(debug)
@@ -535,7 +395,7 @@ int main(int argc, char* argv[])
                       opt.output_repr();
                       // std::cout << "end simulation output" << std::endl;
                     }
-                    res = cola::determinize_tldba(aut, debug, opt, use_unambiguous, use_stutter);
+                    res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
@@ -545,17 +405,22 @@ int main(int argc, char* argv[])
                 }
               }
             const char* opts = nullptr;
-            if (high)
-              {
-                highlight_components(aut);
-                opts = "1.1";
-              }
 
             if(merge_transitions)
             {
               //std::cout << "reach here, merge transitions" << std::endl;
               aut->merge_edges();
             }
+            // postprocessing
+            if(post_process && aut->num_states() < 10000)
+            {
+              spot::postprocessor p;
+              p.set_type(spot::postprocessor::Parity );
+              p.set_pref(spot::postprocessor::Deterministic);
+              p.set_level(spot::postprocessor::Low);
+              aut = p.run(aut);
+            }
+             
             if(output_filename != "")
             {
               std::ofstream outfile;
