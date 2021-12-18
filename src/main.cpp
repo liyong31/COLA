@@ -25,13 +25,17 @@
 #include <unistd.h>
 #include <fstream>
 #include <ctime>
+#include <string>
+#include <sstream>
 
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
+#include <spot/twaalgos/degen.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/complement.hh>
+#include <spot/twaalgos/minimize.hh>
 #include <spot/twaalgos/determinize.hh>
 #include <spot/misc/version.hh>
 
@@ -71,6 +75,8 @@ Pre- and Post-processing:
                              algorithm (default)
     --postprocess-det[=0|1]  simplify the output of the determinization
                              (default)
+    --num-states=[INT]       simplify the output with number of states less than INT 
+                             (default: 30000)
     --merge-transitions      merge transitions in the output automaton
 
 Miscellaneous options:
@@ -129,6 +135,7 @@ int main(int argc, char* argv[])
     bool use_stutter = false;
     bool post_process = true;
     bool use_scc = false;
+    unsigned num_post = 30000;
 
     std::string output_filename = "";
 
@@ -185,6 +192,15 @@ int main(int argc, char* argv[])
             output_filename = str;
             i ++;
           }
+        }else if (arg.find("--num-states=") != std::string::npos)
+        {
+          // obtain the substring after '='
+          std::size_t idx = arg.find('=');
+          //std::cout << "Index of = : " << idx << std::endl;
+          std::string number = arg.substr(idx + 1, arg.length());
+          std::istringstream iss(number);
+          iss >> num_post;
+          //std::cout << "Input number : " << num_post << std::endl;
         }
         else if ((arg == "--help") || (arg == "-h"))
           {
@@ -264,6 +280,12 @@ int main(int argc, char* argv[])
             if (!aut)
               break;
 
+            if(! aut->acc().is_buchi())
+            {
+              std::cerr << "cola requires Buchi condition on input.\n";
+              return 1;
+            }
+
             if(aut_type)
             {
               bool type = false;
@@ -293,11 +315,7 @@ int main(int argc, char* argv[])
             // Check if input is TGBA
             if (!aut->acc().is_generalized_buchi())
               {
-                if (parsed_aut->filename != "-")
-                  std::cerr << parsed_aut->filename << ':';
-                std::cerr << parsed_aut->loc
-                          << ": cola requires a TGBA on input.\n";
-                return 1;
+                aut = spot::degeneralize_tba(aut);
               }
 
             if (cd_check)
@@ -305,10 +323,26 @@ int main(int argc, char* argv[])
                 if (!is_cut_deterministic(aut))
                   continue;
               }
-            else
+            else if(! is_deterministic(aut))
               {
-                aut = semi_determinize(aut, cut_det, jobs, &om);
-
+                clock_t c_start = clock();
+                if(!is_semi_deterministic(aut))
+                {
+                  aut = semi_determinize(aut, cut_det, jobs, &om);
+                }else 
+                {
+                  // preprocessing for the input.
+                  spot::postprocessor preprocessor;
+                  aut = preprocessor.run(aut);
+                  if(!is_semi_deterministic(aut))
+                  {
+                    std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;
+                    return 1;
+                  }
+                }
+                clock_t c_end = clock();
+                std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+                
                 if (complement)
                   {
                     spot::twa_graph_ptr res = nullptr;
@@ -379,7 +413,7 @@ int main(int argc, char* argv[])
                     aut = res;
                   }
                 
-                if (determinize && !is_deterministic(aut))
+                if (determinize )
                 {
                   spot::twa_graph_ptr res = nullptr;
 
@@ -395,7 +429,10 @@ int main(int argc, char* argv[])
                       opt.output_repr();
                       // std::cout << "end simulation output" << std::endl;
                     }
+                    clock_t c_start = clock();
                     res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+                    clock_t c_end = clock();
+                    std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
@@ -411,14 +448,25 @@ int main(int argc, char* argv[])
               //std::cout << "reach here, merge transitions" << std::endl;
               aut->merge_edges();
             }
+            std::cout << "Number of states in the result automaton: " << aut->num_states() << std::endl;
             // postprocessing
-            if(post_process && aut->num_states() < 10000)
+            
+            if(post_process)
             {
-              spot::postprocessor p;
-              p.set_type(spot::postprocessor::Parity );
-              p.set_pref(spot::postprocessor::Deterministic);
-              p.set_level(spot::postprocessor::Low);
-              aut = p.run(aut);
+              clock_t c_start = clock();
+              if(aut->acc().is_all())
+              {
+                aut = spot::minimize_monitor(aut);
+              }else if(aut->num_states() < 30000)
+              {
+                spot::postprocessor p;
+                p.set_type(spot::postprocessor::Parity );
+                p.set_pref(spot::postprocessor::Deterministic);
+                p.set_level(spot::postprocessor::Low);
+                aut = p.run(aut);
+              }
+              clock_t c_end = clock();
+              std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
             }
              
             if(output_filename != "")

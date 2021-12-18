@@ -160,9 +160,9 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
             } 
             repr_ = representative;         
         }
-
+        
 std::vector<char>
-        optimizer::find_scc_paths(const spot::scc_info& scc)
+        find_scc_paths(const spot::scc_info& scc)
     {
         unsigned scccount = scc.scc_count();
         std::vector<char> res(scccount * scccount, 0);

@@ -90,6 +90,8 @@ namespace cola
               // the number of indices
               unsigned sets_ = 0;
 
+              unsigned num_colors_;
+
               // use ambiguous
               bool use_unambiguous_;
 
@@ -302,12 +304,18 @@ namespace cola
                     void 
                     merge_redundant_states(mstate& ms)
                     {
+                      std::vector<unsigned> reached_states;
                       for(unsigned i = 0; i < nb_states_; i ++)
                       {
-                        for(unsigned j = 0; j < nb_states_; j ++)
+                        if(ms[i] == RANK_M) continue;
+                        reached_states.push_back(i);
+                      }
+                      for(unsigned i : reached_states)
+                      {
+                        for(unsigned j : reached_states)
                         {
                           // if j is not reached at this level
-                          if(i == j || ms[j] == RANK_M || ms[i] == RANK_M) continue;
+                          if(i == j ) continue;
                           //std::cout << "start simulated" << std::endl;
                           // j simulates i and j cannot reach i
                           if(opt_.simulate(j, i) && opt_.reach(j, i) == 0) 
@@ -316,10 +324,24 @@ namespace cola
                             ms[i] = RANK_M;
                           }
                           // (j, k1) and (i, k2), if j simulates i and k1 <= k2, then remove k2
+                          // Note that here i and j are not equivalent
                           if(opt_.simulate(j, i) && ms[j] > RANK_N && ms[j] <= ms[i] )
                           {
                             ms[i] = RANK_M;
-                          } 
+                          }
+                          // // only keep the representative state
+                          // if(opt_.simulate(j, i) && opt_.simulate(i,j))
+                          // {
+                          //   ms[opt_.get_repr(i)] = std::min(ms[i], ms[j]);
+                          //   if(i != opt_.get_repr(i))
+                          //   {
+                          //     ms[i] = RANK_M;
+                          //   }
+                          //   if(j != opt_.get_repr(i))
+                          //   {
+                          //     ms[j] = RANK_M;
+                          //   }
+                          // }
                         }
                       }
                     }
@@ -930,17 +952,243 @@ namespace cola
                           }
                       }
                       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
-                      unsigned num_sets = max_odd_pri + 1;
+                      num_colors_ = max_odd_pri + 1;
                      
-                      res_->set_acceptance(num_sets, spot::acc_cond::acc_code::parity_min_even(num_sets));
+                      res_->set_acceptance(num_colors_, spot::acc_cond::acc_code::parity_min_even(num_colors_));
                       if (aut_->prop_complete().is_true())
                         res_->prop_complete(true);
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
-
+                      res_ = postprocess(res_);
                       cleanup_parity_here(res_);
-                      
+
                       return res_;
+                    }
+
+                    spot::twa_graph_ptr
+                    postprocess(spot::twa_graph_ptr aut)
+                    {
+                        unsigned num_states = aut->num_states();
+                        std::vector<unsigned> repr_states(num_states);
+                        for(unsigned s = 0; s < num_states; s ++)
+                        {
+                          repr_states[s] = s;
+                        }
+                        spot::scc_info scc(aut, spot::scc_info_options::ALL);
+                        // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
+                        std::vector<char> reach_sccs = find_scc_paths(scc);
+                        // check whether i reaches j
+                        // auto reaches = [&scc, &reach_sccs](unsigned i, unsigned j) -> bool
+                        // {
+                        //   if(i == j) return true;
+                        //   if(reach_sccs[scc.scc_of(j) + scc.scc_count() * scc.scc_of(i)])
+                        //   {
+                        //     return true;
+                        //   }else 
+                        //   {
+                        //     return false;
+                        //   }
+                        // };
+                        auto scc_reach = [&scc, &reach_sccs](unsigned s, unsigned t) -> bool 
+                        {
+                          return s == t || (reach_sccs[t + scc.scc_count() * s]);
+                        };
+                        struct set_hash
+                        {
+                          size_t
+                          operator()(std::set<unsigned> s) const noexcept
+                          {
+                            size_t hash = 0;
+                            for (const auto& p: s)
+                            {
+                              hash = spot::wang32_hash(p);
+                            }
+                            return hash;
+                          }
+                        };
+                        // set of states -> the forest of reachability in the states.
+                        std::unordered_map<std::set<unsigned>, std::set<unsigned>, set_hash> set2scc;
+                        // record the representative of every SCC
+                        for(auto p = rank2n_.begin(); p != rank2n_.end(); p ++)
+                        {
+                              //std::cout << "state = " << get_name(p->first) << ":\n";
+                              std::set<unsigned> set;
+                              // first the set of reached states
+                              for(auto tuple : p->first)
+                              {
+                                set.insert(tuple.first);
+                              }
+                              auto val = set2scc.find(set);
+                              if(val == set2scc.end())
+                              {
+                                // the set of macrostates in DPA
+                                std::set<unsigned> v;
+                                v.insert(p->second);
+                                set2scc[set] = v;
+                              }else 
+                              {
+                                val->second.insert(p->second);
+                                set2scc[set] = val->second;
+                              }
+                        }
+                        // output
+                        bool debug = false;
+                        unsigned num_reduced = 0;
+                        for(auto p = set2scc.begin(); p != set2scc.end(); p ++)
+                        {
+                              if(p->second.size() <= 1)
+                              {
+                                continue;
+                              }
+                              if(debug)
+                              {
+                                std::cout << "state = {";
+                                for(auto t : p->first)
+                                {
+                                  std::cout << " " << t ;
+                                }
+                                std::cout << "}: ";
+                                
+                                for(auto t : p->second)
+                                {
+                                  std::cout << " " << t << "(" << scc.scc_of(t) << ")";
+                                }
+                                std::cout << "\n";
+                              }
+                              // now compute states
+                              std::vector<unsigned> reach_vec(scc.scc_count());
+                              unsigned no_next_scc = scc.scc_count();
+                              for(unsigned i = 0; i < scc.scc_count(); i ++)
+                              {
+                                // first set to non scc
+                                reach_vec[i] = no_next_scc;
+                              }
+                              std::set<unsigned> not_bottom_set;
+                              std::set<unsigned> bottom_set;
+                              // traverse the number of states in p->second
+                              std::unordered_map<unsigned, unsigned> scc2repr; 
+                              for(auto s : p->second)
+                              {
+                                unsigned scc_s_idx = scc.scc_of(s);
+                                bottom_set.insert(scc_s_idx);
+                                auto val_state = scc2repr.find(scc_s_idx);
+                                if(val_state == scc2repr.end())
+                                {
+                                  scc2repr[scc_s_idx] = s;
+                                }else 
+                                {
+                                  // keep the smallest one
+                                  scc2repr[scc_s_idx] = std::min(s, scc2repr[scc_s_idx]);
+                                }
+                              }
+                              if(bottom_set.size() <= 1) 
+                              {
+                                continue;
+                              }
+                              for(auto fst_idx : bottom_set)
+                              {
+                                for(auto snd_idx : bottom_set)
+                                {
+                                  if(fst_idx == snd_idx) continue;
+                                  if(scc_reach(fst_idx, snd_idx)) 
+                                  {
+                                    // std::cout << fst_idx<<  " can reach " << snd_idx << std::endl;
+                                    // only record the smallest SCC that it can reach so far
+                                    reach_vec[fst_idx] = std::min(snd_idx, reach_vec[fst_idx]);
+                                    not_bottom_set.insert(fst_idx);
+                                    continue;
+                                  }
+                                }
+                              }
+                              if(debug)
+                              {
+                                std::cout << "Bottom set: {" ;
+                                for(auto s : bottom_set)
+                                {
+                                  if(not_bottom_set.find(s) == not_bottom_set.end())
+                                  {
+                                    std::cout << " " << s << " (state=" << scc2repr[s] << ")";
+                                  }else 
+                                  {
+                                    std::cout << " " << s << "(next=" << reach_vec[s] <<") ";
+                                  }
+                                }
+                                std::cout << "}\n";
+                              }
+                              
+                              auto get_bottom_scc = [&reach_vec, &no_next_scc](unsigned scc_idx) -> unsigned
+                              {
+                                while(true)
+                                {
+                                  if(reach_vec[scc_idx] == no_next_scc)
+                                  {
+                                    break;
+                                  }
+                                  scc_idx = reach_vec[scc_idx];
+                                }
+                                return scc_idx;
+                              };
+                              for(auto t : p->second)
+                              {
+                                if(debug) std::cout << " " << t << "(" << scc.scc_of(t) << ")";
+                                unsigned scc_idx = scc.scc_of(t);
+                                unsigned bottom_scc_idx = get_bottom_scc(scc_idx);
+                                if(bottom_scc_idx != scc_idx)
+                                {
+                                  if(debug) std::cout << "State " << t << " replaced by " << scc2repr[bottom_scc_idx] << std::endl;
+                                  repr_states[t] = scc2repr[bottom_scc_idx];
+                                  ++ num_reduced;
+                                }
+                              }
+                        }
+                        std::cout << "The number of states reduced by merging: " << num_reduced << std::endl;
+                        if(num_reduced == 0)
+                        {
+                          return aut;
+                        }
+                        // now construct new DPAs
+                        spot::twa_graph_ptr post_aut = spot::make_twa_graph(aut->get_dict());
+                        post_aut->copy_ap_of(aut);
+                        post_aut->prop_copy(aut,
+                            { false, // state based
+                                false, // inherently_weak
+                                false, false, // deterministic
+                                true, // complete
+                                false // stutter inv
+                                });
+                        if(show_names_)
+                        {
+                          post_aut->set_named_prop("state-names", names_);
+                        }
+                        for(unsigned s = 0; s < num_states; s ++)
+                        {
+                          post_aut->new_state();
+                        }
+                        for (auto& t: aut->edges())
+                        {
+                          // out going transition for t.src
+                          if(t.src == repr_states[t.src] && t.dst == repr_states[t.dst])
+                          {
+                            post_aut->new_edge(t.src, t.dst, t.cond, t.acc);
+                          }else if(t.src != repr_states[t.src] && t.dst == repr_states[t.dst])
+                          {
+                            // ignore
+                          }else if(t.src == repr_states[t.src] && t.dst != repr_states[t.dst])
+                          {
+                            post_aut->new_edge(t.src, repr_states[t.dst], t.cond, t.acc);
+                          }else 
+                          {
+                            // both are not the same, ignore?
+                          }
+                        }
+                        post_aut->set_init_state(aut->get_init_state_number());
+                        // now acceptance condition
+                        post_aut->set_acceptance(num_colors_, spot::acc_cond::acc_code::parity_min_even(num_colors_));
+                        if (post_aut->prop_complete().is_true())
+                          post_aut->prop_complete(true);
+                        post_aut->prop_universal(true);
+                        post_aut->prop_state_acc(false);
+                        return post_aut;
                     }
           };
 

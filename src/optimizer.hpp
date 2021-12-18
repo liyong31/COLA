@@ -24,9 +24,13 @@
 //#include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
+
+// res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
+std::vector<char>
+        find_scc_paths(const spot::scc_info& scc);
+
 class optimizer
 {
-
     private:
         const spot::twa_graph_ptr aut_;
         // Simplifications options
@@ -37,10 +41,6 @@ class optimizer
         std::vector<unsigned> repr_;
         //spot::scc_info scc_;
         std::vector<bdd> support_;
-    
-        // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
-        std::vector<char>
-        find_scc_paths(const spot::scc_info& scc);
 
     public:
         optimizer(const spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
@@ -111,7 +111,5 @@ class optimizer
             return false;
         }
     }
-
-
 
 };
