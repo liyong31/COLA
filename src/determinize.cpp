@@ -302,7 +302,7 @@ namespace cola
 
                     // remove a state i if it is simulated by a state j
                     void 
-                    merge_redundant_states(mstate& ms)
+                    make_simulation_state(mstate& ms)
                     {
                       std::vector<unsigned> reached_states;
                       for(unsigned i = 0; i < nb_states_; i ++)
@@ -621,7 +621,7 @@ namespace cola
                         }
                       }
                       // remove redudant states
-                      merge_redundant_states(succ);
+                      make_simulation_state(succ);
                       // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
                       const int MAX_PRI = nb_states_ + 2;
                       int min_dcc = MAX_PRI;
@@ -709,7 +709,7 @@ namespace cola
                     }
                 // copied and adapted from deterministic.cc in Spot
                 void
-                get_stutter_state(const mstate& curr, unsigned origin, bdd letter, mstate& succ, int& color)
+                make_stutter_state(const mstate& curr, unsigned origin, bdd letter, mstate& succ, int& color)
                 {
                   mstate ms(nb_states_, RANK_M);
                   for(unsigned s = 0; s < nb_states_; s ++)
@@ -902,7 +902,7 @@ namespace cola
                           mstate succ;
                           int color = -1;
                           //rank_successors(std::move(ms), top.second, letter, succ, color);
-                          get_stutter_state(std::move(ms), top.second, letter, succ, color);
+                          make_stutter_state(std::move(ms), top.second, letter, succ, color);
                           
                           unsigned origin = top.second;
                           // add transitions
@@ -1141,7 +1141,7 @@ namespace cola
                                 }
                               }
                         }
-                        std::cout << "The number of states reduced by merging: " << num_reduced << std::endl;
+                        std::cout << "The number of states(colors) reduced by merging: " << num_reduced << "("<< num_colors_<< ") {out of " << aut->num_states() << "(" << num_colors_ << ")"<< "}"<< std::endl;
                         if(num_reduced == 0)
                         {
                           return aut;
@@ -1170,16 +1170,13 @@ namespace cola
                           if(t.src == repr_states[t.src] && t.dst == repr_states[t.dst])
                           {
                             post_aut->new_edge(t.src, t.dst, t.cond, t.acc);
-                          }else if(t.src != repr_states[t.src] && t.dst == repr_states[t.dst])
-                          {
-                            // ignore
                           }else if(t.src == repr_states[t.src] && t.dst != repr_states[t.dst])
                           {
                             post_aut->new_edge(t.src, repr_states[t.dst], t.cond, t.acc);
-                          }else 
-                          {
-                            // both are not the same, ignore?
                           }
+                          // igonre the rest cases
+                          //t.src != repr_states[t.src] && t.dst == repr_states[t.dst])
+                          //t.src != repr_states[t.src] && t.dst != repr_states[t.dst])
                         }
                         post_aut->set_init_state(aut->get_init_state_number());
                         // now acceptance condition
@@ -1188,6 +1185,9 @@ namespace cola
                           post_aut->prop_complete(true);
                         post_aut->prop_universal(true);
                         post_aut->prop_state_acc(false);
+
+                        // remove unreachable macrostates
+                        post_aut->purge_unreachable_states();
                         return post_aut;
                     }
           };

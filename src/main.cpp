@@ -73,8 +73,8 @@ Pre- and Post-processing:
     --preprocess[=0|1]       simplify the input automaton (default)
     --postprocess[=0|1]      simplify the output of the semi-determinization
                              algorithm (default)
-    --postprocess-det[=0|1]  simplify the output of the determinization
-                             (default)
+    --postprocess-det[=0|1|2|3]  simplify the output of the determinization
+                             (default=1)
     --num-states=[INT]       simplify the output with number of states less than INT 
                              (default: 30000)
     --merge-transitions      merge transitions in the output automaton
@@ -133,7 +133,9 @@ int main(int argc, char* argv[])
     bool aut_type = false;
     bool use_unambiguous = false;
     bool use_stutter = false;
-    bool post_process = true;
+
+    enum postprocess_level { None = 0, Low, Medium, High };
+    postprocess_level post_process = Low;
     bool use_scc = false;
     unsigned num_post = 30000;
 
@@ -143,7 +145,13 @@ int main(int argc, char* argv[])
       {
         std::string arg = argv[i];
         if (arg == "--postprocess-det=0")
-          post_process = false;
+          post_process = None;
+        else if (arg == "--postprocess-det=1")
+          post_process = Low;
+        else if (arg == "--postprocess-det=2")
+          post_process = Medium;
+        else if (arg == "--postprocess-det=3")
+          post_process = High;
         else if (arg == "--simulation") 
           use_simulation = true;
         else if (arg == "--use-scc")
@@ -448,10 +456,9 @@ int main(int argc, char* argv[])
               //std::cout << "reach here, merge transitions" << std::endl;
               aut->merge_edges();
             }
-            std::cout << "Number of states in the result automaton: " << aut->num_states() << std::endl;
-            // postprocessing
-            
-            if(post_process)
+            std::cout << "Number of states(colors) in the result automaton: " << aut->num_states() << "(" << aut->num_sets() << ")"<< std::endl;
+            // postprocessing, remove dead states
+            if(post_process != None)
             {
               clock_t c_start = clock();
               if(aut->acc().is_all())
@@ -460,9 +467,19 @@ int main(int argc, char* argv[])
               }else if(aut->num_states() < 30000)
               {
                 spot::postprocessor p;
-                p.set_type(spot::postprocessor::Parity );
+                p.set_type(spot::postprocessor::Parity);
                 p.set_pref(spot::postprocessor::Deterministic);
-                p.set_level(spot::postprocessor::Low);
+                // set postprocess level
+                if(post_process == Low)
+                  {
+                    p.set_level(spot::postprocessor::Low);
+                  }else if(post_process == Medium)
+                  {
+                    p.set_level(spot::postprocessor::Medium);
+                  }else if(post_process== High)
+                  {
+                    p.set_level(spot::postprocessor::High);
+                  }
                 aut = p.run(aut);
               }
               clock_t c_end = clock();
