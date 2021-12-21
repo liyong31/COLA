@@ -33,6 +33,7 @@ src_libcola_la_SOURCES =			\
   src/bscc.cpp					\
   src/bscc.hpp					\
   src/cola.hpp			\
+  src/cola.cpp			\
   src/complement.cpp			\
   src/cutdet.cpp				\
   src/cutdet.hpp				\
@@ -41,6 +42,7 @@ src_libcola_la_SOURCES =			\
   src/optimizer.cpp				\
   src/powerset.cpp				\
   src/powerset.hpp				\
+  src/semideterminize.cpp			\
   src/seminator.cpp				\
   src/seminator.hpp				\
   src/types.hpp

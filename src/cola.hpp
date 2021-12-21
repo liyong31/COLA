@@ -60,6 +60,21 @@ namespace cola
   /// Output a deterministic parity automaton
   spot::twa_graph_ptr
   determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter);
+
+  /// \brief Determinization
+  /// 
+  /// The automaton \a aut should have Buchi condition.
+  /// Output a deterministic parity automaton
+  spot::twa_graph_ptr
+    determinize_tba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter);
+
+
+  /// \brief Testing whether the input is an elevator automata 
+  /// 
+  /// The automaton \a aut should have Buchi condition.
+  /// Output a bool value
+  bool
+    is_elevator_tba(const spot::const_twa_graph_ptr& aut);
     
 
 }

@@ -23,6 +23,8 @@
 #include <deque>
 #include <map>
 #include <set>
+#include <algorithm>
+#include <functional>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -43,32 +45,251 @@
 
 #include <types.hpp>
 
+
+// Determinization of TBAs via semi-determinization of TBAs and determinization of TLDBAs
 namespace cola
 {
-          const int RANK_N = -1; // nondeterministic
-          const int RANK_M = -2; // missing value
 
-          // states
-          typedef std::vector<int> mstate;
-          typedef std::pair<unsigned, int> label;
-          // state and labelling pairs
-          typedef std::vector<label> small_mstate;
+                      template<class T>
+                      struct pair_compare
+                      {
+                        bool operator() (const std::pair<T, T>& lhs,
+                                        const std::pair<T, T>& rhs) const
+                        {
+                          if (lhs.first == rhs.first)
+                            return lhs.second < rhs.second;
+                          else
+                            return lhs.first < rhs.first;
+                        }
+                      };
+    using state_t = unsigned;
+    using state_set = std::set<state_t>;
+    //using node_t = std::pair<, std::set<state_t>>;  
+    const int RANK_N = -1; // nondeterministic
+    const int RANK_M = -2; // missing value
 
-          struct small_mstate_hash
+    void copy_set_to(state_set& S1, state_set& S2)
+    {
+      for(auto s : S1)
+      {
+        S2.insert(s);
+      }
+    }
+    // macrostate
+    class mstate final
+    {
+      void
+      check() const
+      {
+        // all states in P and Q are in reach_set_ and Q \subseteq P
+        assert(qset_.size() == pset_.size());
+        unsigned num = qset_.size();
+        for(unsigned i = 0; i < num; i ++)
+        {
+          for(state_t s : qset_[i])
           {
-            size_t
-            operator()(small_mstate s) const noexcept
-            {
-              size_t hash = 0;
-              for (const auto& p: s)
-              {
-                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
-              }
-              return hash;
-            }
-          };
+            assert(pset_[i].find(s) != pset_[i].end());
+          }
+          for(state_t s : pset_[i])
+          {
+            assert(reach_set_.find(s) != reach_set_.end());
+          }
+        }
+      }
 
-          class ldba_determinize
+      public:
+      mstate(state_t init_state)
+      {
+        reach_set_.insert(init_state);
+      }
+      mstate(const mstate& other)
+      {
+        reach_set_.clear();
+        state_set oreach_set = other.reach_set_;
+        copy_set_to(oreach_set, reach_set_);
+        pset_.clear();
+        qset_.clear();
+        for(unsigned i = 0; i < other.pset_.size(); i ++)
+        {
+          state_set pset;
+          state_set qset;
+          state_set opset = other.pset_[i];
+          state_set oqset = other.qset_[i];
+          copy_set_to(opset, pset);
+          copy_set_to(oqset, qset);
+          pset_.push_back(pset);
+          qset_.push_back(qset);
+        }
+      }
+      mstate() {}
+      bool operator<(const mstate& other) const;
+      bool operator==(const mstate& other) const;
+
+      size_t hash() const;
+      // the set of reachable states in this level
+      state_set reach_set_;
+      // this is the list of nodes that ordered due to later introduction record
+      std::vector<state_set> qset_;
+      std::vector<state_set> pset_;
+    };
+
+    std::string 
+    get_set_string(const state_set& set)
+    {
+      std::string res = "{";
+      bool first = true;
+      for(state_t s : set)
+      {
+        if(first)
+        {
+          first = false;
+        }else 
+        {
+          res += ", ";
+        }
+        res += std::to_string(s);
+      }
+      res += "}";
+      return res;
+    }
+
+    size_t
+    hash_unsigned_set(const state_set& uset)
+    {
+      size_t hash = 0;
+      for(auto i : uset)   // not sure how you're storing them
+      {
+        hash = ((31 * hash) + (unsigned)i);
+      }
+      return hash;
+    }
+
+    bool
+    mstate::operator<(const mstate& other) const 
+    {
+        if(reach_set_ < other.reach_set_)
+        {
+          return true;
+        }
+        if(reach_set_ > other.reach_set_)
+        {
+          return false;
+        }
+        if(pset_.size() < other.pset_.size())
+        {
+          return true;
+        }
+        if(pset_.size() > other.pset_.size())
+        {
+          return false;
+        }
+        for(unsigned i = 0; i < pset_.size(); i ++)
+        {
+          if(pset_[i] < other.pset_[i])
+          {
+            return true;
+          }
+          if(pset_[i] > other.pset_[i])
+          {
+            return false;
+          }
+          if(qset_[i] < other.qset_[i])
+          {
+            return true;
+          }
+          if(qset_[i] > other.qset_[i])
+          {
+            return false;
+          }
+        }
+        return false;
+    }
+    bool
+    mstate::operator==(const mstate& other) const
+      {
+        if(reach_set_ != other.reach_set_)
+        {
+          return false;
+        }
+        if(pset_.size() != other.pset_.size())
+        {
+          return false;
+        }
+        for(unsigned i = 0; i < pset_.size(); i ++)
+        {
+          if(pset_[i] != other.pset_[i])
+          {
+            return false;
+          }
+          if(qset_[i] != other.qset_[i])
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+
+    size_t
+    mstate::hash() const
+    {
+      size_t res = 0;
+
+      for (unsigned i = 0; i < pset_.size(); i ++)
+      {
+        res ^= (res << 3) ^ hash_unsigned_set(pset_[i]);
+        res ^= (res << 3) ^ hash_unsigned_set(qset_[i]);
+      }
+      for (state_t s : reach_set_)
+      {
+          res ^= (res << 3) ^ s;
+      }
+      return res;
+    }
+
+
+    std::string
+    get_name(const mstate& ms)
+    {
+      std::string res = get_set_string(ms.reach_set_) + ",[";
+      bool first = true;
+      for(unsigned i = 0; i < ms.pset_.size(); i ++)
+      {
+        if(! first)
+        {
+          res += ", ";
+        }else 
+        {
+          first = false;
+        }
+        res += "(" + get_set_string(ms.pset_[i]) + ", " + get_set_string(ms.qset_[i]) + ") = " + std::to_string(i);
+      }
+      res += "]";
+      return res;
+    }
+    struct mstate_hash
+    {
+      size_t
+      operator()(const mstate& s) const noexcept
+      {
+        return s.hash();
+      }
+    };
+
+    bool 
+    is_subset(state_set& x, state_set& y)
+    {
+      for(auto s : x)
+      {
+        if(y.find(s) == y.end())
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+
+          class tba_determinize
           {
             private:
               // The source automaton.
@@ -89,12 +310,14 @@ namespace cola
 
               // the number of indices
               unsigned sets_ = 0;
-
+            
+              // number of colors used
               unsigned num_colors_;
 
               // use ambiguous
               bool use_unambiguous_;
 
+              // use optimization with SCC information
               bool use_scc_;
               
               // use stutter
@@ -102,10 +325,7 @@ namespace cola
 
               // Association between labelling states and state numbers of the
               // DPA.
-              std::unordered_map<small_mstate, unsigned, small_mstate_hash> rank2n_;
-
-              // bisimulate map
-              std::unordered_map<small_mstate, std::set<mstate>, small_mstate_hash> bisim2n_;
+              std::unordered_map<mstate, unsigned, mstate_hash> rank2n_;
 
               // States to process.
               std::deque<std::pair<mstate, unsigned>> todo_;
@@ -117,7 +337,7 @@ namespace cola
               std::vector<bdd> compat_;
 
               // Whether a SCC is deterministic or not
-              std::vector<bool> is_deter_;
+              //std::vector<bool> is_deter_;
 
               // Whether a state only has accepting transitions
               std::vector<bool> is_accepting_;
@@ -128,175 +348,29 @@ namespace cola
               // Show Rank states in state name to help debug
               bool show_names_;
 
-              int get_max_rank(const mstate& ms) 
-              {
-                int max_rnk = -2;
-                for(int i = 0; i < nb_states_; i ++) 
-                {
-                  if(ms[i] == RANK_M) 
-                    continue;
-                  if(max_rnk < ms[i]) 
-                  {
-                    max_rnk = ms[i];
-                  }
-                }
-                return max_rnk;
-              }
-
-              std::string
-              get_name(const small_mstate& ms)
-              {
-                int max_rnk = -2;
-                for(const auto & p : ms) 
-                {
-                  if(p.second > max_rnk) 
-                  {
-                    max_rnk = p.second;
-                  }
-                }
-          
-                std::string res = "{";
-
-                bool first_state = true;
-                  for (const auto& p: ms)
-                  if (p.second == RANK_N)
-                  {
-                      if (!first_state)
-                        res += ",";
-                      first_state = false;
-                      res += std::to_string(p.first);
-                  }
-
-                  res += "}";
-                  for(int i = 0; i <= max_rnk; i ++) 
-                  {
-                    res += ",[";
-                    first_state = true;
-                    for (const auto& p: ms)
-                      if (p.second == i)
-                      {
-                        if (!first_state)
-                            res += ",";
-                        first_state = false;
-                        res += std::to_string(p.first);
-                      }
-                    res += "]=" + std::to_string(i);
-                  }
-                  return res;
-              }
-
-                    small_mstate
-                    to_small_mstate(const mstate& ms)
-                    {
-                      unsigned count = 0;
-                      for (unsigned i = 0; i < nb_states_; ++i)
-                        count+= (ms[i] != RANK_M);
-                      small_mstate small;
-                      small.reserve(count);
-                      for (unsigned i = 0; i < nb_states_; ++i)
-                        if (ms[i] != RANK_M)
-                          small.emplace_back(i, ms[i]);
-                      return small;
-                    }
-                    
-                    struct compare_pair
-                    {
-                      bool
-                      operator() (const label& lhs,
-                                  const label& rhs) const
-                      {
-                        if( lhs.second < rhs.second)
-                        {
-                          return true;
-                        }else if(lhs.second > rhs.second) 
-                        {
-                          return false;
-                        }else 
-                        {
-                          return lhs.first < rhs.second;
-                        }
-                      }
-                    };
-                    small_mstate
-                    to_bisim_small_mstate(const mstate& ms)
-                    {
-                        small_mstate sm = to_small_mstate(ms);
-                        std::sort(sm.begin(), sm.end(), compare_pair());
-                        // output sorted pairs
-                        int count = 1;
-                        small_mstate res;
-                        res.reserve(sm.size());
-                        for(label p : sm)
-                        {
-                          // std::cout << "(" << p.first << ", " << p.second << ") ";
-                          if(p.second == RANK_N)
-                          {
-                            res.emplace_back(p.first, p.second);
-                          }else 
-                          {
-                            res.emplace_back(p.first, count);
-                            count ++;
-                          }
-                        }
-                        // std::cout << "\nSorted Unique:\n";
-                        // for(label p : res)
-                        // {
-                        //   std::cout << "( " << p.first << ", " << p.second << ") ";
-                        // }
-                        // std::cout << "\n";
-                        return res;
-                    }
 
                     // From a Rank state, looks for a duplicate in the map before
                     // creating a new state if needed.
                     unsigned
-                    new_state(mstate&& s)
+                    new_state(mstate& s)
                     {
-                      //small_mstate repr = to_bisim_small_mstate(s);
-                      //auto p = rank2n_.emplace(repr, 0);
-                      auto p = rank2n_.emplace(to_small_mstate(s), 0);
+                      //std::cout << "new state: " << get_name(s) << std::endl;
+                      //mstate s_p(s);
+                      // std::cout << "copy state: " << get_name(s) << std::endl;
+                      auto p = rank2n_.emplace(s, 0);
                       if (p.second) // This is a new state
                       {
                         p.first->second = res_->new_state();
                         if (show_names_)
                           names_->push_back(get_name(p.first->first));
-                        todo_.emplace_back(std::move(s), p.first->second);
+                        todo_.emplace_back(s, p.first->second);
                       }
                       return p.first->second;
                     }
 
-                    unsigned 
-                    new_bisim_state(mstate& ms)
-                    {
-                      small_mstate res = to_bisim_small_mstate(ms);
-                      auto p = bisim2n_.find(res);
-                      if(p == bisim2n_.end())
-                      {
-                        std::set<mstate> mset;
-                        mset.insert(ms);
-                        bisim2n_[res] = mset;
-                      }else 
-                      {
-                        p->second.insert(ms);
-                      }
-                      return 0;
-                    }
-
                     bool exists(mstate& s)
                     {
-                      return rank2n_.end() == rank2n_.find(to_small_mstate(s));
-                    }
-
-                    bool
-                    is_smaller(const mstate& fst, const mstate& snd)
-                    {                    
-                      for(unsigned s = 0; s < nb_states_; s ++)
-                      {
-                        if(fst[s] == snd[s]) continue;
-                        else if(fst[s] < snd[s]) return true;
-                        else if(fst[s] > snd[s]) return false;
-                      }
-                      return false;
+                      return rank2n_.end() == rank2n_.find(s);
                     }
 
 
@@ -304,11 +378,11 @@ namespace cola
                     void 
                     make_simulation_state(mstate& ms)
                     {
-                      std::vector<unsigned> reached_states;
-                      for(unsigned i = 0; i < nb_states_; i ++)
+                      state_set reached_states;
+                      state_set removed_states;
+                      for(auto s : ms.reach_set_)
                       {
-                        if(ms[i] == RANK_M) continue;
-                        reached_states.push_back(i);
+                        reached_states.insert(s);
                       }
                       for(unsigned i : reached_states)
                       {
@@ -320,193 +394,96 @@ namespace cola
                           // j simulates i and j cannot reach i
                           if(opt_.simulate(j, i) && opt_.reach(j, i) == 0) 
                           {
-                            // std::cout << "simulated" << std::endl;
-                            ms[i] = RANK_M;
+                            removed_states.insert(i);
                           }
-                          // (j, k1) and (i, k2), if j simulates i and k1 <= k2, then remove k2
-                          // Note that here i and j are not equivalent
-                          if(opt_.simulate(j, i) && ms[j] > RANK_N && ms[j] <= ms[i] )
-                          {
-                            ms[i] = RANK_M;
-                          }
-                          // // only keep the representative state
-                          // if(opt_.simulate(j, i) && opt_.simulate(i,j))
-                          // {
-                          //   ms[opt_.get_repr(i)] = std::min(ms[i], ms[j]);
-                          //   if(i != opt_.get_repr(i))
-                          //   {
-                          //     ms[i] = RANK_M;
-                          //   }
-                          //   if(j != opt_.get_repr(i))
-                          //   {
-                          //     ms[j] = RANK_M;
-                          //   }
-                          // }
                         }
+                      }
+                      // now remove all states in removed_states
+                      ms.reach_set_.erase(removed_states.begin(), removed_states.end());
+                      for(unsigned i = 0; i < ms.pset_.size(); i ++)
+                      {
+                        ms.pset_[i].erase(removed_states.begin(), removed_states.end());
+                        ms.qset_[i].erase(removed_states.begin(), removed_states.end());
+                      }
+                      // keep the empty set
+                      //compare (P1, Q1) and (P2, Q2) such that P1 \subseteq P2, and Q1 \superset Q2
+                      // then the language of (P1, Q1) includes the language of (P2, Q2)
+                      // To be proved
+                      std::set<unsigned> removed_indices;
+                      for(unsigned i = 0; i < ms.pset_.size(); i ++)
+                      {
+                        if(ms.pset_[i].empty()) continue;
+                        for(unsigned j = i + 1; j < ms.pset_.size(); j ++)
+                        {
+                          //if(i == j) continue;
+                          if(is_subset(ms.pset_[i], ms.pset_[j]) && is_subset(ms.qset_[j], ms.qset_[i]))
+                          {
+                            removed_indices.insert(j);
+                          }
+                        }
+                      }
+                      // clear those indices
+                      for(unsigned i : removed_indices)
+                      {
+                        ms.pset_[i].clear();
+                        ms.qset_[i].clear();
                       }
                     }
 
-                    void
-                    make_compact_ranking(mstate& ms)
+                    std::pair<std::set<state_t>, std::set<state_t>>
+                    get_set_successors(const std::set<state_t>& P, const std::set<state_t>& Q, bdd letter, const std::set<state_t>& restricts, bool & acc)
                     {
-                      int max_rnk = get_max_rank(ms);
-                      // now reorgnize the indices
-                      std::unordered_map<int, int> ord_func;
-                      int index = 0;
-                      // the succ has at most max_rnk + 1
-                      for(int i = 0; i <= max_rnk + 1; i ++)
+                      std::set<state_t> pPrime;
+                      std::set<state_t> pAccPrime;
+                      std::set<state_t> qDPrime;
+                      std::set<state_t> qPrime;
+                      
+                      for(auto s : P)
                       {
-                        bool existing = false;
-                        for (unsigned s = 0; s < nb_states_; ++s)
-                        {
-                          if(ms[s] == i)
+                        for (const auto &t: aut_->out(s))
                           {
-                            existing = true;
-                            break;
-                          }
-                        }
-                        if(existing) 
-                        {
-                          ord_func.emplace(i, index);
-                          index ++;
-                        }
-                      }
-                      for(unsigned s = 0; s < nb_states_; s ++)
-                      {
-                        if(ms[s] != RANK_M && ms[s] != RANK_N)
-                        {
-                          // update indices
-                          ms[s] = ord_func[ms[s]];
-                        }
-                      }
-
-                    }
-
-                    mstate
-                    compute_succ(const mstate& ms, bdd letter)
-                    {
-                      mstate succ(nb_states_, RANK_M);
-                      int max_rnk = get_max_rank(ms);
-                      std::vector<bool> incoming(nb_states_, false);
-                      std::vector<bool> ignores(nb_states_, false);
-                      // first handle nondeterministic states
-                      std::vector<unsigned> coming_states;
-                      std::vector<unsigned> acc_coming_states;
-                      for (unsigned s = 0; s < nb_states_; ++ s)
-                      {
-                        // missing states
-                        if (ms[s] == RANK_M)
-                          continue;
-                        // nondeterministic states
-                        if (ms[s] == RANK_N)
-                        {
-                          for (const auto &t: aut_->out(s))
-                          {
-                            if (!bdd_implies(letter, t.cond))
+                            // ignore unreachable states and states that are not in restructs
+                            if (!bdd_implies(letter, t.cond) || (restricts.find(t.dst) == restricts.end()))
                               continue;
-                            // it is legal to ignore the states have two incoming transitions
-                            // in unambiguous Buchi automaton
-                            if(use_unambiguous_) 
+                            pPrime.insert(t.dst);
+                            if(t.acc || is_accepting_[t.dst])
                             {
-                              if(incoming[t.dst])
-                              {
-                                // this is the second incoming transitions
-                                ignores[t.dst] = true;
-                              }else 
-                              {
-                                incoming[t.dst] = true;
-                              }
+                              pAccPrime.insert(t.dst);
                             }
-                            if(ignores[t.dst])
+                            if(Q.find(s) != Q.end())
                             {
-                                // ignore this state
-                                continue;
-                            }
-                            // BETTER: transition when seeing deterministic states
-                            if (is_deter_[si_.scc_of(t.dst)])
-                            // only transition to labelling if seeing accepting transitions or states
-                            //if(t.acc || is_accepting_[t.dst])
-                            {
-                              if(succ[t.dst] < RANK_N) 
-                              {
-                                // if(t.acc || is_accepting_[t.dst])
-                                // {
-                                //   acc_coming_states.push_back(t.dst);
-                                // }else 
-                                // {
-                                //   coming_states.push_back(t.dst);
-                                // }
-                                coming_states.push_back(t.dst);
-                                succ[t.dst] = max_rnk + 1; //Sharing labels 
-                                //succ[t.dst] = ++ max_rnk;  
-                              }
-                            } else 
-                            {
-                              succ[t.dst] = RANK_N;
+                              qPrime.insert(t.dst);
                             }
                           }
-                        }
                       }
-                      std::sort(coming_states.begin(), coming_states.end());
-                      for(unsigned s : coming_states)
+                      // std::cout << "P = " << get_set_string(P) << " Q = " << get_set_string(Q) << " letter = " << letter << std::endl; 
+                      // std::cout << "P' = " << get_set_string(pPrime) << " Q' = " << get_set_string(qPrime) << " PA' = " << get_set_string(pAccPrime) << std::endl; 
+                      qDPrime.insert(qPrime.begin(), qPrime.end());
+                      qDPrime.insert(pAccPrime.begin(), pAccPrime.end());
+                      if(qDPrime == pPrime)
                       {
-                        // std::cout << " " << s;
-                        succ[s] = ++max_rnk;
-                      }
-                      // std::cout << "\n";
-                      // now we compute the rank successors
-                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                        acc = !pPrime.empty();
+                        qPrime = pAccPrime;
+                      }else 
                       {
-                        for (unsigned s = 0; s < nb_states_; ++s)
-                        {
-                          if (ms[s] == RANK_M || ms[s] == RANK_N)
-                            continue;
-                          if (ms[s] != rnk)
-                            continue;
-                          for (const auto &t: aut_->out(s))
-                          {
-                            if (!bdd_implies(letter, t.cond))
-                              continue;
-                            if(use_unambiguous_) 
-                            {
-                              if(incoming[t.dst])
-                              {
-                                // this is the second incoming transitions
-                                ignores[t.dst] = true;
-                              }else 
-                              {
-                                incoming[t.dst] = true;
-                              }
-                            }
-                            if(ignores[t.dst])
-                            {
-                              continue;
-                            }
-                            succ[t.dst] = rnk;
-                          }
-                        }
+                        acc = false;
+                        qPrime = qDPrime;
                       }
-                      return succ;
+                      // std::cout << "Final : P' = " << get_set_string(pPrime) << " Q' = " << get_set_string(qPrime) << std::endl;
+                      return std::make_pair(pPrime, qPrime);
                     }
 
                     void
                     rank_successors(const mstate& ms, unsigned origin, bdd letter, mstate& nxt, int& color)
                     {
-                      mstate succ(nb_states_, RANK_M);
-                      int max_rnk = get_max_rank(ms);
+                      mstate succ;
                       std::vector<bool> incoming(nb_states_, false);
                       std::vector<bool> ignores(nb_states_, false);
                       // first handle nondeterministic states
-                      std::vector<unsigned> coming_states;
+                      std::set<unsigned> coming_states;
                       //std::vector<unsigned> acc_coming_states;
-                      for (unsigned s = 0; s < nb_states_; ++ s)
+                      for (unsigned s : ms.reach_set_)
                       {
-                        // missing states
-                        if (ms[s] == RANK_M)
-                          continue;
-                        // nondeterministic states
-                        if (ms[s] == RANK_N)
-                        {
                           for (const auto &t: aut_->out(s))
                           {
                             if (!bdd_implies(letter, t.cond))
@@ -529,181 +506,110 @@ namespace cola
                                 // ignore this state
                                 continue;
                             }
-                            
-                            bool jump = false;
-                            if(use_scc_)
+                            succ.reach_set_.insert(t.dst);
+                            // via accepting transitions
+                            if(t.acc || is_accepting_[t.dst])
                             {
-                              // only transition to labelling if it is in an accepting SCC
-                              jump = si_.is_accepting_scc(si_.scc_of(t.dst));
-                            }else 
-                            {
-                              // transition when seeing deterministic states
-                              jump = is_deter_[si_.scc_of(t.dst)];
-                            }
-                            if(jump)
-                            {
-                              if(succ[t.dst] < RANK_N) 
-                              {
-                                // if(t.acc || is_accepting_[t.dst])
-                                // {
-                                //   acc_coming_states.push_back(t.dst);
-                                // }else 
-                                // {
-                                //   coming_states.push_back(t.dst);
-                                // }
-                                coming_states.push_back(t.dst);
-                                succ[t.dst] = max_rnk + 1; //Sharing labels 
-                                //succ[t.dst] = ++ max_rnk;  
-                              }
-                            } else 
-                            {
-                              succ[t.dst] = RANK_N;
+                              // std::cout << "coming states: " << t.dst << std::endl;
+                              coming_states.insert(t.dst);  
                             }
                           }
-                        }
                       }
-                      // give labelling to coming_states
-                      // std::sort(acc_coming_states.begin(), acc_coming_states.end());
-                      // for(unsigned s : acc_coming_states)
-                      // {
-                      //   // std::cout << " " << s;
-                      //   succ[s] = ++max_rnk;
-                      // }
-                      std::sort(coming_states.begin(), coming_states.end());
-                      for(unsigned s : coming_states)
+                      // now compute the successors for (P, Q) states
+                      std::set<std::pair<std::string, std::string>, pair_compare<std::string>> visited; 
+                      unsigned acc_index = ms.pset_.size();
+                      unsigned rej_index = ms.pset_.size();
+                      for(unsigned i = 0; i < ms.pset_.size(); i ++)
                       {
-                        // std::cout << " " << s;
-                        succ[s] = ++max_rnk;
-                      }
-                      // std::cout << "\n";
-                      // now we compute the rank successors
-                      for(int rnk = max_rnk; rnk >= 0; rnk --)
-                      {
-                        for (unsigned s = 0; s < nb_states_; ++s)
+                        bool accepting_trans = false;
+                        std::pair<state_set, state_set> set_pair = get_set_successors(ms.pset_[i], ms.qset_[i], letter, succ.reach_set_, accepting_trans);
+                        state_set pset_succ = set_pair.first;
+                        state_set qset_succ = set_pair.second;
+                        // std::cout << "P = " << get_set_string(ms.pset_[i]) << " Q = " << get_set_string(ms.qset_[i]) << std::endl;
+                        // std::cout << "P' = " << get_set_string(pset_succ) << " Q' = " << get_set_string(qset_succ) << " Acc = " << accepting_trans << std::endl;
+                        // check whether this set is already existing
+                        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(pset_succ), get_set_string(qset_succ));
+                        if(visited.find(str_pair) == visited.end())
                         {
-                          if (ms[s] == RANK_M || ms[s] == RANK_N)
-                            continue;
-                          if (ms[s] != rnk)
-                            continue;
-                          for (const auto &t: aut_->out(s))
-                          {
-                            if (!bdd_implies(letter, t.cond))
-                              continue;
-                            if(use_unambiguous_) 
-                            {
-                              if(incoming[t.dst])
-                              {
-                                // this is the second incoming transitions
-                                ignores[t.dst] = true;
-                              }else 
-                              {
-                                incoming[t.dst] = true;
-                              }
-                            }
-                            if(ignores[t.dst])
-                            {
-                              continue;
-                            }
-                            // NORMAL way, inherit the labelling
-                            //succ[t.dst] = rnk;
-                            int update_rnk = RANK_N;
-                            // get out of an SCC to another and it is not accepting
-                              if(use_scc_ && si_.scc_of(s) != si_.scc_of(t.dst) 
-                                && !si_.is_accepting_scc(si_.scc_of(t.dst)))
-                              {
-                                update_rnk = RANK_N; // go back to nondeterministic part
-                              }else 
-                              {
-                                update_rnk = rnk;
-                              }
-                            succ[t.dst] = update_rnk;
-                          }
+                          succ.pset_.push_back(pset_succ);
+                          succ.qset_.push_back(qset_succ);
+                          visited.insert(str_pair);
+                        }else 
+                        // already there, so ignore
+                        {
+                          rej_index = std::min(rej_index, i);
+                        }
+                        if(accepting_trans)
+                        {
+                          acc_index = std::min(acc_index, i);
                         }
                       }
+                      for(auto s : coming_states)
+                      {
+                        std::set<state_t> acc_set;
+                        acc_set.insert(s);
+                        std::set<state_t> empty_set;
+                        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(acc_set), get_set_string(empty_set));
+                        if(visited.find(str_pair) == visited.end())
+                        {
+                          succ.pset_.push_back(acc_set);
+                          succ.qset_.push_back(empty_set);
+                        }
+                      }
+                      // std::cout << "state= " << get_name(ms) << " letter = " << letter << std::endl;
+                      // std::cout << "State before simulation: " << get_name(succ) << std::endl;
                       // remove redudant states
                       make_simulation_state(succ);
+                      // std::cout << "State after simulation: " << get_name(succ) << std::endl;
                       // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
-                      const int MAX_PRI = nb_states_ + 2;
-                      int min_dcc = MAX_PRI;
-                      int min_acc = MAX_PRI;
-                      for(int rnk = max_rnk; rnk >= 0; rnk --)
+                      // std::cout << "ms-num= " << ms.pset_.size() << " succ-num=" << succ.pset_.size() << std::endl;
+                      //rej_index = std::min(rej_index, succ.pset_.size());
+                      for(unsigned i = 0; i < ms.pset_.size() && i < succ.pset_.size(); i ++)
                       {
-                        bool has_succ = false;
-                        bool has_acc = false;
-                        for (unsigned s = 0; s < nb_states_; ++s)
+                        if(succ.pset_[i].empty())
                         {
-                          if (ms[s] == RANK_M || ms[s] == RANK_N)
-                            continue;
-                          if (ms[s] != rnk)
-                            continue;
-                          // exactly the rank is rnk
-                          for (const auto &t: aut_->out(s))
-                          {
-                            if (!bdd_implies(letter, t.cond))
-                              continue;
-                            // exactly the same rank means the existence of an edge from the parent s
-                            if(succ[t.dst] == rnk)
-                            {
-                              has_succ = true;
-                              has_acc = has_acc || t.acc;
-                            }
-                          }
+                          rej_index = std::min(rej_index, i);
                         }
-                        if(! has_succ)
+                        else if(succ.pset_[i] == succ.qset_[i])
                         {
-                          min_dcc = rnk;
-                        }else if(has_acc)
-                        {
-                          min_acc = rnk;
+                         acc_index = std::min(acc_index, i);
                         }
                       }
+                      //std::cout << "Acc = " << acc_index << " rej = " << rej_index << "\n"; 
 
                       int parity;
-                      if(min_dcc == MAX_PRI && min_acc != MAX_PRI) 
+                      int acc_color = 2 * ((int)acc_index + 1);
+                      int rej_color = 2 * ((int)rej_index) + 1;
+                      if(rej_index == ms.pset_.size() && acc_index != ms.pset_.size()) 
                       {
-                        parity = 2 * (min_acc + 1);
-                      }else if(min_dcc != MAX_PRI && min_acc == MAX_PRI)
+                        parity = acc_color;
+                      }else if(rej_index != ms.pset_.size() && acc_index == ms.pset_.size())
                       {
-                        parity = 2 * min_dcc + 1;
-                      }else if(min_dcc != MAX_PRI && min_acc != MAX_PRI) 
+                        parity = rej_color;
+                      }else if(rej_index != ms.pset_.size() && acc_index != ms.pset_.size()) 
                       {
-                        parity = std::min(2* min_dcc + 1, 2 * min_acc + 2);
+                        parity = std::min(acc_color, rej_color);
                       }else {
                         parity = -1;
                       }
-                      // now reorgnize the indices
-                      std::unordered_map<int, int> ord_func;
-                      int index = 0;
-                      // the succ has at most max_rnk + 1
-                      for(int i = 0; i <= max_rnk + 1; i ++)
+                      std::vector<state_set> pset;
+                      std::vector<state_set> qset;
+                      // std::cout << "Reorganize  \n"; 
+                      visited.clear();
+                      for(unsigned i = 0; i < succ.pset_.size(); i ++)
                       {
-                        bool existing = false;
-                        for (unsigned s = 0; s < nb_states_; ++s)
+                        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(succ.pset_[i]), get_set_string(succ.qset_[i]));
+                        if(visited.find(str_pair) == visited.end() && !succ.pset_[i].empty())
                         {
-                          if(succ[s] == i)
-                          {
-                            existing = true;
-                            break;
-                          }
-                        }
-                        if(existing) 
-                        {
-                          ord_func.emplace(i, index);
-                          index ++;
+                          pset.push_back(succ.pset_[i]);
+                          qset.push_back(succ.qset_[i]);
                         }
                       }
-                      for(unsigned s = 0; s < nb_states_; s ++)
-                      {
-                        if(succ[s] != RANK_M && succ[s] != RANK_N)
-                        {
-                          // update indices
-                          succ[s] = ord_func[succ[s]];
-                        }
-                      }
-
+                      succ.pset_ = pset;
+                      succ.qset_ = qset;
+                      // std::cout << "Final state = " << get_name(succ) << " color=" << parity<< std::endl;
                        // now we find whether there is bisimulate-states
                       //new_bisim_state(succ);
-
                       nxt = succ;
                       color = parity;
                     }
@@ -711,15 +617,10 @@ namespace cola
                 void
                 make_stutter_state(const mstate& curr, unsigned origin, bdd letter, mstate& succ, int& color)
                 {
-                  mstate ms(nb_states_, RANK_M);
-                  for(unsigned s = 0; s < nb_states_; s ++)
-                  {
-                    ms[s] = curr[s];
-                  }
+                  mstate ms(curr);
                   std::vector<mstate> stutter_path;
                   if (use_stutter_ && aut_->prop_stutter_invariant())
                   {
-                    
                     // The path is usually quite small (3-4 states), so it's
                     // not worth setting up a hash table to detect a cycle.
                     stutter_path.clear();
@@ -737,7 +638,7 @@ namespace cola
                             cycle_seed = (it + 1).base();
                             break;
                           }
-                        stutter_path.emplace_back(std::move(ms));
+                        stutter_path.emplace_back(ms);
                         // next state
                         mstate tmp_succ;
                         int tmp_color = -1;
@@ -760,7 +661,7 @@ namespace cola
                             // if *cycle_seed is already in seen, replace
                             // it with a smaller state also in seen.
                             if (exists(*it)
-                                && is_smaller(*it, *cycle_seed))
+                                && *it < *cycle_seed)
                               cycle_seed = it;
                           }
                         else
@@ -773,13 +674,13 @@ namespace cola
                                 cycle_seed = it;
                                 in_seen = true;
                               }
-                            else if (is_smaller(*it, *cycle_seed))
+                            else if (*it < *cycle_seed)
                               {
                                 cycle_seed = it;
                               }
                           }
                       }
-                    succ = std::move(*cycle_seed);
+                    succ = *cycle_seed;
                     color = mincolor;
                   }
                 else
@@ -788,9 +689,9 @@ namespace cola
                   }
 
                 }
-
+                
                 public:
-                  ldba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_scc, bool use_unambiguous, bool use_stutter)
+                  tba_determinize(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer& opt, bool use_scc, bool use_unambiguous, bool use_stutter)
                             : aut_(aut),
                               opt_(opt),
                               use_scc_(use_scc),
@@ -811,9 +712,6 @@ namespace cola
                               true, // complete
                               false // stutter inv
                               });
-                      // std::cout << "Output simulation" << std::endl;
-                      // opt_.output_simulation();
-                      // std::cout << "End output" << " NumS " << nb_states_ << std::endl;
                       // Generate bdd supports and compatible options for each state.
                       // Also check if all its transitions are accepting.
                       for (unsigned i = 0; i < nb_states_; ++i)
@@ -832,11 +730,12 @@ namespace cola
                         }
                         support_[i] = res_support;
                         compat_[i] = res_compat;
+                        // all outgoing transitions are accepting
                         is_accepting_[i] = accepting && has_transitions;
                       }
                       // std::cout << "now deterministic part: " << std::endl;
                       // Compute which SCCs are part of the deterministic set.
-                      is_deter_ = spot::semidet_sccs(si_);
+                      //is_deter_ = spot::semidet_sccs(si_);
                       //std::cout << "now deterministic part over " << is_deter_.size() << std::endl;
                       //nb_det_states_ = 0;
                       // for(unsigned i = 0; i < nb_states_; i ++)
@@ -861,10 +760,10 @@ namespace cola
                       // deterministic)
                       unsigned init_state = aut->get_init_state_number();
                       // std::cout << "Init: " << init_state << std::endl;
-                      mstate new_init_state(nb_states_, RANK_M);
-                      new_init_state[init_state] = RANK_N;
+                      mstate new_init_state(init_state);
+                      unsigned index = new_state(new_init_state);
                       // we assume that the initial state is not in deterministic part
-                      res_->set_init_state(new_state(std::move(new_init_state)));
+                      res_->set_init_state(index);
                     }
 
                     spot::twa_graph_ptr
@@ -878,17 +777,14 @@ namespace cola
                         todo_.pop_front();
                         // pop current state, (N, Rnk)
                         mstate ms = top.first;
-
                         // Compute support of all available states.
                         bdd msupport = bddtrue;
                         bdd n_s_compat = bddfalse;
                         // compute the occurred variables in the outgoing transitions of ms, stored in msupport 
-                        for (unsigned s = 0; s < nb_states_; ++s)
-                          if (ms[s] != RANK_M)
+                        for (unsigned s : ms.reach_set_)
                           {
                             msupport &= support_[s];
-                            if (ms[s] != RANK_M || is_accepting_[s])
-                              n_s_compat |= compat_[s];
+                            n_s_compat |= compat_[s];
                           }
 
                         bdd all = n_s_compat;
@@ -901,35 +797,32 @@ namespace cola
 
                           mstate succ;
                           int color = -1;
+                          // std::cout << "Current state=" << get_name(ms) << std::endl;
                           //rank_successors(std::move(ms), top.second, letter, succ, color);
-                          make_stutter_state(std::move(ms), top.second, letter, succ, color);
+                          make_stutter_state(ms, top.second, letter, succ, color);
                           
                           unsigned origin = top.second;
                           // add transitions
                           // Create the automaton states
-                          unsigned dst = new_state(std::move(succ));
+                          unsigned dst = new_state(succ);
                           // const unsigned MAX_PRI = 2* nb_det_states_ + 1;
                           if(color >= 0) 
                           {
                             unsigned pri = (unsigned)color;
                             sets_ = std::max(pri, sets_);
-                          
+                            // std::cout << "src=" << origin << "->" << dst << ": " << letter << " {" << pri << "}" << std::endl;
                             res_->new_edge(origin, dst, letter, {pri});
                           }else 
                           {
+                            // std::cout << "src=" << origin << "->" << dst << ": " << letter << std::endl;
                             res_->new_edge(origin, dst, letter);
                           }
                         }
                       }
                       // // now I output states
-                      // for(auto p = bisim2n_.begin(); p != bisim2n_.end(); p ++)
+                      // for(auto p = rank2n_.begin(); p != rank2n_.end(); p ++)
                       // {
-                      //   std::cout << "bisim repr = " << get_name(p->first) << ":\n";
-                      //   for(auto ms : p->second)
-                      //   {
-                      //     std::cout << get_name(to_small_mstate(ms)) << " ";
-                      //   }
-                      //   std::cout << "\n";
+                      //   std::cout << "repr = " << get_name(p->first) << " --- " << p->second << "\n";
                       // }
                       // std::cout << "size: = " << bisim2n_.size() << std::endl;
                       // now copy 
@@ -959,9 +852,12 @@ namespace cola
                         res_->prop_complete(true);
                       res_->prop_universal(true);
                       res_->prop_state_acc(false);
+                      // spot::print_hoa(std::cout, res_, nullptr);
+                      //   std::cout << "\n";
                       res_ = postprocess(res_);
                       cleanup_parity_here(res_);
-
+                      // spot::print_hoa(std::cout, res_, nullptr);
+                      //   std::cout << "\n";
                       return res_;
                     }
 
@@ -977,18 +873,6 @@ namespace cola
                         spot::scc_info scc(aut, spot::scc_info_options::ALL);
                         // res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
                         std::vector<char> reach_sccs = find_scc_paths(scc);
-                        // check whether i reaches j
-                        // auto reaches = [&scc, &reach_sccs](unsigned i, unsigned j) -> bool
-                        // {
-                        //   if(i == j) return true;
-                        //   if(reach_sccs[scc.scc_of(j) + scc.scc_count() * scc.scc_of(i)])
-                        //   {
-                        //     return true;
-                        //   }else 
-                        //   {
-                        //     return false;
-                        //   }
-                        // };
                         auto scc_reach = [&scc, &reach_sccs](unsigned s, unsigned t) -> bool 
                         {
                           return s == t || (reach_sccs[t + scc.scc_count() * s]);
@@ -1007,22 +891,22 @@ namespace cola
                           }
                         };
                         // set of states -> the forest of reachability in the states.
-                        std::unordered_map<std::set<unsigned>, std::set<unsigned>, set_hash> set2scc;
+                        std::unordered_map<state_set, state_set, set_hash> set2scc;
                         // record the representative of every SCC
                         for(auto p = rank2n_.begin(); p != rank2n_.end(); p ++)
                         {
-                              //std::cout << "state = " << get_name(p->first) << ":\n";
+                              // std::cout << "state = " << get_name(p->first) << " number = " << p->second << ":\n";
+                              // std::cout << "set = " << get_set_string(p->first.reach_set_) << "\n";
                               std::set<unsigned> set;
-                              // first the set of reached states
-                              for(auto tuple : p->first)
+                              for(unsigned s : p->first.reach_set_)
                               {
-                                set.insert(tuple.first);
+                                set.insert(s);
                               }
                               auto val = set2scc.find(set);
                               if(val == set2scc.end())
                               {
                                 // the set of macrostates in DPA
-                                std::set<unsigned> v;
+                                state_set v;
                                 v.insert(p->second);
                                 set2scc[set] = v;
                               }else 
@@ -1185,7 +1069,6 @@ namespace cola
                           post_aut->prop_complete(true);
                         post_aut->prop_universal(true);
                         post_aut->prop_state_acc(false);
-
                         // remove unreachable macrostates
                         post_aut->purge_unreachable_states();
                         return post_aut;
@@ -1194,13 +1077,13 @@ namespace cola
 
 
     spot::twa_graph_ptr
-    determinize_tldba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter)
+    determinize_tba(const spot::const_twa_graph_ptr& aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter)
     {
-      if (!is_semi_deterministic(aut))
+      if (!aut->acc().is_buchi())
             throw std::runtime_error
-                    ("determinize_tldba() requires a semi-deterministic input");
+                    ("determinize_tba() requires a Buchi input");
 
-      auto det = cola::ldba_determinize(aut, show_names, opt, use_scc, use_unambiguous, use_stutter);
+      auto det = cola::tba_determinize(aut, show_names, opt, use_scc, use_unambiguous, use_stutter);
       return det.run();
     }
 }

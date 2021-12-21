@@ -247,7 +247,8 @@ int main(int argc, char* argv[])
             path_to_files.emplace_back(argv[i]);
           }
       }
-
+    //path_to_files.push_back("base_formula_130_0.hoa");
+    //determinize = Parity;
     if (path_to_files.empty())
     {
       if (isatty(STDIN_FILENO))
@@ -269,10 +270,13 @@ int main(int argc, char* argv[])
 
     om.set("output", desired_output);
 
+    
+
     auto dict = spot::make_bdd_dict();
 
     for (std::string& path_to_file: path_to_files)
       {
+        std::cout << "current path: " << path_to_file << std::endl;
         spot::automaton_stream_parser parser(path_to_file);
 
         for (;;)
@@ -310,7 +314,10 @@ int main(int argc, char* argv[])
                 type = true;
                 std::cout << "limit-deterministic" << std::endl;
               }
-              if(is_unambiguous(aut))
+              if(cola::is_elevator_tba(aut))
+              {
+                std::cout << "elevator" << std::endl;
+              }else if(is_unambiguous(aut))
               {
                 std::cout << "unambiguous" << std::endl;
               }else if(! type)
@@ -334,15 +341,17 @@ int main(int argc, char* argv[])
             else if(! is_deterministic(aut))
               {
                 clock_t c_start = clock();
-                if(!is_semi_deterministic(aut))
-                {
-                  aut = semi_determinize(aut, cut_det, jobs, &om);
-                }else 
+                bool is_semi_det = is_semi_deterministic(aut);
+                //if(!is_semi_deterministic(aut))
+                //{
+                  //aut = semi_determinize(aut, cut_det, jobs, &om);
+
+                //}else 
                 {
                   // preprocessing for the input.
                   spot::postprocessor preprocessor;
                   aut = preprocessor.run(aut);
-                  if(!is_semi_deterministic(aut))
+                  if(!is_semi_deterministic(aut) && is_semi_det)
                   {
                     std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;
                     return 1;
@@ -435,16 +444,18 @@ int main(int argc, char* argv[])
                       opt.output_simulation();
                       opt.output_reach(); 
                       opt.output_repr();
-                      // std::cout << "end simulation output" << std::endl;
+                      std::cout << "end simulation output" << std::endl;
                     }
+
                     clock_t c_start = clock();
-                    res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+                    if(is_semi_det) res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+                    else res = cola::determinize_tba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
                     clock_t c_end = clock();
                     std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
                   }else  if(determinize == Spot)
                   {
                     // pretty_print, use_scc, use_simulation, use_stutter, aborter
-                    res = spot::tgba_determinize(aut, false, false, use_simulation, false, nullptr);
+                    res = spot::tgba_determinize(aut, false, use_scc, use_simulation, use_stutter, nullptr);
                   }
                     aut = res;
                 }
@@ -456,8 +467,9 @@ int main(int argc, char* argv[])
               //std::cout << "reach here, merge transitions" << std::endl;
               aut->merge_edges();
             }
-            std::cout << "Number of states(colors) in the result automaton: " << aut->num_states() << "(" << aut->num_sets() << ")"<< std::endl;
+            std::cout << "Number of (states, transitions, colors) in the result automaton: (" << aut->num_states() << "," << aut->num_edges() << "," << aut->num_sets() << ")"<< std::endl;
             // postprocessing, remove dead states
+            aut->purge_unreachable_states();
             if(post_process != None)
             {
               clock_t c_start = clock();
@@ -480,12 +492,12 @@ int main(int argc, char* argv[])
                   {
                     p.set_level(spot::postprocessor::High);
                   }
+
                 aut = p.run(aut);
               }
               clock_t c_end = clock();
               std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
             }
-             
             if(output_filename != "")
             {
               std::ofstream outfile;
