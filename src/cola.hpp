@@ -19,6 +19,10 @@
 
 #include <set>
 #include <map>
+#include <fstream>
+#include <string>
+
+#include <spot/twaalgos/hoa.hh>
 
 using state_t = unsigned;
 using state_set = std::set<state_t>;
@@ -126,5 +130,8 @@ namespace cola
     spot::twa_graph_ptr
     run();
   };
+
+  /// \brief Output an automaton to a file
+  void output_file(spot::twa_graph_ptr aut, const char *file);
 
 }

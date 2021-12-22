@@ -48,15 +48,15 @@ void print_help()
 {
   print_usage(std::cout);
   std::cout <<
-      R"(The tool transforms TLDBA into equivalent deterministic Parity automata.
+      R"(The tool transforms TLDBA/TBA into equivalent deterministic Parity automata.
 
-By default, it reads a limit deterministic generalized Büchi automaton (LDGBA) from standard input
+By default, it reads a (limit deterministic) Büchi automaton from standard input
 and converts it into deterministic Parity automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|parity]
-                    use Spot or our algorithm to obtain deterministic Parity automata
+    --determinize=[spot|ldba|ba|cola]
+                    Use Spot or our algorithm for ldba and ba or let cola decide which one to obtain deterministic Parity automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --unambiguous
@@ -96,17 +96,6 @@ void check_cout()
   }
 }
 
-void output_file(spot::twa_graph_ptr aut, const char *file)
-{
-  const char *opts = nullptr;
-  std::ofstream outfile;
-  std::string file_name(file);
-  outfile.open(file_name);
-
-  spot::print_hoa(outfile, aut, opts);
-  outfile.close();
-}
-
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -136,7 +125,9 @@ int main(int argc, char *argv[])
   enum determinize_t
   {
     NoDeterminize = 0,
-    Parity,
+    NBA,
+    COLA,
+    LDBA,
     Spot
   };
   determinize_t determinize = NoDeterminize;
@@ -194,10 +185,14 @@ int main(int argc, char *argv[])
       use_unambiguous = true;
     else if (arg == "--stutter")
       use_stutter = true;
-    else if (arg == "--determinize=parity")
-      determinize = Parity;
+    else if (arg == "--determinize=ba")
+      determinize = NBA;
+    else if (arg == "--determinize=ldba")
+      determinize = LDBA;
     else if (arg == "--determinize=spot")
       determinize = Spot;
+    else if (arg == "--determinize=cola")
+      determinize = COLA;
     else if (arg == "-f")
     {
       if (argc < i + 1)
@@ -383,106 +378,42 @@ int main(int argc, char *argv[])
         clock_t c_end = clock();
         std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
 
-        if (complement)
-        {
-          spot::twa_graph_ptr res = nullptr;
-          spot::postprocessor postprocessor;
-          // We don't deal with TBA: (1) complement_semidet() returns a
-          // TBA, and (2) in Spot 2.8 spot::postprocessor only knows
-          // about state-based BA and Transition-based GBA.  So TBA/TGBA
-          // are simply simplified as TGBA.
-          postprocessor.set_type(desired_output == BA
-                                     ? spot::postprocessor::BA
-                                     : spot::postprocessor::TGBA);
-          if (!om.get("postprocess-comp", 1))
-          {
-            // Disable simplifications except acceptance change.
-            postprocessor.set_level(spot::postprocessor::Low);
-            postprocessor.set_pref(spot::postprocessor::Any);
-          }
-
-          if (complement == NCSBSpot || complement == NCSBBest)
-          {
-            res = spot::complement_semidet(aut);
-            res = postprocessor.run(res);
-          }
-          if (complement == NCSBPLDIB || complement == NCSBBest)
-          {
-            spot::twa_graph_ptr comp1 =
-                cola::complement_semidet_opt(aut);
-            comp1 = postprocessor.run(comp1);
-            if (!res || res->num_states() > comp1->num_states())
-              res = comp1;
-          }
-          if (complement == NCSBPLDIF || complement == NCSBBest)
-          {
-            spot::twa_graph_ptr comp3 =
-                cola::complement_semidet_onthefly(aut);
-            comp3 = postprocessor.run(comp3);
-            if (!res || res->num_states() > comp3->num_states())
-              res = comp3;
-          }
-          if (complement == NCSBPLDIBF || complement == NCSBBest)
-          {
-            spot::twa_graph_ptr comp4 =
-                cola::complement_semidet_opt_onthefly(aut);
-            comp4 = postprocessor.run(comp4);
-            if (!res || res->num_states() > comp4->num_states())
-              res = comp4;
-          }
-          if (complement == NCSBPLDI || complement == NCSBBest)
-          {
-            spot::twa_graph_ptr comp2 =
-                spot::complement_semidet(aut);
-            comp2 = postprocessor.run(comp2);
-            if (!res || res->num_states() > comp2->num_states())
-              res = comp2;
-          }
-          if (complement == NCB)
-          {
-            // myaut is directly input automata
-            // aut is semi_determinize(myaut)
-            res = cola::complement_unambiguous(aut); //, true);
-            res = postprocessor.run(res);
-          }
-          if (complement == NSBC)
-          {
-            res = cola::new_complement_semidet(aut); //, true);
-            // res = postprocessor.run(res);
-          }
-          aut = res;
-        }
-
         if (determinize)
         {
           spot::twa_graph_ptr res = nullptr;
 
           optimizer opt(aut, use_simulation, use_stutter);
-          if (determinize == Parity)
-          {
-            if (debug)
+          if (debug)
             {
-              output_file(aut, "in.hoa");
+              cola::output_file(aut, "in.hoa");
               // std::cout << "start simulation output" << std::endl;
               opt.output_simulation();
               opt.output_reach();
               opt.output_repr();
               std::cout << "end simulation output" << std::endl;
-            }
-
-            clock_t c_start = clock();
+          }
+          clock_t c_start = clock();
+          if (determinize == COLA)
+          {            
             if (is_semi_det)
               res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
             else
               res = cola::determinize_tba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
-            clock_t c_end = clock();
-            std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+          }else if (determinize == LDBA)
+          {
+            res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+          }else if (determinize == NBA)
+          {
+            res = cola::determinize_tba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
           }
           else if (determinize == Spot)
           {
             // pretty_print, use_scc, use_simulation, use_stutter, aborter
             res = spot::tgba_determinize(aut, false, use_scc, use_simulation, use_stutter, nullptr);
           }
+          clock_t c_end = clock();
+          std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+
           aut = res;
         }
       }
@@ -529,11 +460,7 @@ int main(int argc, char *argv[])
       }
       if (output_filename != "")
       {
-        std::ofstream outfile;
-        outfile.open(output_filename);
-        spot::print_hoa(outfile, aut, opts);
-        outfile << "\n";
-        outfile.close();
+       cola::output_file(aut, output_filename.c_str());
       }
       else
       {
@@ -547,3 +474,74 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+// the code for complementation which is currently not existing in command line
+// TODO, add back following code 
+        // if (complement)
+        // {
+        //   spot::twa_graph_ptr res = nullptr;
+        //   spot::postprocessor postprocessor;
+        //   // We don't deal with TBA: (1) complement_semidet() returns a
+        //   // TBA, and (2) in Spot 2.8 spot::postprocessor only knows
+        //   // about state-based BA and Transition-based GBA.  So TBA/TGBA
+        //   // are simply simplified as TGBA.
+        //   postprocessor.set_type(desired_output == BA
+        //                              ? spot::postprocessor::BA
+        //                              : spot::postprocessor::TGBA);
+        //   if (!om.get("postprocess-comp", 1))
+        //   {
+        //     // Disable simplifications except acceptance change.
+        //     postprocessor.set_level(spot::postprocessor::Low);
+        //     postprocessor.set_pref(spot::postprocessor::Any);
+        //   }
+
+        //   if (complement == NCSBSpot || complement == NCSBBest)
+        //   {
+        //     res = spot::complement_semidet(aut);
+        //     res = postprocessor.run(res);
+        //   }
+        //   if (complement == NCSBPLDIB || complement == NCSBBest)
+        //   {
+        //     spot::twa_graph_ptr comp1 =
+        //         cola::complement_semidet_opt(aut);
+        //     comp1 = postprocessor.run(comp1);
+        //     if (!res || res->num_states() > comp1->num_states())
+        //       res = comp1;
+        //   }
+        //   if (complement == NCSBPLDIF || complement == NCSBBest)
+        //   {
+        //     spot::twa_graph_ptr comp3 =
+        //         cola::complement_semidet_onthefly(aut);
+        //     comp3 = postprocessor.run(comp3);
+        //     if (!res || res->num_states() > comp3->num_states())
+        //       res = comp3;
+        //   }
+        //   if (complement == NCSBPLDIBF || complement == NCSBBest)
+        //   {
+        //     spot::twa_graph_ptr comp4 =
+        //         cola::complement_semidet_opt_onthefly(aut);
+        //     comp4 = postprocessor.run(comp4);
+        //     if (!res || res->num_states() > comp4->num_states())
+        //       res = comp4;
+        //   }
+        //   if (complement == NCSBPLDI || complement == NCSBBest)
+        //   {
+        //     spot::twa_graph_ptr comp2 =
+        //         spot::complement_semidet(aut);
+        //     comp2 = postprocessor.run(comp2);
+        //     if (!res || res->num_states() > comp2->num_states())
+        //       res = comp2;
+        //   }
+        //   if (complement == NCB)
+        //   {
+        //     // myaut is directly input automata
+        //     // aut is semi_determinize(myaut)
+        //     res = cola::complement_unambiguous(aut); //, true);
+        //     res = postprocessor.run(res);
+        //   }
+        //   if (complement == NSBC)
+        //   {
+        //     res = cola::new_complement_semidet(aut); //, true);
+        //     // res = postprocessor.run(res);
+        //   }
+        //   aut = res;
+        // }

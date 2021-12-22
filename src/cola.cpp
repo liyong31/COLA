@@ -97,6 +97,18 @@ namespace cola
     return res;
   }
 
+  void output_file(spot::twa_graph_ptr aut, const char *file)
+  {
+    const char *opts = nullptr;
+    std::ofstream outfile;
+    std::string file_name(file);
+    outfile.open(file_name);
+
+    spot::print_hoa(outfile, aut, opts);
+    outfile.close();
+  }
+
+
   spot::twa_graph_ptr
   mstate_merger::run()
   {
