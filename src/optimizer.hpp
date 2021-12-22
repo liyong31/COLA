@@ -24,49 +24,45 @@
 //#include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
-
-// res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
-std::vector<char>
-        find_scc_paths(const spot::scc_info& scc);
-
 class optimizer
 {
-    private:
-        const spot::twa_graph_ptr aut_;
-        // Simplifications options
-        std::vector<std::vector<char>> implies_;
-        // is connected 
-        std::vector<std::vector<char>> is_connected_;
-        // representative for every state
-        std::vector<unsigned> repr_;
-        //spot::scc_info scc_;
-        std::vector<bdd> support_;
+private:
+    const spot::twa_graph_ptr aut_;
+    // Simplifications options
+    std::vector<std::vector<char>> implies_;
+    // is connected
+    std::vector<std::vector<char>> is_connected_;
+    // representative for every state
+    std::vector<unsigned> repr_;
+    //spot::scc_info scc_;
+    std::vector<bdd> support_;
 
-    public:
-        optimizer(const spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
-        optimizer(optimizer& other);
+public:
+    optimizer(const spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
+    optimizer(optimizer &other);
 
     void output_simulation()
     {
-        for(int i = 0; i < implies_.size() ; i ++)
+        for (int i = 0; i < implies_.size(); i++)
         {
-            for(int j = 0; j < implies_[i].size(); j ++)
+            for (int j = 0; j < implies_[i].size(); j++)
             {
-                if( i == j) continue;
+                if (i == j)
+                    continue;
                 // j contains the language of i
                 std::cout << j << " simulates " << i << " : " << (unsigned)(implies_[i][j]) << " " << simulate(j, i) << std::endl;
-
             }
-        }              
+        }
     }
 
     void output_reach()
     {
-        for(int i = 0; i < is_connected_.size(); i ++)
+        for (int i = 0; i < is_connected_.size(); i++)
         {
-            for(int j = 0; j < is_connected_[i].size(); j ++)
+            for (int j = 0; j < is_connected_[i].size(); j++)
             {
-                if(i == j) continue;
+                if (i == j)
+                    continue;
                 std::cout << j << " reaches " << i << " : " << (unsigned)(is_connected_[i][j]) << " " << reach(j, i) << std::endl;
             }
         }
@@ -74,9 +70,9 @@ class optimizer
 
     void output_repr()
     {
-        for(unsigned i = 0; i < aut_->num_states(); i ++)
+        for (unsigned i = 0; i < aut_->num_states(); i++)
         {
-             std::cout << i << " repr " << repr_[i]  << std::endl;
+            std::cout << i << " repr " << repr_[i] << std::endl;
         }
     }
 
@@ -88,12 +84,14 @@ class optimizer
     // state i reach state j
     char reach(unsigned i, unsigned j)
     {
-        if(i == j) return true;
-        if(j < is_connected_.size() && i < is_connected_[j].size())
+        if (i == j)
+            return true;
+        if (j < is_connected_.size() && i < is_connected_[j].size())
         {
             // j is reachable from i
             return is_connected_[j][i];
-        }else 
+        }
+        else
         {
             return 2;
         }
@@ -102,14 +100,15 @@ class optimizer
     // check whether state i simulates state j
     bool simulate(unsigned i, unsigned j)
     {
-        if(i == j) return true;
-        if(j < implies_.size() && i < implies_[j].size())
+        if (i == j)
+            return true;
+        if (j < implies_.size() && i < implies_[j].size())
         {
             return implies_[j][i] > 0;
-        }else 
+        }
+        else
         {
             return false;
         }
     }
-
 };

@@ -40,8 +40,13 @@
 
 // Simple and PowerSet in 1st component,
 // BreakPoint and PowerSet in 2nd component
-enum class State_type {SIMPLE1,PS1,BP2,PS2};
-
+enum class State_type
+{
+  SIMPLE1,
+  PS1,
+  BP2,
+  PS2
+};
 
 typedef unsigned state_t;
 typedef spot::twa_graph::edge_storage_t edge_t;
@@ -55,10 +60,15 @@ typedef typename state_vect::iterator sv_it;
 // TODO: change to class/struct
 typedef std::tuple<unsigned, state_set, state_set> breakpoint_state;
 // In text, P corresponds to R and Q to B.
-struct Bp{enum size_t {LEVEL = 0, P = 1, Q = 2};};
-
-
-
+struct Bp
+{
+  enum size_t
+  {
+    LEVEL = 0,
+    P = 1,
+    Q = 2
+  };
+};
 
 typedef std::vector<state_set> succ_vect;
 
@@ -68,121 +78,117 @@ typedef std::map<state_t, state_t> state_map;
 
 typedef spot::const_twa_graph_ptr const_aut_ptr;
 typedef spot::twa_graph_ptr aut_ptr;
-typedef std::vector<std::string>* state_names;
+typedef std::vector<std::string> *state_names;
 
 typedef std::unique_ptr<succ_vect> succ_vect_ptr;
 
-typedef const spot::option_map* const_om_ptr;
+typedef const spot::option_map *const_om_ptr;
 
 static const state_set empty_set;
 
 // for complementation and determinization
-        enum ncsb
-        {
-            ncsb_n = 0,       // non deterministic
-            ncsb_c = 2 ,       // needs check
-            ncsb_cb = 3,      // needs check AND in breakpoint
-            ncsb_s = 4,       // safe
-            ncsb_m = 1,       // missing
-        };
+enum ncsb
+{
+  ncsb_n = 0,  // non deterministic
+  ncsb_c = 2,  // needs check
+  ncsb_cb = 3, // needs check AND in breakpoint
+  ncsb_s = 4,  // safe
+  ncsb_m = 1,  // missing
+};
 
-        // fengwz
-        enum ncb
-        {
-            ncb_i = 1,  // init phase
-            ncb_n = 6,  // 110
-            ncb_c = 2,  // 10
-            ncb_b = 3,  // 11
-            ncb_m = 0,
-        };
+// fengwz
+enum ncb
+{
+  ncb_i = 1, // init phase
+  ncb_n = 6, // 110
+  ncb_c = 2, // 10
+  ncb_b = 3, // 11
+  ncb_m = 0,
+};
 
-        // N S B C do not intersect each other 
-        enum nsbc
-        {
-            nsbc_n = 1,       // non deterministic
-            nsbc_s = 4,       // safe
-            nsbc_b = 3,       // needs check AND in breakpoint
-            nsbc_c = 2 ,      // needs check 
-            nsbc_m = -1,       // missing
-            nsbc_i = 0,
-        };
+// N S B C do not intersect each other
+enum nsbc
+{
+  nsbc_n = 1,  // non deterministic
+  nsbc_s = 4,  // safe
+  nsbc_b = 3,  // needs check AND in breakpoint
+  nsbc_c = 2,  // needs check
+  nsbc_m = -1, // missing
+  nsbc_i = 0,
+};
 
-       
-        const int detrb_m = -2;     // missing
-        const int detrb_n = -1;     // non deterministic
-        const int detrb_bot = 0;    // bottom
-        const int detrb_d = 1;      // label
+const int detrb_m = -2;  // missing
+const int detrb_n = -1;  // non deterministic
+const int detrb_bot = 0; // bottom
+const int detrb_d = 1;   // label
 
-        typedef std::vector<ncsb> mstate;
-        typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
+typedef std::vector<ncsb> mstate;
+typedef std::vector<std::pair<unsigned, ncsb>> small_mstate;
 
-        typedef std::vector<ncb> macrostate;
-        typedef std::vector<std::pair<unsigned, ncb>> small_macrostate;
+typedef std::vector<ncb> macrostate;
+typedef std::vector<std::pair<unsigned, ncb>> small_macrostate;
 
-        typedef std::vector<nsbc> mcstate;
-        typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
+typedef std::vector<nsbc> mcstate;
+typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
 
-        typedef std::vector<int> dstate;
-        typedef std::vector<std::pair<int, int>> small_dstate;
-        
+typedef std::vector<int> dstate;
+typedef std::vector<std::pair<int, int>> small_dstate;
 
-        struct small_mstate_hash
-        {
-            size_t
-            operator()(small_mstate s) const noexcept
-            {
-              size_t hash = 0;
-              for (const auto& p: s)
-              {
-                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
-              }
-              return hash;
-            }
-        };
+struct small_mstate_hash
+{
+  size_t
+  operator()(small_mstate s) const noexcept
+  {
+    size_t hash = 0;
+    for (const auto &p : s)
+    {
+      hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
+    }
+    return hash;
+  }
+};
 
-        // fengwz
-        struct small_macrostate_hash
-        {
-            size_t
-            operator()(small_macrostate s) const noexcept
-            {
-              size_t hash = 0;
-              for (const auto& p: s)
-              {
-                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
-              }
-              return hash;
-            }
-        };
+// fengwz
+struct small_macrostate_hash
+{
+  size_t
+  operator()(small_macrostate s) const noexcept
+  {
+    size_t hash = 0;
+    for (const auto &p : s)
+    {
+      hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
+    }
+    return hash;
+  }
+};
 
-        // new semi complement
-        struct small_mcstate_hash
-        {
-            size_t
-            operator()(small_mcstate s) const noexcept
-            {
-              size_t hash = 0;
-              for (const auto& p: s)
-              {
-                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
-              }
-              return hash;
-            }
-        };
+// new semi complement
+struct small_mcstate_hash
+{
+  size_t
+  operator()(small_mcstate s) const noexcept
+  {
+    size_t hash = 0;
+    for (const auto &p : s)
+    {
+      hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
+    }
+    return hash;
+  }
+};
 
-        // determinization
-        struct small_dstate_hash
-        {
-            size_t
-            operator()(small_dstate s) const noexcept
-            {
-              size_t hash = 0;
-              for (const auto& p: s)
-              {
-                hash = spot::wang32_hash(hash ^ ((p.first<<2) | p.second));
-              }
-              return hash;
-            }
-        };
-
-
+// determinization
+struct small_dstate_hash
+{
+  size_t
+  operator()(small_dstate s) const noexcept
+  {
+    size_t hash = 0;
+    for (const auto &p : s)
+    {
+      hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
+    }
+    return hash;
+  }
+};
