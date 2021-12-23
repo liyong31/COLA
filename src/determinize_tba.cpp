@@ -97,6 +97,7 @@ namespace cola
     }
 
   public:
+    // this constructor is only for the initial state
     mstate(state_t init_state)
     {
       reach_set_.insert(init_state);
@@ -125,6 +126,10 @@ namespace cola
     bool operator==(const mstate &other) const;
 
     size_t hash() const;
+
+    // A macrostate consists of a set of NBA-states S (reach_set)
+    // and a sequence of deterministic LDBA-states (without explicit construction)
+    // (P_0, Q_0), (P_1, Q_1), ..., (P_k, Q_k) represented by (pset_, qset_)
     // the set of reachable states in this level
     state_set reach_set_;
     // this is the list of nodes that ordered due to later introduction record
@@ -240,7 +245,9 @@ namespace cola
       {
         first = false;
       }
-      res += "(" + get_set_string(ms.pset_[i]) + ", " + get_set_string(ms.qset_[i]) + ") = " + std::to_string(i);
+      res += "(" + get_set_string(ms.pset_[i]) + ", " 
+                 + get_set_string(ms.qset_[i]) + ") = "
+                 + std::to_string(i);
     }
     res += "]";
     return res;
@@ -254,6 +261,7 @@ namespace cola
     }
   };
 
+  // x is contained in y
   bool
   is_subset(state_set &x, state_set &y)
   {
@@ -281,7 +289,7 @@ namespace cola
     // Number of states in the input automaton.
     unsigned nb_states_;
 
-    // unsigned nb_det_states_;
+    // simulation relation of source automaton;
     state_simulator simulator_;
 
     // The parity automata being built.
@@ -290,6 +298,7 @@ namespace cola
     // the number of indices
     unsigned sets_ = 0;
 
+    // option map
     spot::option_map &om_;
 
     // number of colors used
@@ -297,12 +306,10 @@ namespace cola
 
     // use ambiguous
     bool use_unambiguous_;
-
+    // 
     bool use_simulation_;
-
     // use optimization with SCC information
     bool use_scc_;
-
     // use stutter
     bool use_stutter_;
 
@@ -388,9 +395,8 @@ namespace cola
         ms.qset_[i].erase(removed_states.begin(), removed_states.end());
       }
       // keep the empty set
-      //compare (P1, Q1) and (P2, Q2) such that P1 \subseteq P2, and Q1 \superset Q2
+      //compare (P1, Q1) and (P2, Q2) such that P1 = P2, and Q1 \superset Q2
       // then the language of (P1, Q1) includes the language of (P2, Q2)
-      // To be proved
       std::set<unsigned> removed_indices;
       for (unsigned i = 0; i < ms.pset_.size(); i++)
       {
@@ -398,13 +404,14 @@ namespace cola
           continue;
         for (unsigned j = i + 1; j < ms.pset_.size(); j++)
         {
-          //if(i == j) continue;
-          if (is_subset(ms.pset_[i], ms.pset_[j]) && is_subset(ms.qset_[j], ms.qset_[i]))
+          if ((ms.pset_[i] == ms.pset_[j]) && is_subset(ms.qset_[j], ms.qset_[i]))
           {
             removed_indices.insert(j);
           }
         }
       }
+      // if (om_.get(VERBOSE_LEVEL) > 0) 
+        // std::cout << "Removed indices: " << removed_indices.size() << "\n";
       // clear those indices
       for (unsigned i : removed_indices)
       {
@@ -426,7 +433,8 @@ namespace cola
         for (const auto &t : aut_->out(s))
         {
           // ignore unreachable states and states that are not in restructs
-          if (!bdd_implies(letter, t.cond) || (restricts.find(t.dst) == restricts.end()))
+          if (!bdd_implies(letter, t.cond) 
+               || (restricts.find(t.dst) == restricts.end()))
             continue;
           p_prime.insert(t.dst);
           if (t.acc || is_accepting_[t.dst])
@@ -495,7 +503,6 @@ namespace cola
           // via accepting transitions
           if (t.acc || is_accepting_[t.dst])
           {
-            // std::cout << "coming states: " << t.dst << std::endl;
             coming_states.insert(t.dst);
           }
         }
@@ -727,20 +734,6 @@ namespace cola
         // all outgoing transitions are accepting
         is_accepting_[i] = accepting && has_transitions;
       }
-      // std::cout << "now deterministic part: " << std::endl;
-      // Compute which SCCs are part of the deterministic set.
-      //is_deter_ = spot::semidet_sccs(si_);
-      //std::cout << "now deterministic part over " << is_deter_.size() << std::endl;
-      //nb_det_states_ = 0;
-      // for(unsigned i = 0; i < nb_states_; i ++)
-      // {
-      //   std::cout << "scc = " << si_.scc_of(i) << std::endl;
-      //if(is_deter_[si_.scc_of(i)])
-      //{
-      //  nb_det_states_ ++;
-      //}
-      // }
-      // std::cout << "deterministic part computing " << std::endl;
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
       if (show_names_)
@@ -748,15 +741,9 @@ namespace cola
         names_ = new std::vector<std::string>();
         res_->set_named_prop("state-names", names_);
       }
-      // std::cout << "NumS: " << nb_states_ << std::endl;
-      // Because we only handle one initial state, we assume it
-      // belongs to the N set. (otherwise the automaton would be
-      // deterministic)
       unsigned init_state = aut->get_init_state_number();
-      // std::cout << "Init: " << init_state << std::endl;
       mstate new_init_state(init_state);
       unsigned index = new_state(new_init_state);
-      // we assume that the initial state is not in deterministic part
       res_->set_init_state(index);
     }
 
@@ -774,7 +761,8 @@ namespace cola
         // Compute support of all available states.
         bdd msupport = bddtrue;
         bdd n_s_compat = bddfalse;
-        // compute the occurred variables in the outgoing transitions of ms, stored in msupport
+        // compute the occurred variables in the outgoing transitions of ms
+        //, stored in msupport
         for (unsigned s : ms.reach_set_)
         {
           msupport &= support_[s];
@@ -804,23 +792,14 @@ namespace cola
           {
             unsigned pri = (unsigned)color;
             sets_ = std::max(pri, sets_);
-            // std::cout << "src=" << origin << "->" << dst << ": " << letter << " {" << pri << "}" << std::endl;
             res_->new_edge(origin, dst, letter, {pri});
           }
           else
           {
-            // std::cout << "src=" << origin << "->" << dst << ": " << letter << std::endl;
             res_->new_edge(origin, dst, letter);
           }
         }
       }
-      // // now I output states
-      // for(auto p = rank2n_.begin(); p != rank2n_.end(); p ++)
-      // {
-      //   std::cout << "repr = " << get_name(p->first) << " --- " << p->second << "\n";
-      // }
-      // std::cout << "size: = " << bisim2n_.size() << std::endl;
-      // now copy
       // check the number of indices
       unsigned max_odd_pri = -1;
       // sets_ stores the maximal priority has ever seen
@@ -848,12 +827,8 @@ namespace cola
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
-      // spot::print_hoa(std::cout, res_, nullptr);
-      //   std::cout << "\n";
       res_ = postprocess(res_);
       cleanup_parity_here(res_);
-      // spot::print_hoa(std::cout, res_, nullptr);
-      //   std::cout << "\n";
       return res_;
     }
 
@@ -865,8 +840,6 @@ namespace cola
       // record the representative of every SCC
       for (auto p = rank2n_.begin(); p != rank2n_.end(); p++)
       {
-        // std::cout << "state = " << get_name(p->first) << " number = " << p->second << ":\n";
-        // std::cout << "set = " << get_set_string(p->first.reach_set_) << "\n";
         std::set<unsigned> set;
         for (unsigned s : p->first.reach_set_)
         {
