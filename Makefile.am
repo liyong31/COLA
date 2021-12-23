@@ -37,12 +37,12 @@ src_libcola_la_SOURCES =			\
   src/complement.cpp			\
   src/cutdet.cpp				\
   src/cutdet.hpp				\
-  src/determinize.cpp			\
+  src/determinize_tba.cpp			\
+  src/determinize_tldba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
   src/powerset.cpp				\
   src/powerset.hpp				\
-  src/semideterminize.cpp			\
   src/seminator.cpp				\
   src/seminator.hpp				\
   src/types.hpp

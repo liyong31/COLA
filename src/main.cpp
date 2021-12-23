@@ -63,7 +63,8 @@ Input options:
             Check whether the input is unambiguous and use this fact in determinization
 
 Output options:
-    -o FILENAME writes the output from FILENAME instead of stdout
+    --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
+    -o FILENAME Write the output to FILENAME instead of stdout
 
 Optimizations:
     --simulation          Use simulation before determinization
@@ -71,18 +72,15 @@ Optimizations:
     --use-scc             Use SCC information for determinization
 
 Pre- and Post-processing:
-    --preprocess[=0|1]       simplify the input automaton (default)
-    --postprocess[=0|1]      simplify the output of the semi-determinization
-                             algorithm (default)
+    --preprocess[=0|1]       Simplify the input automaton (default)
     --postprocess-det[=0|1|2|3]  simplify the output of the determinization
                              (default=1)
-    --num-states=[INT]       simplify the output with number of states less than INT 
+    --num-states=[INT]       Simplify the output with number of states less than INT 
                              (default: 30000)
-    --merge-transitions      merge transitions in the output automaton
 
 Miscellaneous options:
-  -h, --help    print this help
-  --version     print program version
+  -h, --help    Print this help
+  --version     Print program version
 )";
 }
 
@@ -96,6 +94,19 @@ void check_cout()
   }
 }
 
+unsigned
+parse_int(const std::string &arg)
+{
+  unsigned result;
+  // obtain the substring after '='
+  std::size_t idx = arg.find('=');
+  //std::cout << "Index of = : " << idx << std::endl;
+  std::string number = arg.substr(idx + 1, arg.length());
+  std::istringstream iss(number);
+  iss >> result;
+  return result;
+}
+
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -105,6 +116,13 @@ int main(int argc, char *argv[])
   std::vector<std::string> path_to_files;
 
   spot::option_map om;
+  // default setting
+  om.set(USE_SIMULATION, 1);
+  om.set(USE_STUTTER, 0);
+  om.set(USE_UNAMBIGUITY, 0);
+  om.set(USE_SCC_INFO, 0);
+  om.set(VERBOSE_LEVEL, 0);
+
   bool cut_det = false;
   jobs_type jobs = 0;
   enum complement_t
@@ -136,7 +154,7 @@ int main(int argc, char *argv[])
 
   // options
   bool use_simulation = false;
-  bool merge_transitions = false;
+  //bool merge_transitions = false;
   bool debug = false;
   bool aut_type = false;
   bool use_unambiguous = false;
@@ -167,9 +185,15 @@ int main(int argc, char *argv[])
     else if (arg == "--postprocess-det=3")
       post_process = High;
     else if (arg == "--simulation")
+    {
       use_simulation = true;
+      om.set(USE_SIMULATION, 1);
+    }
     else if (arg == "--use-scc")
+    {
       use_scc = true;
+      om.set(USE_SCC_INFO, 1);
+    }
     // Prefered output
     else if (arg == "--cd")
       cut_det = true;
@@ -177,14 +201,20 @@ int main(int argc, char *argv[])
       cut_det = false;
     else if (arg == "--d")
       debug = true;
-    else if (arg == "--merge-transitions")
-      merge_transitions = true;
+    // else if (arg == "--merge-transitions")
+    //   merge_transitions = true;
     else if (arg == "--type")
       aut_type = true;
     else if (arg == "--unambiguous")
+    {
       use_unambiguous = true;
+      om.set(USE_UNAMBIGUITY, 1);
+    }
     else if (arg == "--stutter")
+    {
       use_stutter = true;
+      om.set(USE_STUTTER, 1);
+    }
     else if (arg == "--determinize=ba")
       determinize = NBA;
     else if (arg == "--determinize=ldba")
@@ -223,12 +253,12 @@ int main(int argc, char *argv[])
     else if (arg.find("--num-states=") != std::string::npos)
     {
       // obtain the substring after '='
-      std::size_t idx = arg.find('=');
-      //std::cout << "Index of = : " << idx << std::endl;
-      std::string number = arg.substr(idx + 1, arg.length());
-      std::istringstream iss(number);
-      iss >> num_post;
+      num_post = parse_int(arg);
       //std::cout << "Input number : " << num_post << std::endl;
+    }
+    else if (arg.find("--verbose=") != std::string::npos)
+    {
+      om.set(VERBOSE_LEVEL, parse_int(arg));
     }
     else if ((arg == "--help") || (arg == "-h"))
     {
@@ -286,16 +316,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (jobs == 0)
-    jobs = AllJobs;
-
-  om.set("output", desired_output);
-
   auto dict = spot::make_bdd_dict();
 
   for (std::string &path_to_file : path_to_files)
   {
-    std::cout << "current path: " << path_to_file << std::endl;
+    if (om.get(VERBOSE_LEVEL))
+      std::cout << "current path: " << path_to_file << std::endl;
     spot::automaton_stream_parser parser(path_to_file);
 
     for (;;)
@@ -376,35 +402,37 @@ int main(int argc, char *argv[])
           }
         }
         clock_t c_end = clock();
-        std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+        if (om.get(VERBOSE_LEVEL) > 0)
+          std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
 
         if (determinize)
         {
           spot::twa_graph_ptr res = nullptr;
-
-          optimizer opt(aut, use_simulation, use_stutter);
-          if (debug)
-            {
-              cola::output_file(aut, "in.hoa");
-              // std::cout << "start simulation output" << std::endl;
-              opt.output_simulation();
-              opt.output_reach();
-              opt.output_repr();
-              std::cout << "end simulation output" << std::endl;
-          }
+          // optimizer opt(aut, use_simulation, use_stutter);
+          // if (debug)
+          //   {
+          //     cola::output_file(aut, "in.hoa");
+          //     // std::cout << "start simulation output" << std::endl;
+          //     opt.output_simulation();
+          //     opt.output_reach();
+          //     opt.output_repr();
+          //     std::cout << "end simulation output" << std::endl;
+          // }
           clock_t c_start = clock();
           if (determinize == COLA)
-          {            
+          {
             if (is_semi_det)
-              res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+              res = cola::determinize_tldba(aut, om);
             else
-              res = cola::determinize_tba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
-          }else if (determinize == LDBA)
+              res = cola::determinize_tba(aut, om);
+          }
+          else if (determinize == LDBA)
           {
-            res = cola::determinize_tldba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
-          }else if (determinize == NBA)
+            res = cola::determinize_tldba(aut, om);
+          }
+          else if (determinize == NBA)
           {
-            res = cola::determinize_tba(aut, debug, opt, use_scc, use_unambiguous, use_stutter);
+            res = cola::determinize_tba(aut, om);
           }
           else if (determinize == Spot)
           {
@@ -412,21 +440,20 @@ int main(int argc, char *argv[])
             res = spot::tgba_determinize(aut, false, use_scc, use_simulation, use_stutter, nullptr);
           }
           clock_t c_end = clock();
-          std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
-
+          if (om.get(VERBOSE_LEVEL) > 0)
+          {
+            std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+          }
           aut = res;
         }
       }
       const char *opts = nullptr;
-
-      if (merge_transitions)
-      {
-        //std::cout << "reach here, merge transitions" << std::endl;
-        aut->merge_edges();
-      }
-      std::cout << "Number of (states, transitions, colors) in the result automaton: (" << aut->num_states() << "," << aut->num_edges() << "," << aut->num_sets() << ")" << std::endl;
+      aut->merge_edges();
+      if (om.get(VERBOSE_LEVEL) > 0)
+        std::cout << "Number of (states, transitions, colors) in the result automaton: ("
+                  << aut->num_states() << "," << aut->num_edges() << "," << aut->num_sets() << ")" << std::endl;
       // postprocessing, remove dead states
-      aut->purge_unreachable_states();
+      //aut->purge_unreachable_states();
       if (post_process != None)
       {
         clock_t c_start = clock();
@@ -434,7 +461,7 @@ int main(int argc, char *argv[])
         {
           aut = spot::minimize_monitor(aut);
         }
-        else if (aut->num_states() < 30000)
+        else if (aut->num_states() < num_post)
         {
           spot::postprocessor p;
           p.set_type(spot::postprocessor::Parity);
@@ -456,11 +483,12 @@ int main(int argc, char *argv[])
           aut = p.run(aut);
         }
         clock_t c_end = clock();
-        std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+        if (om.get(VERBOSE_LEVEL) > 0)
+          std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
       }
       if (output_filename != "")
       {
-       cola::output_file(aut, output_filename.c_str());
+        cola::output_file(aut, output_filename.c_str());
       }
       else
       {
@@ -475,73 +503,73 @@ int main(int argc, char *argv[])
   return 0;
 }
 // the code for complementation which is currently not existing in command line
-// TODO, add back following code 
-        // if (complement)
-        // {
-        //   spot::twa_graph_ptr res = nullptr;
-        //   spot::postprocessor postprocessor;
-        //   // We don't deal with TBA: (1) complement_semidet() returns a
-        //   // TBA, and (2) in Spot 2.8 spot::postprocessor only knows
-        //   // about state-based BA and Transition-based GBA.  So TBA/TGBA
-        //   // are simply simplified as TGBA.
-        //   postprocessor.set_type(desired_output == BA
-        //                              ? spot::postprocessor::BA
-        //                              : spot::postprocessor::TGBA);
-        //   if (!om.get("postprocess-comp", 1))
-        //   {
-        //     // Disable simplifications except acceptance change.
-        //     postprocessor.set_level(spot::postprocessor::Low);
-        //     postprocessor.set_pref(spot::postprocessor::Any);
-        //   }
+// TODO, add back following code
+// if (complement)
+// {
+//   spot::twa_graph_ptr res = nullptr;
+//   spot::postprocessor postprocessor;
+//   // We don't deal with TBA: (1) complement_semidet() returns a
+//   // TBA, and (2) in Spot 2.8 spot::postprocessor only knows
+//   // about state-based BA and Transition-based GBA.  So TBA/TGBA
+//   // are simply simplified as TGBA.
+//   postprocessor.set_type(desired_output == BA
+//                              ? spot::postprocessor::BA
+//                              : spot::postprocessor::TGBA);
+//   if (!om.get("postprocess-comp", 1))
+//   {
+//     // Disable simplifications except acceptance change.
+//     postprocessor.set_level(spot::postprocessor::Low);
+//     postprocessor.set_pref(spot::postprocessor::Any);
+//   }
 
-        //   if (complement == NCSBSpot || complement == NCSBBest)
-        //   {
-        //     res = spot::complement_semidet(aut);
-        //     res = postprocessor.run(res);
-        //   }
-        //   if (complement == NCSBPLDIB || complement == NCSBBest)
-        //   {
-        //     spot::twa_graph_ptr comp1 =
-        //         cola::complement_semidet_opt(aut);
-        //     comp1 = postprocessor.run(comp1);
-        //     if (!res || res->num_states() > comp1->num_states())
-        //       res = comp1;
-        //   }
-        //   if (complement == NCSBPLDIF || complement == NCSBBest)
-        //   {
-        //     spot::twa_graph_ptr comp3 =
-        //         cola::complement_semidet_onthefly(aut);
-        //     comp3 = postprocessor.run(comp3);
-        //     if (!res || res->num_states() > comp3->num_states())
-        //       res = comp3;
-        //   }
-        //   if (complement == NCSBPLDIBF || complement == NCSBBest)
-        //   {
-        //     spot::twa_graph_ptr comp4 =
-        //         cola::complement_semidet_opt_onthefly(aut);
-        //     comp4 = postprocessor.run(comp4);
-        //     if (!res || res->num_states() > comp4->num_states())
-        //       res = comp4;
-        //   }
-        //   if (complement == NCSBPLDI || complement == NCSBBest)
-        //   {
-        //     spot::twa_graph_ptr comp2 =
-        //         spot::complement_semidet(aut);
-        //     comp2 = postprocessor.run(comp2);
-        //     if (!res || res->num_states() > comp2->num_states())
-        //       res = comp2;
-        //   }
-        //   if (complement == NCB)
-        //   {
-        //     // myaut is directly input automata
-        //     // aut is semi_determinize(myaut)
-        //     res = cola::complement_unambiguous(aut); //, true);
-        //     res = postprocessor.run(res);
-        //   }
-        //   if (complement == NSBC)
-        //   {
-        //     res = cola::new_complement_semidet(aut); //, true);
-        //     // res = postprocessor.run(res);
-        //   }
-        //   aut = res;
-        // }
+//   if (complement == NCSBSpot || complement == NCSBBest)
+//   {
+//     res = spot::complement_semidet(aut);
+//     res = postprocessor.run(res);
+//   }
+//   if (complement == NCSBPLDIB || complement == NCSBBest)
+//   {
+//     spot::twa_graph_ptr comp1 =
+//         cola::complement_semidet_opt(aut);
+//     comp1 = postprocessor.run(comp1);
+//     if (!res || res->num_states() > comp1->num_states())
+//       res = comp1;
+//   }
+//   if (complement == NCSBPLDIF || complement == NCSBBest)
+//   {
+//     spot::twa_graph_ptr comp3 =
+//         cola::complement_semidet_onthefly(aut);
+//     comp3 = postprocessor.run(comp3);
+//     if (!res || res->num_states() > comp3->num_states())
+//       res = comp3;
+//   }
+//   if (complement == NCSBPLDIBF || complement == NCSBBest)
+//   {
+//     spot::twa_graph_ptr comp4 =
+//         cola::complement_semidet_opt_onthefly(aut);
+//     comp4 = postprocessor.run(comp4);
+//     if (!res || res->num_states() > comp4->num_states())
+//       res = comp4;
+//   }
+//   if (complement == NCSBPLDI || complement == NCSBBest)
+//   {
+//     spot::twa_graph_ptr comp2 =
+//         spot::complement_semidet(aut);
+//     comp2 = postprocessor.run(comp2);
+//     if (!res || res->num_states() > comp2->num_states())
+//       res = comp2;
+//   }
+//   if (complement == NCB)
+//   {
+//     // myaut is directly input automata
+//     // aut is semi_determinize(myaut)
+//     res = cola::complement_unambiguous(aut); //, true);
+//     res = postprocessor.run(res);
+//   }
+//   if (complement == NSBC)
+//   {
+//     res = cola::new_complement_semidet(aut); //, true);
+//     // res = postprocessor.run(res);
+//   }
+//   aut = res;
+// }

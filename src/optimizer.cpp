@@ -23,33 +23,198 @@
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
-optimizer::optimizer(optimizer &other)
-    : aut_(other.aut_)
+namespace cola
 {
-  this->implies_ = other.implies_;
-  this->support_ = other.support_;
-}
-
-// mostly copied from spot/twaalgos/deterministic.cc in SPOT
-optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter)
-    : aut_(aut)
-{
-
-  if (use_simulation)
+  spot::twa_graph_ptr
+  mstate_merger::run()
   {
+    unsigned num_states = dpa_->num_states();
+    // a map that maps the original mstate to the replaced mstate
+    std::vector<unsigned> replace_states(num_states);
+    // by default the replacement is itself
+    for (unsigned s = 0; s < num_states; s++)
+    {
+      replace_states[s] = s;
+    }
+    spot::scc_info scc(dpa_, spot::scc_info_options::ALL);
+    // reach_sccs[i + scccount*j] = 1 iff SCC i is reachable from SCC j
+    std::vector<char> reach_sccs = find_scc_paths(scc);
+    // whether the state s can reach t
+    auto scc_reach = [&scc, &reach_sccs](unsigned s, unsigned t) -> bool
+    {
+      return s == t || (reach_sccs[t + scc.scc_count() * s]);
+    };
+    // set of states -> the forest of reachability in the states.
+    // output
+    bool debug = false;
+    unsigned num_replaced_states = 0;
+    // Key: set of reached states in NBA, Value: the mstates with the same Key
+    for (auto p = equiv_map_.begin(); p != equiv_map_.end(); p++)
+    {
+      // if there is only one mstate, no need to replace
+      if (p->second.size() <= 1)
+        continue;
+      if (debug)
+      {
+        std::cout << "state = " + get_set_string(p->first) + "\n";
+        for (auto t : p->second)
+        {
+          std::cout << " " << t << "(" << scc.scc_of(t) << ")";
+        }
+        std::cout << "\n";
+      }
+      // now compute states
+      std::vector<unsigned> reach_vec(scc.scc_count());
+      // indicator for no successor SCC
+      unsigned no_next_scc = scc.scc_count();
+      for (unsigned scc_i = 0; scc_i < scc.scc_count(); scc_i++)
+      {
+        // first set to non scc
+        reach_vec[scc_i] = no_next_scc;
+      }
+      std::set<unsigned> not_bottom_set;
+      std::set<unsigned> bottom_set;
+      // traverse the number of states in p->second
+      std::unordered_map<unsigned, unsigned> scc2repr;
+      for (auto s : p->second)
+      {
+        unsigned scc_s_idx = scc.scc_of(s);
+        bottom_set.insert(scc_s_idx);
+        auto val_state = scc2repr.find(scc_s_idx);
+        if (val_state == scc2repr.end())
+        {
+          scc2repr[scc_s_idx] = s;
+        }
+        else
+        {
+          // keep the smallest one
+          scc2repr[scc_s_idx] = std::min(s, scc2repr[scc_s_idx]);
+        }
+      }
+      // if all mstates are in the same SCC, no need to replace states
+      if (bottom_set.size() <= 1)
+      {
+        continue;
+      }
+      // check the reachability of SCCs
+      for (auto fst_scc : bottom_set)
+      {
+        for (auto snd_scc : bottom_set)
+        {
+          if (fst_scc == snd_scc)
+            continue;
+          if (scc_reach(fst_scc, snd_scc))
+          {
+            // only record the smallest SCC that fst_scc can reach so far
+            reach_vec[fst_scc] = std::min(snd_scc, reach_vec[fst_scc]);
+            // record the SCC that have successors
+            not_bottom_set.insert(fst_scc);
+            continue;
+          }
+        }
+      }
+      if (debug)
+      {
+        std::cout << "Bottom set: {";
+        for (auto s : bottom_set)
+        {
+          if (not_bottom_set.find(s) == not_bottom_set.end())
+          {
+            std::cout << " " << s << " (state=" << scc2repr[s] << ")";
+          }
+          else
+          {
+            std::cout << " " << s << "(next=" << reach_vec[s] << ") ";
+          }
+        }
+        std::cout << "}\n";
+      }
+      // reach the bottom scc from a given scc
+      auto get_bottom_scc = [&reach_vec, &no_next_scc](unsigned scc_idx) -> unsigned
+      {
+        while (true)
+        {
+          if (reach_vec[scc_idx] == no_next_scc)
+          {
+            break;
+          }
+          scc_idx = reach_vec[scc_idx];
+        }
+        return scc_idx;
+      };
+      // compute the replacement of each state
+      for (auto t : p->second)
+      {
+        unsigned scc_idx = scc.scc_of(t);
+        unsigned bottom_scc_idx = get_bottom_scc(scc_idx);
+        // if t is not in the bottom scc, then it can be replace by a state in
+        // the bottom scc
+        if (bottom_scc_idx != scc_idx)
+        {
+          replace_states[t] = scc2repr[bottom_scc_idx];
+          ++num_replaced_states;
+        }
+      }
+    }
+    if (num_replaced_states == 0)
+    {
+      return dpa_;
+    }
+    // now construct new DPAs
+    spot::twa_graph_ptr res = spot::make_twa_graph(dpa_->get_dict());
+    res->copy_ap_of(dpa_);
+    res->prop_copy(dpa_,
+                   {
+                       false,        // state based
+                       false,        // inherently_weak
+                       false, false, // deterministic
+                       true,         // complete
+                       false         // stutter inv
+                   });
+    for (unsigned s = 0; s < num_states; s++)
+    {
+      res->new_state();
+    }
+    for (auto &t : dpa_->edges())
+    {
+      // out going transition for t.src
+      if (t.src == replace_states[t.src] && t.dst == replace_states[t.dst])
+      {
+        res->new_edge(t.src, t.dst, t.cond, t.acc);
+      }
+      else if (t.src == replace_states[t.src] && t.dst != replace_states[t.dst])
+      {
+        res->new_edge(t.src, replace_states[t.dst], t.cond, t.acc);
+      }
+      // igonre the rest cases
+      //t.src != replace_states[t.src] && t.dst == replace_states[t.dst])
+      //t.src != replace_states[t.src] && t.dst != replace_states[t.dst])
+    }
+    res->set_init_state(replace_states[dpa_->get_init_state_number()]);
+    // now acceptance condition
+    res->set_acceptance(dpa_->num_sets(), spot::acc_cond::acc_code::parity_min_even(dpa_->num_sets()));
+    if (dpa_->prop_complete().is_true())
+      res->prop_complete(true);
+    res->prop_universal(true);
+    res->prop_state_acc(false);
+    // remove unreachable macrostates
+    res->purge_unreachable_states();
+    return res;
+  }
 
+  // -------------- state_simulator ----------------------
+  state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, bool use_simulation)
+      : nba_(nba), si_(si)
+  {
+    if (!use_simulation)
+    {
+      return;
+    }
     //std::cout << "output simulation" << std::endl;
     std::vector<bdd> implications;
-    auto aut_tmp = spot::scc_filter(aut);
+    auto aut_tmp = spot::scc_filter(nba_);
     auto aut2 = simulation(aut_tmp, &implications);
-    aut = aut2;
-    // now compute
-    spot::scc_info_options scc_opt = spot::scc_info_options::TRACK_SUCCS;
-    // We do need to track states in SCC for stutter invariance (see below how
-    // supports are computed in this case)
-    if (use_stutter && aut->prop_stutter_invariant())
-      scc_opt = spot::scc_info_options::TRACK_SUCCS | spot::scc_info_options::TRACK_STATES;
-    spot::scc_info scc = spot::scc_info(aut, scc_opt);
+    auto aut = aut2;
 
     // copied to optimizer
     //scc_ = scc;
@@ -58,10 +223,8 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
         implications.size(),
         std::vector<char>(implications.size(), 0));
     {
-      std::vector<char> is_connected = cola::find_scc_paths(scc);
-      unsigned sccs = scc.scc_count();
-      std::vector<std::vector<char>> reach_sccs(aut_->num_states(), std::vector<char>(aut_->num_states(), 2));
-      is_connected_ = reach_sccs;
+      is_connected_ = find_scc_paths(si);
+      unsigned sccs = si.scc_count();
       bool something_implies_something = false;
       for (unsigned i = 0; i != implications.size(); ++i)
       {
@@ -72,20 +235,17 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
         // FIXME based on the scc_info, we could remove the unreachable
         // states, both in the input automaton and in 'implications'
         // to reduce the size of 'implies'.
-        if (!scc.reachable_state(i))
+        if (!si_.reachable_state(i))
           continue;
-        unsigned scc_of_i = scc.scc_of(i);
+        unsigned scc_of_i = si_.scc_of(i);
         bool i_implies_something = false;
         for (unsigned j = 0; j != implications.size(); ++j)
         {
           //reachable states
-          if (!scc.reachable_state(j))
+          if (!si_.reachable_state(j))
             continue;
-          // SCC i is reachable from SCC j
-          is_connected_[i][j] = is_connected[sccs * scc.scc_of(j) + scc_of_i];
           // j simulates i and j cannot reach i
-          bool i_implies_j = //!is_connected[sccs * scc.scc_of(j) + scc_of_i] &&
-              bdd_implies(implications[i], implications[j]);
+          bool i_implies_j = bdd_implies(implications[i], implications[j]);
           implies[i][j] = i_implies_j;
           i_implies_something |= i_implies_j;
         }
@@ -98,70 +258,46 @@ optimizer::optimizer(spot::twa_graph_ptr aut, bool use_simulation, bool use_stut
       if (!something_implies_something)
       {
         implies.clear();
-        use_simulation = false;
       }
     }
     // store simulation relation
     implies_ = implies;
+  }
 
-    // Compute the support of each state
-    std::vector<bdd> support(aut->num_states());
-    if (use_stutter && aut->prop_stutter_invariant())
+  void state_simulator::output_simulation()
+  {
+    for (int i = 0; i < implies_.size(); i++)
     {
-      // FIXME this could be improved
-      // supports of states should account for possible stuttering if we plan
-      // to use stuttering invariance
-      for (unsigned c = 0; c != scc.scc_count(); ++c)
+      for (int j = 0; j < implies_[i].size(); j++)
       {
-        bdd c_supp = scc.scc_ap_support(c);
-        for (const auto &su : scc.succ(c))
-          c_supp &= support[scc.one_state_of(su)];
-        for (unsigned st : scc.states_of(c))
-          support[st] = c_supp;
+        if (i == j)
+          continue;
+        // j contains the language of i
+        std::cout << j << " simulates " << i << " : " << (unsigned)(implies_[i][j]) << " " << simulate(j, i) << std::endl;
       }
+    }
+  }
+
+  // state i reach state j
+  char state_simulator::can_reach(unsigned i, unsigned j)
+  {
+    unsigned scc_of_i = si_.scc_of(i);
+    unsigned scc_of_j = si_.scc_of(j);
+    // test whether j is reachable from i
+    return is_connected_[scc_of_j + si_.scc_count() * scc_of_i];
+  }
+  // check whether state i simulates state j
+  bool state_simulator::simulate(unsigned i, unsigned j)
+  {
+    if (i == j)
+      return true;
+    if (j < implies_.size() && i < implies_[j].size())
+    {
+      return implies_[j][i] > 0;
     }
     else
     {
-      for (unsigned i = 0; i != aut->num_states(); ++i)
-      {
-        bdd res = bddtrue;
-        for (const auto &e : aut->out(i))
-          res &= bdd_support(e.cond);
-        support[i] = res;
-      }
-    }
-    support_ = support;
-  }
-  else
-  {
-    std::vector<std::vector<char>> implies(
-        1,
-        std::vector<char>(0, 0));
-    implies_ = implies;
-    std::vector<std::vector<char>> is_connected(1, std::vector<char>(0, 0));
-    is_connected_ = is_connected;
-  }
-  // now compute the representative
-  unsigned num_states = aut_->num_states();
-  std::vector<unsigned> representative(num_states, -1);
-  for (unsigned s = 0; s < num_states; s++)
-  {
-    representative[s] = s;
-  }
-  // now compute the representative
-  for (unsigned s = 0; s < num_states; s++)
-  {
-    for (unsigned t = 0; t < num_states; t++)
-    {
-      if (s == t)
-        continue;
-      if (simulate(s, t) && simulate(t, s))
-      {
-        representative[s] = std::max(representative[s], t);
-        representative[t] = std::max(representative[t], s);
-      }
+      return false;
     }
   }
-  repr_ = representative;
 }
-

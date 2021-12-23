@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "cola.hpp"
+
 #include <set>
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/simulation.hh>
@@ -24,91 +26,69 @@
 //#include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
-class optimizer
+typedef unsigned state_t;
+typedef std::set<state_t> state_set;
+
+struct state_set_hash
 {
-private:
-    const spot::twa_graph_ptr aut_;
-    // Simplifications options
-    std::vector<std::vector<char>> implies_;
-    // is connected
-    std::vector<std::vector<char>> is_connected_;
-    // representative for every state
-    std::vector<unsigned> repr_;
-    //spot::scc_info scc_;
-    std::vector<bdd> support_;
-
-public:
-    optimizer(const spot::twa_graph_ptr aut, bool use_simulation, bool use_stutter);
-    optimizer(optimizer &other);
-
-    void output_simulation()
+  size_t
+  operator()(const state_set &s) const noexcept
+  {
+    size_t hash = 0;
+    for (const auto &p : s)
     {
-        for (int i = 0; i < implies_.size(); i++)
-        {
-            for (int j = 0; j < implies_[i].size(); j++)
-            {
-                if (i == j)
-                    continue;
-                // j contains the language of i
-                std::cout << j << " simulates " << i << " : " << (unsigned)(implies_[i][j]) << " " << simulate(j, i) << std::endl;
-            }
-        }
+      hash = spot::wang32_hash(p);
     }
-
-    void output_reach()
-    {
-        for (int i = 0; i < is_connected_.size(); i++)
-        {
-            for (int j = 0; j < is_connected_[i].size(); j++)
-            {
-                if (i == j)
-                    continue;
-                std::cout << j << " reaches " << i << " : " << (unsigned)(is_connected_[i][j]) << " " << reach(j, i) << std::endl;
-            }
-        }
-    }
-
-    void output_repr()
-    {
-        for (unsigned i = 0; i < aut_->num_states(); i++)
-        {
-            std::cout << i << " repr " << repr_[i] << std::endl;
-        }
-    }
-
-    unsigned get_repr(unsigned s)
-    {
-        return repr_[s];
-    }
-
-    // state i reach state j
-    char reach(unsigned i, unsigned j)
-    {
-        if (i == j)
-            return true;
-        if (j < is_connected_.size() && i < is_connected_[j].size())
-        {
-            // j is reachable from i
-            return is_connected_[j][i];
-        }
-        else
-        {
-            return 2;
-        }
-    }
-
-    // check whether state i simulates state j
-    bool simulate(unsigned i, unsigned j)
-    {
-        if (i == j)
-            return true;
-        if (j < implies_.size() && i < implies_[j].size())
-        {
-            return implies_[j][i] > 0;
-        }
-        else
-        {
-            return false;
-        }
-    }
+    return hash;
+  }
 };
+
+// put together the mstates with the same reachable states of input NBA
+typedef std::unordered_map<state_set, state_set, state_set_hash> mstate_equiv_map;
+
+namespace cola
+{
+  /// \brief Merge the macro states in the constructed DPA
+  class mstate_merger
+  {
+  private:
+    // the constructed DPA to be reduced
+    spot::twa_graph_ptr &dpa_;
+    // mstates that are identified with the same language
+    // Item = (set of reachable states of NBA, the set of mstates with the set of reachable states).
+    const mstate_equiv_map &equiv_map_;
+
+  public:
+    mstate_merger(spot::twa_graph_ptr &dpa, const mstate_equiv_map &equiv_map)
+        : dpa_(dpa), equiv_map_(equiv_map)
+    {
+    }
+
+    spot::twa_graph_ptr
+    run();
+  };
+
+  // compute the simulation relation of the states of the input NBA
+  class state_simulator
+  {
+  private:
+    // the constructed DPA to be reduced
+    const spot::const_twa_graph_ptr &nba_;
+    // language containment indicator
+    std::vector<std::vector<char>> implies_;
+    // the SCC information of states
+    spot::scc_info &si_;
+    // reachability relation of SCCs by find SCC paths
+    std::vector<char> is_connected_;
+
+  public:
+    state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, bool use_simulation = true);
+    // do nothing constructor
+    void output_simulation();
+    //void output_reachability_relation();
+    // state i reach state j
+    char can_reach(unsigned i, unsigned j);
+    // check whether state i simulates state j
+    bool simulate(unsigned i, unsigned j);
+  };
+}

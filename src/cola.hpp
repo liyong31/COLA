@@ -19,29 +19,20 @@
 
 #include <set>
 #include <map>
+#include <vector>
 #include <fstream>
 #include <string>
 
 #include <spot/twaalgos/hoa.hh>
+#include <spot/misc/optionmap.hh>
+#include <spot/twaalgos/sccinfo.hh>
 
-using state_t = unsigned;
-using state_set = std::set<state_t>;
-
-struct state_set_hash
-{
-  size_t
-  operator()(const state_set &s) const noexcept
-  {
-    size_t hash = 0;
-    for (const auto &p : s)
-    {
-      hash = spot::wang32_hash(p);
-    }
-    return hash;
-  }
-};
-// put together the mstates with the same reachable states of input NBA
-using mstate_equiv_map = std::unordered_map<state_set, state_set, state_set_hash>;
+// options for the determinization constructions
+static const char *USE_SIMULATION = "use-simulation";
+static const char *USE_STUTTER = "use-stutter";
+static const char *USE_SCC_INFO = "use-scc";
+static const char *USE_UNAMBIGUITY = "use-unambiguity";
+static const char *VERBOSE_LEVEL = "verbose-level";
 
 namespace cola
 {
@@ -83,15 +74,15 @@ namespace cola
   /// The automaton \a aut should be a semideterminisitc.
   /// Output a deterministic parity automaton
   spot::twa_graph_ptr
-  determinize_tldba(const spot::const_twa_graph_ptr &aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter);
+  determinize_tldba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
   /// \brief Determinizing TBA by combining the semi-determinization of TBA
-  /// and the determinization of TLDBA 
+  /// and the determinization of TLDBA
   ///
   /// The automaton \a aut should have Buchi condition.
   /// Output a deterministic parity automaton
   spot::twa_graph_ptr
-  determinize_tba(const spot::const_twa_graph_ptr &aut, bool show_names, optimizer &opt, bool use_scc, bool use_unambiguous, bool use_stutter);
+  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
   /// \brief Testing whether the input is an elevator automata in which every scc is either deterministic
   /// or inherently weak (i.e., the states/transitions are either all accepting or nonaccepting)
@@ -103,33 +94,14 @@ namespace cola
   /// \brief Output the set of states
   ///
   std::string
-  get_set_string(const state_set &set);
+  get_set_string(const std::set<unsigned> &set);
 
   /// \brief Compute the reachability of the SCCs
-  /// 
+  ///
   ///
   /// Output a vector res such that res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
   std::vector<char>
   find_scc_paths(const spot::scc_info &scc);
-
-  class mstate_merger
-  {
-  private:
-    // the constructed DPA to be reduced
-    spot::twa_graph_ptr &dpa_;
-    // mstates that are identified with the same language
-    // Item = (set of reachable states of NBA, the set of mstates with the set of reachable states).
-    const mstate_equiv_map &equiv_map_;
-
-  public:
-    mstate_merger(spot::twa_graph_ptr &dpa, const mstate_equiv_map &equiv_map)
-        : dpa_(dpa), equiv_map_(equiv_map)
-    {
-    }
-
-    spot::twa_graph_ptr
-    run();
-  };
 
   /// \brief Output an automaton to a file
   void output_file(spot::twa_graph_ptr aut, const char *file);
