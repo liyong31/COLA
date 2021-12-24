@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
   spot::option_map om;
   // default setting
-  om.set(USE_SIMULATION, 1);
+  om.set(USE_SIMULATION, 0);
   om.set(USE_STUTTER, 0);
   om.set(USE_UNAMBIGUITY, 0);
   om.set(USE_SCC_INFO, 0);
@@ -315,6 +315,7 @@ int main(int argc, char *argv[])
       path_to_files.emplace_back("-");
     }
   }
+  //path_to_files.push_back("formula_52_nba.hoa");
 
   auto dict = spot::make_bdd_dict();
 
@@ -401,14 +402,20 @@ int main(int argc, char *argv[])
             return 1;
           }
         }
+        if(om.get(VERBOSE_LEVEL) >= 2)
+        {
+          cola::output_file(aut, "sim_aut.hoa");
+          std::cout << "Output processed automaton (" << aut->num_states() << ", " << aut->num_edges() << ") to sim_aut.hoa\n";
+        }
         clock_t c_end = clock();
-        if (om.get(VERBOSE_LEVEL) > 0)
+        if (om.get(VERBOSE_LEVEL) > 0) 
+        {
           std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
-
-        if (determinize)
+        }
+        if (determinize != NoDeterminize)
         {
           spot::twa_graph_ptr res = nullptr;
-          clock_t c_start = clock();
+          c_start = clock();
           if (determinize == COLA)
           {
             if (is_semi_det)
@@ -429,7 +436,7 @@ int main(int argc, char *argv[])
             // pretty_print, use_scc, use_simulation, use_stutter, aborter
             res = spot::tgba_determinize(aut, false, use_scc, use_simulation, use_stutter, nullptr);
           }
-          clock_t c_end = clock();
+          c_end = clock();
           if (om.get(VERBOSE_LEVEL) > 0)
           {
             std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;

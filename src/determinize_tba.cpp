@@ -49,11 +49,10 @@
 namespace cola
 {
 
-  template <class T>
-  struct pair_compare
+  struct set_pair_compare
   {
-    bool operator()(const std::pair<T, T> &lhs,
-                    const std::pair<T, T> &rhs) const
+    bool operator()(const std::pair<state_set, state_set> &lhs,
+                    const std::pair<state_set, state_set> &rhs) const
     {
       if (lhs.first == rhs.first)
         return lhs.second < rhs.second;
@@ -67,13 +66,13 @@ namespace cola
   const int RANK_N = -1; // nondeterministic
   const int RANK_M = -2; // missing value
 
-  void copy_set_to(state_set &S1, state_set &S2)
-  {
-    for (auto s : S1)
-    {
-      S2.insert(s);
-    }
-  }
+  // void copy_set_to(state_set &S1, state_set &S2)
+  // {
+  //   for (auto s : S1)
+  //   {
+  //     S2.insert(s);
+  //   }
+  // }
   // macrostate
   class mstate final
   {
@@ -97,7 +96,6 @@ namespace cola
     }
 
   public:
-    // this constructor is only for the initial state
     mstate(state_t init_state)
     {
       reach_set_.insert(init_state);
@@ -105,31 +103,59 @@ namespace cola
     mstate(const mstate &other)
     {
       reach_set_.clear();
-      state_set oreach_set = other.reach_set_;
-      copy_set_to(oreach_set, reach_set_);
+      for(auto s : other.reach_set_)
+      {
+        reach_set_.insert(s);
+      }
       pset_.clear();
       qset_.clear();
       for (unsigned i = 0; i < other.pset_.size(); i++)
       {
         state_set pset;
         state_set qset;
-        state_set opset = other.pset_[i];
-        state_set oqset = other.qset_[i];
-        copy_set_to(opset, pset);
-        copy_set_to(oqset, qset);
+        for(auto s : other.pset_[i])
+        {
+          pset.insert(s);
+        }
         pset_.push_back(pset);
+        for(auto s : other.qset_[i])
+        {
+          qset.insert(s);
+        }
         qset_.push_back(qset);
       }
     }
     mstate() {}
+    mstate& operator=(const mstate &other)
+    {
+      reach_set_.clear();
+      for(auto s : other.reach_set_)
+      {
+        reach_set_.insert(s);
+      }
+      pset_.clear();
+      qset_.clear();
+      for (unsigned i = 0; i < other.pset_.size(); i++)
+      {
+        state_set pset;
+        state_set qset;
+        for(auto s : other.pset_[i])
+        {
+          pset.insert(s);
+        }
+        pset_.push_back(pset);
+        for(auto s : other.qset_[i])
+        {
+          qset.insert(s);
+        }
+        qset_.push_back(qset);
+      }
+      return *this;
+    }
     bool operator<(const mstate &other) const;
     bool operator==(const mstate &other) const;
 
     size_t hash() const;
-
-    // A macrostate consists of a set of NBA-states S (reach_set)
-    // and a sequence of deterministic LDBA-states (without explicit construction)
-    // (P_0, Q_0), (P_1, Q_1), ..., (P_k, Q_k) represented by (pset_, qset_)
     // the set of reachable states in this level
     state_set reach_set_;
     // this is the list of nodes that ordered due to later introduction record
@@ -143,7 +169,7 @@ namespace cola
     size_t hash = 0;
     for (auto i : uset) // not sure how you're storing them
     {
-      hash = ((31 * hash) + (unsigned)i);
+      hash = (hash << 3) ^ ((unsigned)i);
     }
     return hash;
   }
@@ -245,9 +271,9 @@ namespace cola
       {
         first = false;
       }
-      res += "(" + get_set_string(ms.pset_[i]) + ", " 
-                 + get_set_string(ms.qset_[i]) + ") = "
-                 + std::to_string(i);
+      res += "(" + get_set_string(ms.pset_[i]) 
+          + ", " + get_set_string(ms.qset_[i])
+          + ") = " + std::to_string(i);
     }
     res += "]";
     return res;
@@ -261,7 +287,6 @@ namespace cola
     }
   };
 
-  // x is contained in y
   bool
   is_subset(state_set &x, state_set &y)
   {
@@ -282,14 +307,14 @@ namespace cola
     const spot::const_twa_graph_ptr aut_;
 
     // SCCs information of the source automaton.
-    spot::scc_info si_;
+    spot::scc_info& si_;
 
     //optimizer opt_;
 
     // Number of states in the input automaton.
     unsigned nb_states_;
 
-    // simulation relation of source automaton;
+    // unsigned nb_det_states_;
     state_simulator simulator_;
 
     // The parity automata being built.
@@ -298,18 +323,19 @@ namespace cola
     // the number of indices
     unsigned sets_ = 0;
 
-    // option map
-    spot::option_map &om_;
+    spot::option_map& om_;
 
     // number of colors used
     unsigned num_colors_;
 
     // use ambiguous
     bool use_unambiguous_;
-    // 
+
     bool use_simulation_;
+
     // use optimization with SCC information
     bool use_scc_;
+
     // use stutter
     bool use_stutter_;
 
@@ -343,16 +369,17 @@ namespace cola
     unsigned
     new_state(mstate &s)
     {
-      //std::cout << "new state: " << get_name(s) << std::endl;
+      // std::cout << "new state: " << get_name(s) << std::endl;
       //mstate s_p(s);
       // std::cout << "copy state: " << get_name(s) << std::endl;
-      auto p = rank2n_.emplace(s, 0);
+      mstate dup(s);
+      auto p = rank2n_.emplace(dup, 0);
       if (p.second) // This is a new state
       {
         p.first->second = res_->new_state();
         if (show_names_)
           names_->push_back(get_name(p.first->first));
-        todo_.emplace_back(s, p.first->second);
+        todo_.emplace_back(dup, p.first->second);
       }
       return p.first->second;
     }
@@ -366,37 +393,52 @@ namespace cola
     void
     make_simulation_state(mstate &ms)
     {
-      state_set reached_states;
       state_set removed_states;
-      for (auto s : ms.reach_set_)
+      state_set reach_states;
+
+      for(auto s : ms.reach_set_)
       {
-        reached_states.insert(s);
+        reach_states.insert(s);
       }
-      for (unsigned i : reached_states)
+
+      for (unsigned i : reach_states)
       {
-        for (unsigned j : reached_states)
+        for (unsigned j : reach_states)
         {
           // if j is not reached at this level
           if (i == j)
             continue;
-          //std::cout << "start simulated" << std::endl;
           // j simulates i and j cannot reach i
-          if (simulator_.simulate(j, i) && simulator_.can_reach(j, i) == 0)
+          if (simulator_.simulate(j, i) 
+            && simulator_.can_reach(j, i) == 0)
           {
             removed_states.insert(i);
           }
         }
       }
+      ms.reach_set_.clear();
       // now remove all states in removed_states
-      ms.reach_set_.erase(removed_states.begin(), removed_states.end());
-      for (unsigned i = 0; i < ms.pset_.size(); i++)
+      std::set_difference(reach_states.begin(), reach_states.end()
+                        , removed_states.begin(), removed_states.end()
+                        , std::inserter(ms.reach_set_, ms.reach_set_.begin()));
+
+      for (unsigned i = 0; !removed_states.empty() && i < ms.pset_.size(); i++)
       {
-        ms.pset_[i].erase(removed_states.begin(), removed_states.end());
-        ms.qset_[i].erase(removed_states.begin(), removed_states.end());
+        state_set pset;
+        std::set_difference(ms.pset_[i].begin(), ms.pset_[i].end()
+                        , removed_states.begin(), removed_states.end()
+                        , std::inserter(pset, pset.begin()));
+        ms.pset_[i] = pset;
+        state_set qset;
+        std::set_difference(ms.qset_[i].begin(), ms.qset_[i].end()
+                        , removed_states.begin(), removed_states.end()
+                        , std::inserter(qset, qset.begin()));
+        ms.qset_[i] = qset;
       }
       // keep the empty set
-      //compare (P1, Q1) and (P2, Q2) such that P1 = P2, and Q1 \superset Q2
+      //compare (P1, Q1) and (P2, Q2) such that P1 \subseteq P2, and Q1 \superset Q2
       // then the language of (P1, Q1) includes the language of (P2, Q2)
+      // To be proved
       std::set<unsigned> removed_indices;
       for (unsigned i = 0; i < ms.pset_.size(); i++)
       {
@@ -404,14 +446,13 @@ namespace cola
           continue;
         for (unsigned j = i + 1; j < ms.pset_.size(); j++)
         {
-          if ((ms.pset_[i] == ms.pset_[j]) && is_subset(ms.qset_[j], ms.qset_[i]))
+          //if(i == j) continue;
+          if (is_subset(ms.pset_[i], ms.pset_[j]) && is_subset(ms.qset_[j], ms.qset_[i]))
           {
             removed_indices.insert(j);
           }
         }
       }
-      // if (om_.get(VERBOSE_LEVEL) > 0) 
-        // std::cout << "Removed indices: " << removed_indices.size() << "\n";
       // clear those indices
       for (unsigned i : removed_indices)
       {
@@ -421,34 +462,34 @@ namespace cola
     }
 
     std::pair<state_set, state_set>
-    get_set_successors(const state_set &P, const state_set &Q, bdd letter, const state_set &restricts, bool &acc)
+    get_set_successors(const state_set &p, const state_set &q
+            , bdd letter, const state_set &restricts, bool &acc)
     {
       state_set p_prime;
       state_set p_acc_prime;
       state_set q_dprime;
       state_set q_prime;
 
-      for (auto s : P)
+      for (auto s : p)
       {
         for (const auto &t : aut_->out(s))
         {
-          // ignore unreachable states and states that are not in restructs
-          if (!bdd_implies(letter, t.cond) 
-               || (restricts.find(t.dst) == restricts.end()))
+          // ignore unreachable states and 
+          // states that are not in restructs
+          if (!bdd_implies(letter, t.cond)
+             || (restricts.find(t.dst) == restricts.end()))
             continue;
           p_prime.insert(t.dst);
           if (t.acc || is_accepting_[t.dst])
           {
             p_acc_prime.insert(t.dst);
           }
-          if (Q.find(s) != Q.end())
+          if (q.find(s) != q.end())
           {
             q_prime.insert(t.dst);
           }
         }
       }
-      // std::cout << "P = " << get_set_string(P) << " Q = " << get_set_string(Q) << " letter = " << letter << std::endl;
-      // std::cout << "P' = " << get_set_string(p_prime) << " Q' = " << get_set_string(q_prime) << " PA' = " << get_set_string(p_acc_prime) << std::endl;
       q_dprime.insert(q_prime.begin(), q_prime.end());
       q_dprime.insert(p_acc_prime.begin(), p_acc_prime.end());
       if (q_dprime == p_prime)
@@ -461,7 +502,6 @@ namespace cola
         acc = false;
         q_prime = q_dprime;
       }
-      // std::cout << "Final : P' = " << get_set_string(p_prime) << " Q' = " << get_set_string(q_prime) << std::endl;
       return std::make_pair(p_prime, q_prime);
     }
 
@@ -507,25 +547,21 @@ namespace cola
           }
         }
       }
+
       // now compute the successors for (P, Q) states
-      std::set<std::pair<std::string, std::string>, pair_compare<std::string>> visited;
+      std::set<std::pair<state_set, state_set>, set_pair_compare> visited;
       unsigned acc_index = ms.pset_.size();
       unsigned rej_index = ms.pset_.size();
       for (unsigned i = 0; i < ms.pset_.size(); i++)
       {
         bool accepting_trans = false;
         std::pair<state_set, state_set> set_pair = get_set_successors(ms.pset_[i], ms.qset_[i], letter, succ.reach_set_, accepting_trans);
-        state_set pset_succ = set_pair.first;
-        state_set qset_succ = set_pair.second;
-        // std::cout << "P = " << get_set_string(ms.pset_[i]) << " Q = " << get_set_string(ms.qset_[i]) << std::endl;
-        // std::cout << "P' = " << get_set_string(pset_succ) << " Q' = " << get_set_string(qset_succ) << " Acc = " << accepting_trans << std::endl;
         // check whether this set is already existing
-        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(pset_succ), get_set_string(qset_succ));
-        if (visited.find(str_pair) == visited.end())
+        if (visited.find(set_pair) == visited.end())
         {
-          succ.pset_.push_back(pset_succ);
-          succ.qset_.push_back(qset_succ);
-          visited.insert(str_pair);
+          succ.pset_.push_back(set_pair.first);
+          succ.qset_.push_back(set_pair.second);
+          visited.insert(set_pair);
         }
         else
         // already there, so ignore
@@ -542,22 +578,17 @@ namespace cola
         state_set acc_set;
         acc_set.insert(s);
         state_set empty_set;
-        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(acc_set), get_set_string(empty_set));
-        if (visited.find(str_pair) == visited.end())
+        std::pair<state_set, state_set> set_pair = std::make_pair(acc_set, empty_set);
+        if (visited.find(set_pair) == visited.end())
         {
           succ.pset_.push_back(acc_set);
           succ.qset_.push_back(empty_set);
         }
       }
-      // std::cout << "state= " << get_name(ms) << " letter = " << letter << std::endl;
-      // std::cout << "State before simulation: " << get_name(succ) << std::endl;
-      // remove redudant states
-      if (use_simulation_)
-        make_simulation_state(succ);
-      // std::cout << "State after simulation: " << get_name(succ) << std::endl;
-      // now compute min_dcc (minimal index disappeared) and min_acc (minimal index accepted)
-      // std::cout << "ms-num= " << ms.pset_.size() << " succ-num=" << succ.pset_.size() << std::endl;
-      //rej_index = std::min(rej_index, succ.pset_.size());
+      // remove redudant states with simulation relation
+      if (use_simulation_) make_simulation_state(succ);
+      
+      // update acc and rej
       for (unsigned i = 0; i < ms.pset_.size() && i < succ.pset_.size(); i++)
       {
         if (succ.pset_[i].empty())
@@ -569,7 +600,6 @@ namespace cola
           acc_index = std::min(acc_index, i);
         }
       }
-      //std::cout << "Acc = " << acc_index << " rej = " << rej_index << "\n";
 
       int parity;
       int acc_color = 2 * ((int)acc_index + 1);
@@ -592,22 +622,23 @@ namespace cola
       }
       std::vector<state_set> pset;
       std::vector<state_set> qset;
-      // std::cout << "Reorganize  \n";
-      visited.clear();
       for (unsigned i = 0; i < succ.pset_.size(); i++)
       {
-        std::pair<std::string, std::string> str_pair = std::make_pair(get_set_string(succ.pset_[i]), get_set_string(succ.qset_[i]));
-        if (visited.find(str_pair) == visited.end() && !succ.pset_[i].empty())
+        pset.push_back(succ.pset_[i]);
+        qset.push_back(succ.qset_[i]);
+      }
+      visited.clear();
+      succ.pset_.clear();
+      succ.qset_.clear();
+      for (unsigned i = 0; i < pset.size(); i++)
+      {
+        std::pair<state_set, state_set> set_pair = std::make_pair(pset[i], qset[i]);
+        if (visited.find(set_pair) == visited.end() && !pset[i].empty())
         {
-          pset.push_back(succ.pset_[i]);
-          qset.push_back(succ.qset_[i]);
+          succ.pset_.push_back(pset[i]);
+          succ.qset_.push_back(qset[i]);
         }
       }
-      succ.pset_ = pset;
-      succ.qset_ = qset;
-      // std::cout << "Final state = " << get_name(succ) << " color=" << parity<< std::endl;
-      // now we find whether there is bisimulate-states
-      //new_bisim_state(succ);
       nxt = succ;
       color = parity;
     }
@@ -688,19 +719,19 @@ namespace cola
     }
 
   public:
-    tba_determinize(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+    tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info& si, spot::option_map& om, std::vector<bdd>& implications)
         : aut_(aut),
           om_(om),
           use_simulation_(om.get(USE_SIMULATION) > 0),
           use_scc_(om.get(USE_SCC_INFO) > 0),
           use_stutter_(om.get(USE_STUTTER) > 0),
           use_unambiguous_(om.get(USE_UNAMBIGUITY) > 0),
-          si_(aut, spot::scc_info_options::ALL),
+          si_(si),
           nb_states_(aut->num_states()),
           support_(nb_states_),
           compat_(nb_states_),
           is_accepting_(nb_states_),
-          simulator_(aut_, si_, use_simulation_),
+          simulator_(aut_, si, implications, om.get(USE_SIMULATION) > 0),
           show_names_(om.get(VERBOSE_LEVEL) >= 2)
     {
       res_ = spot::make_twa_graph(aut->get_dict());
@@ -734,6 +765,10 @@ namespace cola
         // all outgoing transitions are accepting
         is_accepting_[i] = accepting && has_transitions;
       }
+
+      //std::cout << "Simulator\n";
+      //simulator_.output_simulation();
+
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
       if (show_names_)
@@ -741,9 +776,11 @@ namespace cola
         names_ = new std::vector<std::string>();
         res_->set_named_prop("state-names", names_);
       }
+
       unsigned init_state = aut->get_init_state_number();
       mstate new_init_state(init_state);
       unsigned index = new_state(new_init_state);
+      // we assume that the initial state is not in deterministic part
       res_->set_init_state(index);
     }
 
@@ -761,8 +798,7 @@ namespace cola
         // Compute support of all available states.
         bdd msupport = bddtrue;
         bdd n_s_compat = bddfalse;
-        // compute the occurred variables in the outgoing transitions of ms
-        //, stored in msupport
+        // compute the occurred variables in the outgoing transitions of ms, stored in msupport
         for (unsigned s : ms.reach_set_)
         {
           msupport &= support_[s];
@@ -779,7 +815,6 @@ namespace cola
 
           mstate succ;
           int color = -1;
-          // std::cout << "Current state=" << get_name(ms) << std::endl;
           //rank_successors(std::move(ms), top.second, letter, succ, color);
           make_stutter_state(ms, top.second, letter, succ, color);
 
@@ -800,6 +835,7 @@ namespace cola
           }
         }
       }
+
       // check the number of indices
       unsigned max_odd_pri = -1;
       // sets_ stores the maximal priority has ever seen
@@ -827,8 +863,12 @@ namespace cola
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
+      // spot::print_hoa(std::cout, res_, nullptr);
+      //   std::cout << "\n";
       res_ = postprocess(res_);
       cleanup_parity_here(res_);
+      // spot::print_hoa(std::cout, res_, nullptr);
+      //   std::cout << "\n";
       return res_;
     }
 
@@ -861,21 +901,36 @@ namespace cola
       }
       mstate_merger merger(aut, set2scc);
       spot::twa_graph_ptr res = merger.run();
-      if (om_.get(VERBOSE_LEVEL) >= 1)
-        std::cout << "The number of states reduced by mstate_merger: "
-                  << (aut->num_states() - res->num_states()) << " {out of "
-                  << aut->num_states() << "}" << std::endl;
+      if(om_.get(VERBOSE_LEVEL) >= 1)
+         std::cout << "The number of states reduced by mstate_merger: "
+              << (aut->num_states() - res->num_states()) << " {out of "
+              << aut->num_states() << "}" << std::endl;
       return res;
     }
   };
 
   spot::twa_graph_ptr
-  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map& om)
   {
     if (!aut->acc().is_buchi())
       throw std::runtime_error("determinize_tba() requires a Buchi input");
+    // now we compute the simulator
+    spot::const_twa_graph_ptr aut_reduced;
+    std::vector<bdd> implications;
+    spot::twa_graph_ptr aut_tmp = nullptr;
+    if (om.get(USE_SIMULATION) > 0)
+    {
+      aut_tmp = spot::scc_filter(aut);
+      auto aut2 = simulation(aut_tmp, &implications);
+      aut_tmp = aut2;
+    }
+    if (aut_tmp)
+      aut_reduced = aut_tmp;
+    else 
+      aut_reduced = aut;
+    spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
 
-    auto det = cola::tba_determinize(aut, om);
+    auto det = cola::tba_determinize(aut_reduced, scc, om, implications);
     return det.run();
   }
 }

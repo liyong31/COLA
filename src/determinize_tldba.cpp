@@ -77,7 +77,7 @@ namespace cola
     const spot::const_twa_graph_ptr aut_;
 
     // SCCs information of the source automaton.
-    spot::scc_info si_;
+    spot::scc_info& si_;
 
     // Number of states in the input automaton.
     unsigned nb_states_;
@@ -268,6 +268,7 @@ namespace cola
           continue;
         reached_states.push_back(i);
       }
+      //std::cout << "reach states = " << get_set_string(reached_states) << std::endl;
       for (unsigned i : reached_states)
       {
         for (unsigned j : reached_states)
@@ -275,8 +276,11 @@ namespace cola
           // if j is not reached at this level
           if (i == j)
             continue;
+          // std::cout << "i = " << i << " j = " << j << std::endl;
           //std::cout << "start simulated" << std::endl;
           // j simulates i and j cannot reach i
+          // std::cout << "simulator_.simulate(j, i) " << simulator_.simulate(j, i) << std::endl;
+          // std::cout << "simulator_.can_reach(j, i) " << simulator_.can_reach(j, i) << std::endl;
           if (simulator_.simulate(j, i) && simulator_.can_reach(j, i) == 0)
           {
             // std::cout << "simulated" << std::endl;
@@ -366,10 +370,8 @@ namespace cola
       std::sort(coming_states.begin(), coming_states.end());
       for (unsigned s : coming_states)
       {
-        // std::cout << " " << s;
         succ[s] = ++max_rnk;
       }
-      // std::cout << "\n";
       // now we compute the rank successors
       for (int rnk = max_rnk; rnk >= 0; rnk--)
       {
@@ -415,6 +417,7 @@ namespace cola
           }
         }
       }
+
       // remove redudant states
       if (use_simulation_)
         make_simulation_state(succ);
@@ -589,19 +592,19 @@ namespace cola
     }
 
   public:
-    ldba_determinize(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+    ldba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info& si, spot::option_map &om, std::vector<bdd>& implications)
         : aut_(aut),
           om_(om),
           use_simulation_(om.get(USE_SIMULATION) > 0),
           use_scc_(om.get(USE_SCC_INFO) > 0),
           use_stutter_(om.get(USE_STUTTER) > 0),
           use_unambiguous_(om.get(USE_UNAMBIGUITY) > 0),
-          si_(aut, spot::scc_info_options::ALL),
+          si_(si),
           nb_states_(aut->num_states()),
           support_(nb_states_),
           compat_(nb_states_),
           is_accepting_(nb_states_),
-          simulator_(aut_, si_, use_simulation_),
+          simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           show_names_(om.get(VERBOSE_LEVEL) >= 2)
     {
       res_ = spot::make_twa_graph(aut->get_dict());
@@ -689,6 +692,7 @@ namespace cola
 
           mstate succ;
           int color = -1;
+          // std::cout << "Curr = " << get_name(to_small_mstate(ms)) << " letter = " << letter << std::endl;
           //compute_labelling_successors(std::move(ms), top.second, letter, succ, color);
           make_stutter_state(std::move(ms), top.second, letter, succ, color);
 
@@ -751,7 +755,6 @@ namespace cola
       // record the representative of every SCC
       for (auto p = rank2n_.begin(); p != rank2n_.end(); p++)
       {
-        //std::cout << "state = " << get_name(p->first) << ":\n";
         std::set<unsigned> set;
         // first the set of reached states
         for (auto tuple : p->first)
@@ -788,7 +791,23 @@ namespace cola
     if (!is_semi_deterministic(aut))
       throw std::runtime_error("determinize_tldba() requires a semi-deterministic input");
 
-    auto det = cola::ldba_determinize(aut, om);
+    // now we compute the simulator
+        // now we compute the simulator
+    spot::const_twa_graph_ptr aut_reduced;
+    std::vector<bdd> implications;
+    spot::twa_graph_ptr aut_tmp = nullptr;
+    if (om.get(USE_SIMULATION) > 0)
+    {
+      aut_tmp = spot::scc_filter(aut);
+      auto aut2 = simulation(aut_tmp, &implications);
+      aut_tmp = aut2;
+    }
+    if (aut_tmp)
+      aut_reduced = aut_tmp;
+    else 
+      aut_reduced = aut;
+    spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
+    auto det = cola::ldba_determinize(aut_reduced, scc, om, implications);
     return det.run();
   }
 }

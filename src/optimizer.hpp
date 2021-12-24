@@ -75,14 +75,16 @@ namespace cola
     // the constructed DPA to be reduced
     const spot::const_twa_graph_ptr &nba_;
     // language containment indicator
-    std::vector<std::vector<char>> implies_;
+    //std::vector<std::vector<char>> implies_;
+    std::vector<std::vector<bool>> is_implies_;
     // the SCC information of states
     spot::scc_info &si_;
     // reachability relation of SCCs by find SCC paths
     std::vector<char> is_connected_;
 
   public:
-    state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, bool use_simulation = true);
+    state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd>& implications, bool use_simulation = true);
+    state_simulator(const state_simulator& other);
     // do nothing constructor
     void output_simulation();
     //void output_reachability_relation();

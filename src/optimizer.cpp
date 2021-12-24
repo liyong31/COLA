@@ -190,6 +190,9 @@ namespace cola
       //t.src != replace_states[t.src] && t.dst == replace_states[t.dst])
       //t.src != replace_states[t.src] && t.dst != replace_states[t.dst])
     }
+    // names
+    // auto sn = dpa_->get_named_prop<std::vector<std::string>>("state-names");
+    // if(sn) res->copy_state_names_from(dpa_);
     res->set_init_state(replace_states[dpa_->get_init_state_number()]);
     // now acceptance condition
     res->set_acceptance(dpa_->num_sets(), spot::acc_cond::acc_code::parity_min_even(dpa_->num_sets()));
@@ -203,21 +206,22 @@ namespace cola
   }
 
   // -------------- state_simulator ----------------------
-  state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, bool use_simulation)
+  state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd>& implications, bool use_simulation)
       : nba_(nba), si_(si)
   {
     if (!use_simulation)
     {
       return;
     }
-    //std::cout << "output simulation" << std::endl;
-    std::vector<bdd> implications;
-    auto aut_tmp = spot::scc_filter(nba_);
-    auto aut2 = simulation(aut_tmp, &implications);
-    auto aut = aut2;
-
-    // copied to optimizer
-    //scc_ = scc;
+    for(unsigned i = 0; i < nba_->num_states(); i ++)
+    {
+      std::vector<bool> elem;
+      for(unsigned j = 0; j < nba_->num_states(); j ++)
+      {
+        elem.push_back(i == j);
+      }
+      is_implies_.push_back(elem);
+    }
     // If use_simulation is false, implications is empty, so nothing is built
     std::vector<std::vector<char>> implies(
         implications.size(),
@@ -261,19 +265,45 @@ namespace cola
       }
     }
     // store simulation relation
-    implies_ = implies;
-  }
-
-  void state_simulator::output_simulation()
-  {
-    for (int i = 0; i < implies_.size(); i++)
+    for (int i = 0; i < implies.size(); i++)
     {
-      for (int j = 0; j < implies_[i].size(); j++)
+      for (int j = 0; j < implies[i].size(); j++)
       {
         if (i == j)
           continue;
         // j contains the language of i
-        std::cout << j << " simulates " << i << " : " << (unsigned)(implies_[i][j]) << " " << simulate(j, i) << std::endl;
+        is_implies_[j][i] =  (implies[i][j]  >= 1);
+      }
+    }
+  }
+  state_simulator::state_simulator(const state_simulator& other)
+  :nba_(other.nba_), si_(other.si_)
+  {
+    for(unsigned i = 0; i < other.is_implies_.size(); i ++)
+    {
+      std::vector<bool> elem;
+      for(unsigned j = 0; j < other.is_implies_[i].size(); j ++)
+      {
+        elem.push_back(other.is_implies_[i][j]);
+      }
+      this->is_implies_.push_back(elem);
+    }
+    for(unsigned i = 0; i < other.is_connected_.size(); i ++)
+    {
+      this->is_connected_.push_back(other.is_connected_[i]);
+    }
+  }
+
+  void state_simulator::output_simulation()
+  {
+    for (int i = 0; i < is_implies_.size(); i++)
+    {
+      for (int j = 0; j <  is_implies_[i].size(); j++)
+      {
+        if (i == j || !is_implies_[i][j])
+          continue;
+        // j contains the language of i
+        std::cout << j << " is simulated by " << i << " : " << (is_implies_[i][j]) << std::endl;
       }
     }
   }
@@ -289,15 +319,6 @@ namespace cola
   // check whether state i simulates state j
   bool state_simulator::simulate(unsigned i, unsigned j)
   {
-    if (i == j)
-      return true;
-    if (j < implies_.size() && i < implies_[j].size())
-    {
-      return implies_[j][i] > 0;
-    }
-    else
-    {
-      return false;
-    }
+    return is_implies_[i][j];
   }
 }
