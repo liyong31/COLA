@@ -366,11 +366,11 @@ int main(int argc, char *argv[])
         {
           std::cout << "elevator" << std::endl;
         }
-        else if (is_unambiguous(aut))
+        if (is_unambiguous(aut))
         {
           std::cout << "unambiguous" << std::endl;
         }
-        else if (!type)
+        if (!type)
         {
           std::cout << "nondeterministic" << std::endl;
         }
@@ -391,14 +391,22 @@ int main(int argc, char *argv[])
       else if (!is_deterministic(aut))
       {
         clock_t c_start = clock();
-        bool is_semi_det = is_semi_deterministic(aut);
+        // bool is_semi_det = is_semi_deterministic(aut);
+        bool is_elevator = cola::is_elevator_automaton(aut);
         {
           // preprocessing for the input.
           spot::postprocessor preprocessor;
           aut = preprocessor.run(aut);
-          if (!is_semi_deterministic(aut) && is_semi_det)
+          // aut = spot::reduce_direct_sim(aut);
+          // aut = spot::reduce_direct_cosim(aut);
+          // if (!is_semi_deterministic(aut) && is_semi_det)
+          // {
+          //   std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;
+          //   return 1;
+          // }
+          if (!cola::is_elevator_automaton(aut) && is_elevator)
           {
-            std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;
+            std::cerr << "Automata after preprocessing that are not elevator..." << std::endl;
             return 1;
           }
         }
@@ -412,13 +420,13 @@ int main(int argc, char *argv[])
         {
           std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
         }
-        if (determinize != NoDeterminize)
+        if (determinize != NoDeterminize && aut->acc().is_buchi())
         {
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
           if (determinize == COLA)
           {
-            if (is_semi_det)
+            if (is_elevator)
               res = cola::determinize_tldba(aut, om);
             else
               res = cola::determinize_tba(aut, om);
@@ -442,6 +450,10 @@ int main(int argc, char *argv[])
             std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
           }
           aut = res;
+        }else if (aut->acc().is_all())
+        {
+          // trivial acceptance condition
+          aut = spot::minimize_monitor(aut);
         }
       }
       const char *opts = nullptr;

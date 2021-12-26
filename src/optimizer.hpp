@@ -92,5 +92,6 @@ namespace cola
     char can_reach(unsigned i, unsigned j);
     // check whether state i simulates state j
     bool simulate(unsigned i, unsigned j);
+    char can_reach_scc(unsigned scc1, unsigned scc2);
   };
 }

@@ -413,14 +413,19 @@ namespace cola
             && simulator_.can_reach(j, i) == 0)
           {
             removed_states.insert(i);
+            auto it = ms.reach_set_.find(i);
+            if(it != ms.reach_set_.end()) 
+            {
+              ms.reach_set_.erase(it);
+            }
           }
         }
       }
-      ms.reach_set_.clear();
+      // ms.reach_set_.clear();
       // now remove all states in removed_states
-      std::set_difference(reach_states.begin(), reach_states.end()
-                        , removed_states.begin(), removed_states.end()
-                        , std::inserter(ms.reach_set_, ms.reach_set_.begin()));
+      // std::set_difference(reach_states.begin(), reach_states.end()
+      //                   , removed_states.begin(), removed_states.end()
+      //                   , std::inserter(ms.reach_set_, ms.reach_set_.begin()));
 
       for (unsigned i = 0; !removed_states.empty() && i < ms.pset_.size(); i++)
       {

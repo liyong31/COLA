@@ -209,6 +209,7 @@ namespace cola
   state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd>& implications, bool use_simulation)
       : nba_(nba), si_(si)
   {
+    is_connected_ = find_scc_paths(si);
     if (!use_simulation)
     {
       return;
@@ -227,7 +228,6 @@ namespace cola
         implications.size(),
         std::vector<char>(implications.size(), 0));
     {
-      is_connected_ = find_scc_paths(si);
       unsigned sccs = si.scc_count();
       bool something_implies_something = false;
       for (unsigned i = 0; i != implications.size(); ++i)
@@ -315,6 +315,11 @@ namespace cola
     unsigned scc_of_j = si_.scc_of(j);
     // test whether j is reachable from i
     return is_connected_[scc_of_j + si_.scc_count() * scc_of_i];
+  }
+
+  char state_simulator::can_reach_scc(unsigned scc1, unsigned scc2)
+  {
+    return is_connected_[scc2 + si_.scc_count() * scc1];
   }
   // check whether state i simulates state j
   bool state_simulator::simulate(unsigned i, unsigned j)

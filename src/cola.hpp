@@ -104,6 +104,13 @@ namespace cola
   find_scc_paths(const spot::scc_info &scc);
 
   /// \brief Output an automaton to a file
-  void output_file(spot::twa_graph_ptr aut, const char *file);
+  void output_file(spot::const_twa_graph_ptr aut, const char *file);
+
+  std::vector<bool>
+  get_deterministic_sccs(spot::scc_info &scc);
+
+  // /// \brief Output an automaton to a file
+  // std::vector<bool>
+  // is_reachable_weak_sccs(const spot::scc_info &scc, state_simulator& sim);
 
 }

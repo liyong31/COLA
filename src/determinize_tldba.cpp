@@ -18,6 +18,7 @@
 
 //#include "optimizer.hpp"
 #include "cola.hpp"
+#include "bscc.hpp"
 //#include "struct.hpp"
 
 #include <deque>
@@ -120,7 +121,10 @@ namespace cola
 
     // Whether a SCC is deterministic or not
     std::vector<bool> is_deter_;
-
+    // Whether a SCC is weak and can be reached by an accepting SCC
+    // std::vector<bool> is_weak_;
+    // SCC reachability
+    // std::vector<char> scc_reachability_;
     // Whether a state only has accepting transitions
     std::vector<bool> is_accepting_;
 
@@ -280,7 +284,7 @@ namespace cola
           //std::cout << "start simulated" << std::endl;
           // j simulates i and j cannot reach i
           // std::cout << "simulator_.simulate(j, i) " << simulator_.simulate(j, i) << std::endl;
-          // std::cout << "simulator_.can_reach(j, i) " << simulator_.can_reach(j, i) << std::endl;
+          std::cout << "simulator_.can_reach(j, i) " << simulator_.can_reach(j, i) << std::endl;
           if (simulator_.simulate(j, i) && simulator_.can_reach(j, i) == 0)
           {
             // std::cout << "simulated" << std::endl;
@@ -306,6 +310,7 @@ namespace cola
       std::vector<bool> ignores(nb_states_, false);
       // first handle nondeterministic states
       std::vector<unsigned> coming_states;
+      std::vector<unsigned> bottom_scc_states;
       //std::vector<unsigned> acc_coming_states;
       for (unsigned s = 0; s < nb_states_; ++s)
       {
@@ -348,8 +353,8 @@ namespace cola
             }
             else
             {
-              // transition when seeing deterministic states
-              jump = is_deter_[si_.scc_of(t.dst)];
+              // either it is deterministic, or the SCC is accepting in nondeterministic inherently weak
+              jump = is_deter_[si_.scc_of(t.dst)] || si_.is_accepting_scc(si_.scc_of(t.dst));
             }
             if (jump)
             {
@@ -357,7 +362,7 @@ namespace cola
               {
                 coming_states.push_back(t.dst);
                 succ[t.dst] = max_rnk + 1; //Sharing labels
-                //succ[t.dst] = ++ max_rnk;
+                // succ[t.dst] = ++ max_rnk;
               }
             }
             else
@@ -515,10 +520,10 @@ namespace cola
     void
     make_stutter_state(const mstate &curr, unsigned origin, bdd letter, mstate &succ, int &color)
     {
-      mstate ms(nb_states_, RANK_M);
+      mstate ms;//(nb_states_, RANK_M);
       for (unsigned s = 0; s < nb_states_; s++)
       {
-        ms[s] = curr[s];
+        ms.push_back(curr[s]);
       }
       std::vector<mstate> stutter_path;
       if (use_stutter_ && aut_->prop_stutter_invariant())
@@ -607,6 +612,10 @@ namespace cola
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           show_names_(om.get(VERBOSE_LEVEL) >= 2)
     {
+      if(om.get(VERBOSE_LEVEL) >= 2)
+      {
+        simulator_.output_simulation();
+      }
       res_ = spot::make_twa_graph(aut->get_dict());
       res_->copy_ap_of(aut);
       res_->prop_copy(aut,
@@ -639,7 +648,7 @@ namespace cola
       }
       // std::cout << "now deterministic part: " << std::endl;
       // Compute which SCCs are part of the deterministic set.
-      is_deter_ = spot::semidet_sccs(si_);
+      is_deter_ = get_deterministic_sccs(si_);
       // std::cout << "deterministic part computing " << std::endl;
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
@@ -692,9 +701,8 @@ namespace cola
 
           mstate succ;
           int color = -1;
-          // std::cout << "Curr = " << get_name(to_small_mstate(ms)) << " letter = " << letter << std::endl;
           //compute_labelling_successors(std::move(ms), top.second, letter, succ, color);
-          make_stutter_state(std::move(ms), top.second, letter, succ, color);
+          make_stutter_state(ms, top.second, letter, succ, color);
 
           unsigned origin = top.second;
           // add transitions
@@ -788,7 +796,7 @@ namespace cola
   spot::twa_graph_ptr
   determinize_tldba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   {
-    if (!is_semi_deterministic(aut))
+    if (!is_elevator_automaton(aut))
       throw std::runtime_error("determinize_tldba() requires a semi-deterministic input");
 
     // now we compute the simulator

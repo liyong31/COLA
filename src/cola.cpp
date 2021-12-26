@@ -46,10 +46,24 @@ namespace cola
     for (unsigned scc = 0; scc < nc; ++scc)
     {
       if (is_deterministic_scc(scc, si) || spot::is_inherently_weak_scc(si, scc))
-        continue;
+      {
+          continue;
+      }
       return false;
     }
     return true;
+  }
+
+  std::vector<bool>
+  get_deterministic_sccs(spot::scc_info &si)
+  {
+    std::vector<bool> res;
+    unsigned nc = si.scc_count();
+    for (unsigned scc = 0; scc < nc; ++scc)
+    {
+      res.push_back(is_deterministic_scc(scc, si));
+    }
+    return res;
   }
 
   std::string
@@ -97,7 +111,7 @@ namespace cola
     return res;
   }
 
-  void output_file(spot::twa_graph_ptr aut, const char *file)
+  void output_file(spot::const_twa_graph_ptr aut, const char *file)
   {
     const char *opts = nullptr;
     std::ofstream outfile;
@@ -107,4 +121,23 @@ namespace cola
     spot::print_hoa(outfile, aut, opts);
     outfile.close();
   }
+
+    /// \brief Output an automaton to a file
+  // std::vector<bool>
+  // is_reachable_weak_sccs(const spot::scc_info &si, state_simulator& sim)
+  // {
+  //   std::vector<bool> res;
+  //   unsigned nc = si.scc_count();
+  //   for (unsigned sc = 0; sc < nc; ++sc)
+  //   {
+  //     res.push_back(false);
+  //     if( spot::is_inherently_weak_scc(s, sc) && )
+  //     {
+
+  //     }
+  //     if (is_deterministic_scc(scc, si) || spot::is_inherently_weak_scc(si, scc))
+  //       continue;
+  //     return false;
+  //   }
+  // }
 }
