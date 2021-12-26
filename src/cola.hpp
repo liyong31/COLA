@@ -109,6 +109,9 @@ namespace cola
   std::vector<bool>
   get_deterministic_sccs(spot::scc_info &scc);
 
+  std::vector<bool>
+  get_elevator_sccs(spot::scc_info &scc);
+
   // /// \brief Output an automaton to a file
   // std::vector<bool>
   // is_reachable_weak_sccs(const spot::scc_info &scc, state_simulator& sim);

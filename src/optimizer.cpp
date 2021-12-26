@@ -143,15 +143,21 @@ namespace cola
         return scc_idx;
       };
       // compute the replacement of each state
+      unsigned smallest_bottom_scc = scc.scc_count();
       for (auto t : p->second)
       {
         unsigned scc_idx = scc.scc_of(t);
         unsigned bottom_scc_idx = get_bottom_scc(scc_idx);
         // if t is not in the bottom scc, then it can be replace by a state in
         // the bottom scc
-        if (bottom_scc_idx != scc_idx)
+        smallest_bottom_scc = std::min(smallest_bottom_scc, bottom_scc_idx);
+      }
+      for (auto t : p->second)
+      {
+        unsigned scc_idx = scc.scc_of(t);
+        if (smallest_bottom_scc != scc_idx)
         {
-          replace_states[t] = scc2repr[bottom_scc_idx];
+          replace_states[t] = scc2repr[smallest_bottom_scc];
           ++num_replaced_states;
         }
       }

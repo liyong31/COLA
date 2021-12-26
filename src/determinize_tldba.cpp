@@ -106,6 +106,8 @@ namespace cola
 
     bool use_simulation_;
 
+    bool is_semi_det_;
+
     // Association between labelling states and state numbers of the
     // DPA.
     std::unordered_map<small_mstate, unsigned, small_mstate_hash> rank2n_;
@@ -121,12 +123,6 @@ namespace cola
 
     // Whether a SCC is deterministic or not
     std::vector<bool> is_deter_;
-    // Whether a SCC is weak and can be reached by an accepting SCC
-    // std::vector<bool> is_weak_;
-    // SCC reachability
-    // std::vector<char> scc_reachability_;
-    // Whether a state only has accepting transitions
-    std::vector<bool> is_accepting_;
 
     // State names for graphviz display
     std::vector<std::string> *names_;
@@ -272,7 +268,6 @@ namespace cola
           continue;
         reached_states.push_back(i);
       }
-      //std::cout << "reach states = " << get_set_string(reached_states) << std::endl;
       for (unsigned i : reached_states)
       {
         for (unsigned j : reached_states)
@@ -280,19 +275,15 @@ namespace cola
           // if j is not reached at this level
           if (i == j)
             continue;
-          // std::cout << "i = " << i << " j = " << j << std::endl;
-          //std::cout << "start simulated" << std::endl;
           // j simulates i and j cannot reach i
-          // std::cout << "simulator_.simulate(j, i) " << simulator_.simulate(j, i) << std::endl;
-          std::cout << "simulator_.can_reach(j, i) " << simulator_.can_reach(j, i) << std::endl;
           if (simulator_.simulate(j, i) && simulator_.can_reach(j, i) == 0)
           {
             // std::cout << "simulated" << std::endl;
             ms[i] = RANK_M;
           }
-          // (j, k1) and (i, k2), if j simulates i and k1 <= k2, then remove k2
+          // (j, k1) and (i, k2), if j simulates i and k1 < k2, then remove k2
           // Note that here i and j are not equivalent
-          if (simulator_.simulate(j, i) && ms[j] > RANK_N && ms[j] <= ms[i])
+          if (simulator_.simulate(j, i) && ms[j] > RANK_N && ms[j] < ms[i])
           {
             ms[i] = RANK_M;
           }
@@ -354,7 +345,7 @@ namespace cola
             else
             {
               // either it is deterministic, or the SCC is accepting in nondeterministic inherently weak
-              jump = is_deter_[si_.scc_of(t.dst)] || si_.is_accepting_scc(si_.scc_of(t.dst));
+              jump = is_deter_[si_.scc_of(t.dst)];
             }
             if (jump)
             {
@@ -608,7 +599,7 @@ namespace cola
           nb_states_(aut->num_states()),
           support_(nb_states_),
           compat_(nb_states_),
-          is_accepting_(nb_states_),
+          // is_accepting_(nb_states_),
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           show_names_(om.get(VERBOSE_LEVEL) >= 2)
     {
@@ -644,12 +635,18 @@ namespace cola
         }
         support_[i] = res_support;
         compat_[i] = res_compat;
-        is_accepting_[i] = accepting && has_transitions;
+        // is_accepting_[i] = accepting && has_transitions;
       }
-      // std::cout << "now deterministic part: " << std::endl;
+      is_semi_det_ = spot::is_semi_deterministic(aut);
       // Compute which SCCs are part of the deterministic set.
-      is_deter_ = get_deterministic_sccs(si_);
-      // std::cout << "deterministic part computing " << std::endl;
+      if (is_semi_det_)
+      {
+        is_deter_ = spot::semidet_sccs(si_);
+      } else
+      {
+        // the SCCs that counts
+        is_deter_ = get_elevator_sccs(si_);
+      }
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
       if (show_names_)
@@ -687,8 +684,7 @@ namespace cola
           if (ms[s] != RANK_M)
           {
             msupport &= support_[s];
-            if (ms[s] != RANK_M || is_accepting_[s])
-              n_s_compat |= compat_[s];
+            n_s_compat |= compat_[s];
           }
 
         bdd all = n_s_compat;

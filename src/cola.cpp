@@ -140,4 +140,25 @@ namespace cola
   //     return false;
   //   }
   // }
+  std::vector<bool>
+  get_elevator_sccs(spot::scc_info &si)
+  {
+    unsigned nscc = si.scc_count();
+    assert(nscc);
+    std::vector<bool> reachable_from_acc(nscc);
+    std::vector<bool> res(nscc);
+    do // iterator of SCCs in reverse topological order
+      {
+        --nscc;
+        // larger nscc is closer to initial state?
+        if (si.is_accepting_scc(nscc) || reachable_from_acc[nscc])
+          {
+            for (unsigned succ: si.succ(nscc))
+              reachable_from_acc[succ] = true;
+            res[nscc] = true;
+          }
+      }
+    while (nscc);
+    return res;
+  }
 }
