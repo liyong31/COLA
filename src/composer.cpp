@@ -44,12 +44,12 @@ namespace cola
         std::priority_queue<spot::twa_graph_ptr, std::vector<spot::twa_graph_ptr>, aut_compare> autlist;
         for (auto& aut : dpas_)
         {
-            spot::twa_graph_ptr tmp = spot::dualize(aut);
+            // spot::twa_graph_ptr tmp = spot::dualize(aut);
             spot::postprocessor p;
             // p.set_pref(spot::postprocessor::Rabin);
             p.set_pref(spot::postprocessor::Deterministic);
             p.set_pref(spot::postprocessor::Parity);
-            tmp = p.run(tmp);
+            spot::twa_graph_ptr tmp = p.run(aut);
             autlist.push(tmp);
         }
         while(autlist.size() > 1)
@@ -65,7 +65,7 @@ namespace cola
                     << std::endl;
             }
 
-            spot::twa_graph_ptr res = spot::product(aut1, aut2);
+            spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
             if (om_.get(VERBOSE_LEVEL) >= 2)
             {
                 std::cout << "#Product = " << res->num_states() << std::endl;
@@ -84,7 +84,7 @@ namespace cola
             }
         }
         spot::twa_graph_ptr res = autlist.top();
-        res = spot::dualize(res);
+        // res = spot::dualize(res);
         // output_file(res, "final.hoa");
         // spot::postprocessor p;
         // p.set_pref(spot::postprocessor::Parity);
