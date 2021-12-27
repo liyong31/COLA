@@ -72,7 +72,7 @@ Optimizations:
     --simulation          Use simulation before determinization
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for determinization
-    --decompose           Use SCC decomposition to determinizing small BAs 
+    --decompose=[NUM-SCC]           Use SCC decomposition to determinizing small BAs 
 
 Pre- and Post-processing:
     --preprocess[=0|1]       Simplify the input automaton (default)
@@ -110,43 +110,42 @@ parse_int(const std::string &arg)
   return result;
 }
 
-  // determinization
-  enum determinize_t
-  {
-    NoDeterminize = 0,
-    NBA,
-    COLA,
-    LDBA,
-    Spot
-  };
+// determinization
+enum determinize_t
+{
+  NoDeterminize = 0,
+  NBA,
+  COLA,
+  LDBA,
+  Spot
+};
 
 spot::twa_graph_ptr
-to_parity(spot::twa_graph_ptr aut, spot::option_map& om, bool is_elevator, determinize_t algo)
+to_parity(spot::twa_graph_ptr aut, spot::option_map &om, bool is_elevator, determinize_t algo)
 {
-    // determinization
-    spot::twa_graph_ptr res;
+  // determinization
+  spot::twa_graph_ptr res;
   if (algo == COLA)
-          {
-            if (is_elevator)
-              res = cola::determinize_tldba(aut, om);
-            else
-              res = cola::determinize_tba(aut, om);
-          }
-          else if (algo == LDBA)
-          {
-            res = cola::determinize_tldba(aut, om);
-          }
-          else if (algo == NBA)
-          {
-            res = cola::determinize_tba(aut, om);
-          }
-          else if (algo == Spot)
-          {
-            // pretty_print, use_scc, use_simulation, use_stutter, aborter
-            res = spot::tgba_determinize(aut, false, om.get(USE_SCC_INFO) > 0
-                , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
-          }
-    return res;
+  {
+    if (is_elevator)
+      res = cola::determinize_tldba(aut, om);
+    else
+      res = cola::determinize_tba(aut, om);
+  }
+  else if (algo == LDBA)
+  {
+    res = cola::determinize_tldba(aut, om);
+  }
+  else if (algo == NBA)
+  {
+    res = cola::determinize_tba(aut, om);
+  }
+  else if (algo == Spot)
+  {
+    // pretty_print, use_scc, use_simulation, use_stutter, aborter
+    res = spot::tgba_determinize(aut, false, om.get(USE_SCC_INFO) > 0, om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
+  }
+  return res;
 }
 
 int main(int argc, char *argv[])
@@ -231,6 +230,12 @@ int main(int argc, char *argv[])
     {
       decompose = true;
       om.set(NUM_NBA_DECOMPOSED, -1);
+    }
+    else if (arg.find("--decompose=") != std::string::npos)
+    {
+      decompose = true;
+      unsigned num_scc = parse_int(arg);
+      om.set(NUM_NBA_DECOMPOSED, num_scc);
     }
     // Prefered output
     else if (arg == "--cd")
@@ -448,13 +453,13 @@ int main(int argc, char *argv[])
             return 1;
           }
         }
-        if(om.get(VERBOSE_LEVEL) >= 2)
+        if (om.get(VERBOSE_LEVEL) >= 2)
         {
           cola::output_file(aut, "sim_aut.hoa");
           std::cout << "Output processed automaton (" << aut->num_states() << ", " << aut->num_edges() << ") to sim_aut.hoa\n";
         }
         clock_t c_end = clock();
-        if (om.get(VERBOSE_LEVEL) > 0) 
+        if (om.get(VERBOSE_LEVEL) > 0)
         {
           std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
         }
@@ -464,14 +469,25 @@ int main(int argc, char *argv[])
           cola::decomposer nba_decomposer(aut, om);
           std::vector<spot::twa_graph_ptr> subnbas = nba_decomposer.run();
           std::vector<spot::twa_graph_ptr> dpas;
-          for(unsigned i = 0; i < subnbas.size(); i ++)
+          for (unsigned i = 0; i < subnbas.size(); i++)
           {
+            // if(om.get(VERBOSE_LEVEL) >=2 )
+            // {
+            //   std::string fn = "decomp_nba_" + std::to_string(i) + ".hoa";
+            //   cola::output_file(subnbas[i], fn.c_str());
+            // }
             spot::twa_graph_ptr dpa = to_parity(subnbas[i], om, is_elevator, determinize);
             dpas.push_back(dpa);
+
+            // if(om.get(VERBOSE_LEVEL) >=2 )
+            // {
+            //   std::string fn = "decomp_dpa_" + std::to_string(i) + ".hoa";
+            //   cola::output_file(dpa, fn.c_str());
+            // }
           }
           cola::composer dpa_composer(dpas, om);
           aut = dpa_composer.run();
-        }
+        }else
         if (determinize != NoDeterminize && aut->acc().is_buchi())
         {
           spot::twa_graph_ptr res = nullptr;
@@ -483,7 +499,8 @@ int main(int argc, char *argv[])
             std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
           }
           aut = res;
-        }else if (aut->acc().is_all())
+        }
+        else if (aut->acc().is_all())
         {
           // trivial acceptance condition
           aut = spot::minimize_monitor(aut);
@@ -496,7 +513,7 @@ int main(int argc, char *argv[])
                   << aut->num_states() << "," << aut->num_edges() << "," << aut->num_sets() << ")" << std::endl;
       // postprocessing, remove dead states
       //aut->purge_unreachable_states();
-      if (post_process != None)
+      if (post_process != None && ! decompose)
       {
         clock_t c_start = clock();
         if (aut->acc().is_all())

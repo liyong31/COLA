@@ -26,6 +26,7 @@
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/product.hh>
 #include <spot/twaalgos/dualize.hh>
+#include <spot/twaalgos/zlktree.hh>
 
 namespace cola
 {
@@ -34,7 +35,7 @@ namespace cola
     {
         struct aut_compare
         {
-        // reverse order
+        // increasing order
             bool operator()( spot::twa_graph_ptr aut1,  spot::twa_graph_ptr aut2) const
             {
                 return aut1->num_states() >= aut2->num_states();
@@ -50,6 +51,12 @@ namespace cola
             p.set_pref(spot::postprocessor::Deterministic);
             p.set_pref(spot::postprocessor::Parity);
             spot::twa_graph_ptr tmp = p.run(aut);
+
+            if (tmp->num_states() >= aut->num_states())
+            {
+                tmp = aut;
+            }
+
             autlist.push(tmp);
         }
         while(autlist.size() > 1)
@@ -59,32 +66,24 @@ namespace cola
             auto aut2 = autlist.top();
             autlist.pop();
 
-            if (om_.get(VERBOSE_LEVEL) >= 2)
-            {
-                std::cout << "#FstOp = " << aut1->num_states() << " #SndOp = " << aut1->num_states()
-                    << std::endl;
-            }
-
             spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
-            if (om_.get(VERBOSE_LEVEL) >= 2)
-            {
-                std::cout << "#Product = " << res->num_states() << std::endl;
-            }
-            // postprocessing
+
+            // only make it smaller when it is not the final result
+            // if (autlist.size() > 0)
+            // {
+                    // postprocessing
             spot::postprocessor p;
-            // p.set_pref(spot::postprocessor::Rabin);
-            p.set_pref(spot::postprocessor::Parity);
+                // p.set_pref(spot::postprocessor::Rabin);
+                // p.set_pref(spot::postprocessor::Parity);
             p.set_pref(spot::postprocessor::Deterministic);
             p.set_pref(spot::postprocessor::Small);
             res = p.run(res);
+            // }
+            
             autlist.push(res);
-            if (om_.get(VERBOSE_LEVEL) >= 2)
-            {
-                std::cout << "#Post-Product = " << res->num_states() << " #Q = " << autlist.size() << std::endl;
-            }
         }
         spot::twa_graph_ptr res = autlist.top();
-        // res = spot::dualize(res);
+        res = spot::acd_transform(res);
         // output_file(res, "final.hoa");
         // spot::postprocessor p;
         // p.set_pref(spot::postprocessor::Parity);

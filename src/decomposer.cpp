@@ -48,32 +48,33 @@ decomposer::run()
     std::priority_queue<std::pair<unsigned, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
     for (unsigned sc = 0; sc < si.scc_count(); sc ++)
     {
+        // only care about accepting scc
+        if (! si.is_accepting_scc(sc)) continue;
         scclist.push(std::make_pair(sc, si.states_of(sc).size()));
     }
+    
     while(scclist.size() > 0)
     {
-        if(num_nbas_ == 0)
-        {
-            break;
-        }
-        -- num_nbas_;
-        
         unsigned scc_i = scclist.top().first;
         scclist.pop();
         
-        if (! si.is_accepting_scc(scc_i)) continue;
-
         std::set<unsigned> sccs;
         sccs.insert(scc_i);
         spot::twa_graph_ptr aut = make_twa_with_scc(si, sccs, reach_sccs);
         result.push_back(aut);
+
+        -- num_nbas_;
+        if(num_nbas_ == 1 && scclist.size() > 0)
+        {
+            // put rest together
+            break;
+        }
     }
     std::set<unsigned> remaining_sccs;
     while(scclist.size() > 0)
     {
         unsigned scc_i = scclist.top().first;
         scclist.pop();
-        if (! si.is_accepting_scc(scc_i)) continue;
         remaining_sccs.insert(scc_i);
     }
     if (! remaining_sccs.empty())
@@ -128,10 +129,8 @@ decomposer::make_twa_with_scc(spot::scc_info& si, std::set<unsigned> sccs, std::
       unsigned scc_dst = si.scc_of(t.dst);
       if (is_good_scc(scc_src) && is_good_scc(scc_dst))
       {
-          if(sccs.find(scc_src) != sccs.end() && sccs.find(scc_dst) != sccs.end())
+        //   if(sccs.find(scc_src) != sccs.end() && sccs.find(scc_dst) != sccs.end())
             res->new_edge(t.src, t.dst, t.cond, t.acc);
-          else 
-            res->new_edge(t.src, t.dst, t.cond);
       }
     }
     // names
