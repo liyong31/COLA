@@ -23,6 +23,7 @@
 #include "composer.hpp"
 #include "optimizer.hpp"
 #include "decomposer.hpp"
+#include "simulation.hpp"
 
 #include <unistd.h>
 #include <fstream>
@@ -69,9 +70,10 @@ Output options:
     -o FILENAME Write the output to FILENAME instead of stdout
 
 Optimizations:
-    --simulation          Use simulation before determinization
+    --simulation          Use direct simulation for determinization
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for determinization
+    --delayed-sim         Use delayed simulation for determinization
     --decompose=[NUM-SCC]           Use SCC decomposition to determinizing small BAs 
 
 Pre- and Post-processing:
@@ -163,6 +165,7 @@ int main(int argc, char *argv[])
   om.set(USE_UNAMBIGUITY, 0);
   om.set(USE_SCC_INFO, 0);
   om.set(VERBOSE_LEVEL, 0);
+  om.set(USE_DELAYED_SIMULATION, 0);
 
   bool cut_det = false;
   jobs_type jobs = 0;
@@ -220,6 +223,10 @@ int main(int argc, char *argv[])
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
+    }
+    else if (arg == "--delayed-sim")
+    {
+      om.set(USE_DELAYED_SIMULATION, 1);
     }
     else if (arg == "--use-scc")
     {

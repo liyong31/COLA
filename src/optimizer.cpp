@@ -15,6 +15,7 @@
 
 #include "optimizer.hpp"
 #include "cola.hpp"
+#include "simulation.hpp"
 
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>

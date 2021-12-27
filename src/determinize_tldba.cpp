@@ -19,6 +19,7 @@
 //#include "optimizer.hpp"
 #include "cola.hpp"
 #include "bscc.hpp"
+#include "simulation.hpp"
 //#include "struct.hpp"
 
 #include <deque>
@@ -85,6 +86,9 @@ namespace cola
 
     // state_simulator
     state_simulator simulator_;
+
+    // delayed simulation
+    delayed_simulation delayed_simulator_;
 
     // The parity automata being built.
     spot::twa_graph_ptr res_;
@@ -276,14 +280,14 @@ namespace cola
           if (i == j)
             continue;
           // j simulates i and j cannot reach i
-          if (simulator_.simulate(j, i) && simulator_.can_reach(j, i) == 0)
+          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
           {
             // std::cout << "simulated" << std::endl;
             ms[i] = RANK_M;
           }
           // (j, k1) and (i, k2), if j simulates i and k1 < k2, then remove k2
           // Note that here i and j are not equivalent
-          if (simulator_.simulate(j, i) && ms[j] > RANK_N && ms[j] < ms[i])
+          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && ms[j] > RANK_N && ms[j] < ms[i])
           {
             ms[i] = RANK_M;
           }
@@ -601,6 +605,7 @@ namespace cola
           compat_(nb_states_),
           // is_accepting_(nb_states_),
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
+          delayed_simulator_(aut, om),
           show_names_(om.get(VERBOSE_LEVEL) >= 2)
     {
       if(om.get(VERBOSE_LEVEL) >= 2)

@@ -29,6 +29,7 @@
 
 // options for the determinization constructions
 static const char *USE_SIMULATION = "use-simulation";
+static const char *USE_DELAYED_SIMULATION = "use-delayed-simulation";
 static const char *USE_STUTTER = "use-stutter";
 static const char *USE_SCC_INFO = "use-scc";
 static const char *USE_UNAMBIGUITY = "use-unambiguity";
