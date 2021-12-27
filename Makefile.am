@@ -49,6 +49,8 @@ src_libcola_la_SOURCES =			\
   src/powerset.hpp				\
   src/seminator.cpp				\
   src/seminator.hpp				\
+  src/simulation.cpp			\
+  src/simulation.hpp			\
   src/types.hpp
 
 cola_SOURCES = src/main.cpp
