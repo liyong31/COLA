@@ -352,8 +352,8 @@ namespace cola
     // Propositions compatible with all transitions of a state.
     std::vector<bdd> compat_;
 
-    // Whether a SCC is deterministic or not
-    //std::vector<bool> is_deter_;
+    // Whether a SCC has accepting cycle
+    std::vector<bool> is_entering_;
 
     // Whether a state only has accepting transitions
     std::vector<bool> is_accepting_;
@@ -546,7 +546,7 @@ namespace cola
           }
           succ.reach_set_.insert(t.dst);
           // via accepting transitions
-          if (t.acc || is_accepting_[t.dst])
+          if (t.acc && is_entering_[si_.scc_of(t.dst)])
           {
             coming_states.insert(t.dst);
           }
@@ -773,7 +773,7 @@ namespace cola
 
       //std::cout << "Simulator\n";
       //simulator_.output_simulation();
-
+      is_entering_ = get_accepting_reachable_sccs(si_);
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
       if (show_names_)

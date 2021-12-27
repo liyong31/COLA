@@ -645,7 +645,7 @@ namespace cola
       } else
       {
         // the SCCs that counts
-        is_deter_ = get_elevator_sccs(si_);
+        is_deter_ = get_accepting_reachable_sccs(si_);
       }
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
@@ -745,6 +745,10 @@ namespace cola
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
+      if(om_.get(VERBOSE_LEVEL) >= 2)
+      {
+        output_file(res_, "dpa.hoa");
+      }
       res_ = postprocess(res_);
       cleanup_parity_here(res_);
 

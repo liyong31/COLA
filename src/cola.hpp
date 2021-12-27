@@ -33,6 +33,7 @@ static const char *USE_STUTTER = "use-stutter";
 static const char *USE_SCC_INFO = "use-scc";
 static const char *USE_UNAMBIGUITY = "use-unambiguity";
 static const char *VERBOSE_LEVEL = "verbose-level";
+static const char *NUM_NBA_DECOMPOSED = "num-nba-decomposed";
 
 namespace cola
 {
@@ -110,7 +111,7 @@ namespace cola
   get_deterministic_sccs(spot::scc_info &scc);
 
   std::vector<bool>
-  get_elevator_sccs(spot::scc_info &scc);
+  get_accepting_reachable_sccs(spot::scc_info &scc);
 
   // /// \brief Output an automaton to a file
   // std::vector<bool>

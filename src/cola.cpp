@@ -141,7 +141,7 @@ namespace cola
   //   }
   // }
   std::vector<bool>
-  get_elevator_sccs(spot::scc_info &si)
+  get_accepting_reachable_sccs(spot::scc_info &si)
   {
     unsigned nscc = si.scc_count();
     assert(nscc);

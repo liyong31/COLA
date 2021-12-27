@@ -35,8 +35,12 @@ src_libcola_la_SOURCES =			\
   src/cola.hpp			\
   src/cola.cpp			\
   src/complement.cpp			\
+  src/composer.cpp				\
+  src/composer.hpp				\
   src/cutdet.cpp				\
   src/cutdet.hpp				\
+  src/decomposer.hpp			\
+  src/decomposer.cpp			\
   src/determinize_tba.cpp			\
   src/determinize_tldba.cpp			\
   src/optimizer.hpp				\

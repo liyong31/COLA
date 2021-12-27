@@ -20,7 +20,9 @@
 #include "seminator.hpp"
 #include "cutdet.hpp"
 #include "cola.hpp"
+#include "composer.hpp"
 #include "optimizer.hpp"
+#include "decomposer.hpp"
 
 #include <unistd.h>
 #include <fstream>
@@ -70,6 +72,7 @@ Optimizations:
     --simulation          Use simulation before determinization
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for determinization
+    --decompose           Use SCC decomposition to determinizing small BAs 
 
 Pre- and Post-processing:
     --preprocess[=0|1]       Simplify the input automaton (default)
@@ -107,6 +110,45 @@ parse_int(const std::string &arg)
   return result;
 }
 
+  // determinization
+  enum determinize_t
+  {
+    NoDeterminize = 0,
+    NBA,
+    COLA,
+    LDBA,
+    Spot
+  };
+
+spot::twa_graph_ptr
+to_parity(spot::twa_graph_ptr aut, spot::option_map& om, bool is_elevator, determinize_t algo)
+{
+    // determinization
+    spot::twa_graph_ptr res;
+  if (algo == COLA)
+          {
+            if (is_elevator)
+              res = cola::determinize_tldba(aut, om);
+            else
+              res = cola::determinize_tba(aut, om);
+          }
+          else if (algo == LDBA)
+          {
+            res = cola::determinize_tldba(aut, om);
+          }
+          else if (algo == NBA)
+          {
+            res = cola::determinize_tba(aut, om);
+          }
+          else if (algo == Spot)
+          {
+            // pretty_print, use_scc, use_simulation, use_stutter, aborter
+            res = spot::tgba_determinize(aut, false, om.get(USE_SCC_INFO) > 0
+                , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
+          }
+    return res;
+}
+
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -138,16 +180,6 @@ int main(int argc, char *argv[])
     NSBC
   };
   complement_t complement = NoComplement;
-
-  // determinization
-  enum determinize_t
-  {
-    NoDeterminize = 0,
-    NBA,
-    COLA,
-    LDBA,
-    Spot
-  };
   determinize_t determinize = NoDeterminize;
 
   output_type desired_output = TBA;
@@ -159,6 +191,7 @@ int main(int argc, char *argv[])
   bool aut_type = false;
   bool use_unambiguous = false;
   bool use_stutter = false;
+  bool decompose = false;
 
   enum postprocess_level
   {
@@ -193,6 +226,11 @@ int main(int argc, char *argv[])
     {
       use_scc = true;
       om.set(USE_SCC_INFO, 1);
+    }
+    else if (arg == "--decompose")
+    {
+      decompose = true;
+      om.set(NUM_NBA_DECOMPOSED, -1);
     }
     // Prefered output
     else if (arg == "--cd")
@@ -420,30 +458,25 @@ int main(int argc, char *argv[])
         {
           std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
         }
+
+        if (determinize != NoDeterminize && decompose && aut->acc().is_buchi())
+        {
+          cola::decomposer nba_decomposer(aut, om);
+          std::vector<spot::twa_graph_ptr> subnbas = nba_decomposer.run();
+          std::vector<spot::twa_graph_ptr> dpas;
+          for(unsigned i = 0; i < subnbas.size(); i ++)
+          {
+            spot::twa_graph_ptr dpa = to_parity(subnbas[i], om, is_elevator, determinize);
+            dpas.push_back(dpa);
+          }
+          cola::composer dpa_composer(dpas, om);
+          aut = dpa_composer.run();
+        }
         if (determinize != NoDeterminize && aut->acc().is_buchi())
         {
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
-          if (determinize == COLA)
-          {
-            if (is_elevator)
-              res = cola::determinize_tldba(aut, om);
-            else
-              res = cola::determinize_tba(aut, om);
-          }
-          else if (determinize == LDBA)
-          {
-            res = cola::determinize_tldba(aut, om);
-          }
-          else if (determinize == NBA)
-          {
-            res = cola::determinize_tba(aut, om);
-          }
-          else if (determinize == Spot)
-          {
-            // pretty_print, use_scc, use_simulation, use_stutter, aborter
-            res = spot::tgba_determinize(aut, false, use_scc, use_simulation, use_stutter, nullptr);
-          }
+          res = to_parity(aut, om, is_elevator, determinize);
           c_end = clock();
           if (om.get(VERBOSE_LEVEL) > 0)
           {
