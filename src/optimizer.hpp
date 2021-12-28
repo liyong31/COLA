@@ -95,6 +95,7 @@ namespace cola
     char can_reach_scc(unsigned scc1, unsigned scc2);
   };
 
+  // adaped from spot/twaalgos/powerset.cc
   class edge_strengther final: protected spot::enumerate_cycles
     {
     public:
@@ -150,14 +151,12 @@ namespace cola
                           std::inserter(common, common.begin()));
                 overlap_ = common;
             }
-            //accept_.emplace_back(ts);
-            //all_.insert(ts.begin(), ts.end());
           }
         // if no edge will be used by every accepting cycle
         // no need to explore further
         if (overlap_initialized && overlap_.empty())
         {
-            threshold_ = 0;
+            cycles_left_ = 1;
         }
         // Abort this algorithm if we have seen too many cycles, i.e.,
         // when cycle_left_ *reaches* 0.  (If cycle_left_ == 0, that

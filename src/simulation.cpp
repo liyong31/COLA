@@ -21,7 +21,7 @@
 
 namespace cola
 {
-    // adapted from RABIT/Simulation.java
+    // adapted from RABIT/Simulation.java for transition based Buchi automata
     delayed_simulation::delayed_simulation(const spot::const_twa_graph_ptr nba, spot::option_map &om)
         : nba_(nba), om_(om)
     {

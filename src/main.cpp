@@ -440,13 +440,15 @@ int main(int argc, char *argv[])
 
       if (om.get(MORE_ACC_EDGES) > 0)
       {
+        const unsigned num = 200;
         // strengther 
         spot::scc_info si(aut, spot::scc_info_options::ALL);
-        cola::edge_strengther e_strengther(aut, si, 0);
+        cola::edge_strengther e_strengther(aut, si, 200);
         for (unsigned sc = 0; sc < si.scc_count(); sc ++)
         {
-          // std::cout << "Scc " << sc << "\n";
-          e_strengther.fix_scc(sc);
+          if (si.is_accepting_scc(sc)) {
+            e_strengther.fix_scc(sc);
+          }
         }
       }
 
@@ -464,8 +466,6 @@ int main(int argc, char *argv[])
           // preprocessing for the input.
           spot::postprocessor preprocessor;
           aut = preprocessor.run(aut);
-          // aut = spot::reduce_direct_sim(aut);
-          // aut = spot::reduce_direct_cosim(aut);
           // if (!is_semi_deterministic(aut) && is_semi_det)
           // {
           //   std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;

@@ -35,6 +35,7 @@ struct pair_hash
 
 namespace cola
 {
+    // adapted RABIT/Simulation.java to transition based Buchi automata
     class delayed_simulation
     {
         private:

@@ -352,7 +352,7 @@ namespace cola
     // all accepting cycles will visit these edges
     for (trans *t : overlap_)
     {
-      // std::cout << "prig = " << t->acc;
+      // std::cout << "orig = " << t->acc;
       if (! t->acc)
       {
         t->acc = {0};
