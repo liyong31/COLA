@@ -33,6 +33,7 @@ static const char *USE_DELAYED_SIMULATION = "use-delayed-simulation";
 static const char *USE_STUTTER = "use-stutter";
 static const char *USE_SCC_INFO = "use-scc";
 static const char *USE_UNAMBIGUITY = "use-unambiguity";
+static const char *MORE_ACC_EDGES = "more-acc-edges";
 static const char *VERBOSE_LEVEL = "verbose-level";
 static const char *NUM_NBA_DECOMPOSED = "num-nba-decomposed";
 

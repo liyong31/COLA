@@ -17,12 +17,15 @@
 #include "cola.hpp"
 #include "simulation.hpp"
 
+#include <algorithm>
+
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/isunamb.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
+#include <spot/twa/twagraph.hh>
 
 namespace cola
 {
@@ -213,7 +216,7 @@ namespace cola
   }
 
   // -------------- state_simulator ----------------------
-  state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd>& implications, bool use_simulation)
+  state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd> &implications, bool use_simulation)
       : nba_(nba), si_(si)
   {
     is_connected_ = find_scc_paths(si);
@@ -221,10 +224,10 @@ namespace cola
     {
       return;
     }
-    for(unsigned i = 0; i < nba_->num_states(); i ++)
+    for (unsigned i = 0; i < nba_->num_states(); i++)
     {
       std::vector<bool> elem;
-      for(unsigned j = 0; j < nba_->num_states(); j ++)
+      for (unsigned j = 0; j < nba_->num_states(); j++)
       {
         elem.push_back(i == j);
       }
@@ -279,23 +282,23 @@ namespace cola
         if (i == j)
           continue;
         // j contains the language of i
-        is_implies_[j][i] =  (implies[i][j]  >= 1);
+        is_implies_[j][i] = (implies[i][j] >= 1);
       }
     }
   }
-  state_simulator::state_simulator(const state_simulator& other)
-  :nba_(other.nba_), si_(other.si_)
+  state_simulator::state_simulator(const state_simulator &other)
+      : nba_(other.nba_), si_(other.si_)
   {
-    for(unsigned i = 0; i < other.is_implies_.size(); i ++)
+    for (unsigned i = 0; i < other.is_implies_.size(); i++)
     {
       std::vector<bool> elem;
-      for(unsigned j = 0; j < other.is_implies_[i].size(); j ++)
+      for (unsigned j = 0; j < other.is_implies_[i].size(); j++)
       {
         elem.push_back(other.is_implies_[i][j]);
       }
       this->is_implies_.push_back(elem);
     }
-    for(unsigned i = 0; i < other.is_connected_.size(); i ++)
+    for (unsigned i = 0; i < other.is_connected_.size(); i++)
     {
       this->is_connected_.push_back(other.is_connected_[i]);
     }
@@ -305,7 +308,7 @@ namespace cola
   {
     for (int i = 0; i < is_implies_.size(); i++)
     {
-      for (int j = 0; j <  is_implies_[i].size(); j++)
+      for (int j = 0; j < is_implies_[i].size(); j++)
       {
         if (i == j || !is_implies_[i][j])
           continue;
@@ -333,4 +336,52 @@ namespace cola
   {
     return is_implies_[i][j];
   }
+
+  edge_strengther::edge_strengther(spot::const_twa_graph_ptr nba, const spot::scc_info &si, unsigned threshold)
+      : enumerate_cycles(si), nba_(nba), threshold_(threshold)
+  {
+  }
+
+  bool
+  edge_strengther::fix_scc(const unsigned m)
+  {
+    overlap_.clear();
+    overlap_initialized = false;
+    cycles_left_ = threshold_;
+    run(m);
+    // all accepting cycles will visit these edges
+    for (trans *t : overlap_)
+    {
+      // std::cout << "prig = " << t->acc;
+      if (! t->acc)
+      {
+        t->acc = {0};
+      }
+      // std::cout << " renewed = " << t->acc << std::endl;
+    }
+    return threshold_ != 0 && cycles_left_ == 0;
+  }
+
+  bool
+  edge_strengther::is_cycle_accepting(cycle_iter begin, edge_set &ts) const
+  {
+    auto a = std::const_pointer_cast<spot::twa_graph>(nba_);
+    // Check if the loop is acceptingin the automaton.
+    bool accepting = false;
+    for (cycle_iter i = begin; i != dfs_.end(); ++i)
+    {
+      trans *t = &a->edge_data(i->succ);
+      if (t->acc)
+      {
+        accepting = true;
+      }
+      ts.insert(t);
+    }
+    if (!accepting)
+    {
+      ts.clear();
+    }
+    return accepting;
+  }
+
 }

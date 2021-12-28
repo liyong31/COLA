@@ -73,6 +73,7 @@ Optimizations:
     --simulation          Use direct simulation for determinization
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for determinization
+    --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
     --delayed-sim         Use delayed simulation for determinization
     --decompose=[NUM-SCC]           Use SCC decomposition to determinizing small BAs 
 
@@ -166,6 +167,7 @@ int main(int argc, char *argv[])
   om.set(USE_SCC_INFO, 0);
   om.set(VERBOSE_LEVEL, 0);
   om.set(USE_DELAYED_SIMULATION, 0);
+  om.set(MORE_ACC_EDGES, 0);
 
   bool cut_det = false;
   jobs_type jobs = 0;
@@ -232,6 +234,9 @@ int main(int argc, char *argv[])
     {
       use_scc = true;
       om.set(USE_SCC_INFO, 1);
+    }else if (arg == "--more-acc-edges")
+    {
+      om.set(MORE_ACC_EDGES, 1);
     }
     else if (arg == "--decompose")
     {
@@ -431,6 +436,18 @@ int main(int argc, char *argv[])
       if (!aut->acc().is_generalized_buchi())
       {
         aut = spot::degeneralize_tba(aut);
+      }
+
+      if (om.get(MORE_ACC_EDGES) > 0)
+      {
+        // strengther 
+        spot::scc_info si(aut, spot::scc_info_options::ALL);
+        cola::edge_strengther e_strengther(aut, si, 0);
+        for (unsigned sc = 0; sc < si.scc_count(); sc ++)
+        {
+          // std::cout << "Scc " << sc << "\n";
+          e_strengther.fix_scc(sc);
+        }
       }
 
       if (cd_check)

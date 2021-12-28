@@ -23,7 +23,7 @@
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
 #include <spot/twaalgos/hoa.hh>
-//#include <spot/twaalgos/sccinfo.hh>
+#include <spot/twaalgos/cycles.hh>
 #include <spot/twaalgos/sccfilter.hh>
 
 typedef unsigned state_t;
@@ -94,4 +94,77 @@ namespace cola
     bool simulate(unsigned i, unsigned j);
     char can_reach_scc(unsigned scc1, unsigned scc2);
   };
+
+  class edge_strengther final: protected spot::enumerate_cycles
+    {
+    public:
+      typedef enumerate_cycles::dfs_stack::const_iterator cycle_iter;
+      typedef spot::twa_graph_edge_data trans;
+      typedef std::set<trans*> edge_set;
+      typedef std::vector<edge_set> set_set;
+    protected:
+      bool overlap_initialized;
+      spot::const_twa_graph_ptr nba_;
+    //   power_map& refmap_;
+    //   edge_set reject_;         // set of rejecting edges
+    //   set_set accept_;          // set of cycles that are accepting
+    //   edge_set all_;            // all non rejecting edges
+      edge_set overlap_;      // set of edges that oppear in every cycle in an SCC
+      unsigned threshold_;      // maximum count of enumerated cycles
+      unsigned cycles_left_;    // count of cycles left to explore
+    public:
+      edge_strengther(spot::const_twa_graph_ptr nba, const spot::scc_info& si, unsigned threshold);
+
+      // fixed an SCC to explore
+      bool fix_scc(const unsigned m);
+
+      bool is_cycle_accepting(cycle_iter begin, edge_set& ts) const;
+      // override the function;
+      virtual bool
+      cycle_found(unsigned start) override
+      {
+        // from start
+        cycle_iter i = dfs_.begin();
+        while (i->s != start)
+          ++i;
+        // found start, transition considered for the cycle.
+        edge_set ts;
+        bool is_acc = is_cycle_accepting(i, ts);
+        do
+          ++i;
+        while (i != dfs_.end());
+        // pop out the dfs?
+        if (is_acc)
+          {
+            // add all edges in accepting cycle
+            if (! overlap_initialized)
+            {
+                overlap_.insert(ts.begin(), ts.end());
+                overlap_initialized = true;
+            }
+            if (overlap_initialized)
+            {
+                edge_set common;
+                std::set_intersection(ts.begin(), ts.end(),
+                          overlap_.begin(), overlap_.end(),
+                          std::inserter(common, common.begin()));
+                overlap_ = common;
+            }
+            //accept_.emplace_back(ts);
+            //all_.insert(ts.begin(), ts.end());
+          }
+        // if no edge will be used by every accepting cycle
+        // no need to explore further
+        if (overlap_initialized && overlap_.empty())
+        {
+            threshold_ = 0;
+        }
+        // Abort this algorithm if we have seen too many cycles, i.e.,
+        // when cycle_left_ *reaches* 0.  (If cycle_left_ == 0, that
+        // means we had no limit.)
+        return (cycles_left_ == 0) || --cycles_left_;
+      }
+
+
+    };
 }

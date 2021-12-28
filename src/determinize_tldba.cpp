@@ -812,7 +812,7 @@ namespace cola
     if (om.get(USE_SIMULATION) > 0)
     {
       aut_tmp = spot::scc_filter(aut);
-      auto aut2 = simulation(aut_tmp, &implications);
+      auto aut2 = spot::simulation(aut_tmp, &implications);
       aut_tmp = aut2;
     }
     if (aut_tmp)

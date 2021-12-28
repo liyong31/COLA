@@ -104,7 +104,7 @@ namespace cola
     mstate(const mstate &other)
     {
       reach_set_.clear();
-      for(auto s : other.reach_set_)
+      for (auto s : other.reach_set_)
       {
         reach_set_.insert(s);
       }
@@ -114,12 +114,12 @@ namespace cola
       {
         state_set pset;
         state_set qset;
-        for(auto s : other.pset_[i])
+        for (auto s : other.pset_[i])
         {
           pset.insert(s);
         }
         pset_.push_back(pset);
-        for(auto s : other.qset_[i])
+        for (auto s : other.qset_[i])
         {
           qset.insert(s);
         }
@@ -127,10 +127,10 @@ namespace cola
       }
     }
     mstate() {}
-    mstate& operator=(const mstate &other)
+    mstate &operator=(const mstate &other)
     {
       reach_set_.clear();
-      for(auto s : other.reach_set_)
+      for (auto s : other.reach_set_)
       {
         reach_set_.insert(s);
       }
@@ -140,12 +140,12 @@ namespace cola
       {
         state_set pset;
         state_set qset;
-        for(auto s : other.pset_[i])
+        for (auto s : other.pset_[i])
         {
           pset.insert(s);
         }
         pset_.push_back(pset);
-        for(auto s : other.qset_[i])
+        for (auto s : other.qset_[i])
         {
           qset.insert(s);
         }
@@ -272,9 +272,7 @@ namespace cola
       {
         first = false;
       }
-      res += "(" + get_set_string(ms.pset_[i]) 
-          + ", " + get_set_string(ms.qset_[i])
-          + ") = " + std::to_string(i);
+      res += "(" + get_set_string(ms.pset_[i]) + ", " + get_set_string(ms.qset_[i]) + ") = " + std::to_string(i);
     }
     res += "]";
     return res;
@@ -308,7 +306,7 @@ namespace cola
     const spot::const_twa_graph_ptr aut_;
 
     // SCCs information of the source automaton.
-    spot::scc_info& si_;
+    spot::scc_info &si_;
 
     //optimizer opt_;
 
@@ -327,7 +325,7 @@ namespace cola
     // the number of indices
     unsigned sets_ = 0;
 
-    spot::option_map& om_;
+    spot::option_map &om_;
 
     // number of colors used
     unsigned num_colors_;
@@ -400,7 +398,7 @@ namespace cola
       state_set removed_states;
       state_set reach_states;
 
-      for(auto s : ms.reach_set_)
+      for (auto s : ms.reach_set_)
       {
         reach_states.insert(s);
       }
@@ -413,12 +411,11 @@ namespace cola
           if (i == j)
             continue;
           // j simulates i and j cannot reach i
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) 
-            && simulator_.can_reach(j, i) == 0)
+          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
           {
             removed_states.insert(i);
             auto it = ms.reach_set_.find(i);
-            if(it != ms.reach_set_.end()) 
+            if (it != ms.reach_set_.end())
             {
               ms.reach_set_.erase(it);
             }
@@ -434,14 +431,10 @@ namespace cola
       for (unsigned i = 0; !removed_states.empty() && i < ms.pset_.size(); i++)
       {
         state_set pset;
-        std::set_difference(ms.pset_[i].begin(), ms.pset_[i].end()
-                        , removed_states.begin(), removed_states.end()
-                        , std::inserter(pset, pset.begin()));
+        std::set_difference(ms.pset_[i].begin(), ms.pset_[i].end(), removed_states.begin(), removed_states.end(), std::inserter(pset, pset.begin()));
         ms.pset_[i] = pset;
         state_set qset;
-        std::set_difference(ms.qset_[i].begin(), ms.qset_[i].end()
-                        , removed_states.begin(), removed_states.end()
-                        , std::inserter(qset, qset.begin()));
+        std::set_difference(ms.qset_[i].begin(), ms.qset_[i].end(), removed_states.begin(), removed_states.end(), std::inserter(qset, qset.begin()));
         ms.qset_[i] = qset;
       }
       // keep the empty set
@@ -471,8 +464,7 @@ namespace cola
     }
 
     std::pair<state_set, state_set>
-    get_set_successors(const state_set &p, const state_set &q
-            , bdd letter, const state_set &restricts, bool &acc)
+    get_set_successors(const state_set &p, const state_set &q, bdd letter, const state_set &restricts, bool &acc)
     {
       state_set p_prime;
       state_set p_acc_prime;
@@ -483,10 +475,9 @@ namespace cola
       {
         for (const auto &t : aut_->out(s))
         {
-          // ignore unreachable states and 
+          // ignore unreachable states and
           // states that are not in restructs
-          if (!bdd_implies(letter, t.cond)
-             || (restricts.find(t.dst) == restricts.end()))
+          if (!bdd_implies(letter, t.cond) || (restricts.find(t.dst) == restricts.end()))
             continue;
           p_prime.insert(t.dst);
           if (t.acc || is_accepting_[t.dst])
@@ -595,8 +586,9 @@ namespace cola
         }
       }
       // remove redudant states with simulation relation
-      if (use_simulation_) make_simulation_state(succ);
-      
+      if (use_simulation_)
+        make_simulation_state(succ);
+
       // update acc and rej
       for (unsigned i = 0; i < ms.pset_.size() && i < succ.pset_.size(); i++)
       {
@@ -728,7 +720,7 @@ namespace cola
     }
 
   public:
-    tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info& si, spot::option_map& om, std::vector<bdd>& implications)
+    tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
         : aut_(aut),
           om_(om),
           use_simulation_(om.get(USE_SIMULATION) > 0),
@@ -911,16 +903,16 @@ namespace cola
       }
       mstate_merger merger(aut, set2scc);
       spot::twa_graph_ptr res = merger.run();
-      if(om_.get(VERBOSE_LEVEL) >= 1)
-         std::cout << "The number of states reduced by mstate_merger: "
-              << (aut->num_states() - res->num_states()) << " {out of "
-              << aut->num_states() << "}" << std::endl;
+      if (om_.get(VERBOSE_LEVEL) >= 1)
+        std::cout << "The number of states reduced by mstate_merger: "
+                  << (aut->num_states() - res->num_states()) << " {out of "
+                  << aut->num_states() << "}" << std::endl;
       return res;
     }
   };
 
   spot::twa_graph_ptr
-  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map& om)
+  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   {
     if (!aut->acc().is_buchi())
       throw std::runtime_error("determinize_tba() requires a Buchi input");
@@ -931,12 +923,12 @@ namespace cola
     if (om.get(USE_SIMULATION) > 0)
     {
       aut_tmp = spot::scc_filter(aut);
-      auto aut2 = simulation(aut_tmp, &implications);
+      auto aut2 = spot::simulation(aut_tmp, &implications);
       aut_tmp = aut2;
     }
     if (aut_tmp)
       aut_reduced = aut_tmp;
-    else 
+    else
       aut_reduced = aut;
     spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
 
