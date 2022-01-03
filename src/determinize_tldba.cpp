@@ -47,8 +47,6 @@
 
 namespace cola
 {
-  const int RANK_N = -1; // nondeterministic states
-  const int RANK_M = -2; // missing states
 
   // macro state in which every state is assigned with a value
   // indicating the order of entering the deterministic part
@@ -628,15 +626,10 @@ namespace cola
       {
         bdd res_support = bddtrue;
         bdd res_compat = bddfalse;
-        bool accepting = true;
-        bool has_transitions = false;
         for (const auto &out : aut->out(i))
         {
-          has_transitions = true;
           res_support &= bdd_support(out.cond);
           res_compat |= out.cond;
-          if (!out.acc)
-            accepting = false;
         }
         support_[i] = res_support;
         compat_[i] = res_compat;
@@ -763,6 +756,11 @@ namespace cola
     spot::twa_graph_ptr
     postprocess(spot::twa_graph_ptr aut)
     {
+      spot::scc_info scc_dpa(aut, spot::scc_info_options::ALL);
+      if (om_.get(NUM_SCC_LIMIT_MERGER) != 0 && om_.get(NUM_SCC_LIMIT_MERGER) < scc_dpa.scc_count())
+      {
+        return aut;
+      }
       // set of states -> the forest of reachability in the states.
       mstate_equiv_map set2scc;
       // record the representative of every SCC
@@ -788,7 +786,7 @@ namespace cola
           set2scc[set] = val->second;
         }
       }
-      mstate_merger merger(aut, set2scc);
+      mstate_merger merger(aut, set2scc, scc_dpa, om_);
       spot::twa_graph_ptr res = merger.run();
       if (om_.get(VERBOSE_LEVEL) >= 1)
         std::cout << "The number of states reduced by mstate_merger: "

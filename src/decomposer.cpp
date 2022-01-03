@@ -33,7 +33,7 @@ decomposer::run()
     std::vector<spot::twa_graph_ptr> result;
     spot::scc_info si(nba_, spot::scc_info_options::ALL);
 
-    std::vector<char> reach_sccs = find_scc_paths(si);
+    std::vector<bool> reach_sccs = find_scc_paths(si);
 
     struct pair_compare
     {
@@ -86,7 +86,7 @@ decomposer::run()
 }
 
 spot::twa_graph_ptr
-decomposer::make_twa_with_scc(spot::scc_info& si, std::set<unsigned> sccs, std::vector<char>& reach_sccs)
+decomposer::make_twa_with_scc(spot::scc_info& si, std::set<unsigned> sccs, std::vector<bool>& reach_sccs)
 {
     assert(! sccs.empty());
 

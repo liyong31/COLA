@@ -58,11 +58,12 @@ namespace cola
     // Item = (set of reachable states of NBA, the set of mstates with the set of reachable states).
     const mstate_equiv_map &equiv_map_;
 
+    spot::option_map& om_;
+
+    spot::scc_info& si_;
+
   public:
-    mstate_merger(spot::twa_graph_ptr &dpa, const mstate_equiv_map &equiv_map)
-        : dpa_(dpa), equiv_map_(equiv_map)
-    {
-    }
+    mstate_merger(spot::twa_graph_ptr &dpa, const mstate_equiv_map &equiv_map, spot::scc_info& si, spot::option_map& om);
 
     spot::twa_graph_ptr
     run();
@@ -80,7 +81,7 @@ namespace cola
     // the SCC information of states
     spot::scc_info &si_;
     // reachability relation of SCCs by find SCC paths
-    std::vector<char> is_connected_;
+    std::vector<bool> is_connected_;
 
   public:
     state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd>& implications, bool use_simulation = true);

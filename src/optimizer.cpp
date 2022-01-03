@@ -29,6 +29,11 @@
 
 namespace cola
 {
+    mstate_merger::mstate_merger(spot::twa_graph_ptr &dpa, const mstate_equiv_map &equiv_map
+    , spot::scc_info& si, spot::option_map& om)
+        : dpa_(dpa), equiv_map_(equiv_map), si_(si), om_(om)
+    {
+    }
   spot::twa_graph_ptr
   mstate_merger::run()
   {
@@ -40,13 +45,53 @@ namespace cola
     {
       replace_states[s] = s;
     }
-    spot::scc_info scc(dpa_, spot::scc_info_options::ALL);
+    spot::scc_info scc = si_;
     // reach_sccs[i + scccount*j] = 1 iff SCC i is reachable from SCC j
-    std::vector<char> reach_sccs = find_scc_paths(scc);
+    unsigned num_size = scc.scc_count();
+    num_size = 8 * num_size * num_size;
+    int memory_limit = om_.get(SCC_REACH_MEMORY_LIMIT);
+    std::vector<bool> reach_sccs;
+    if (memory_limit == 0 || num_size <= (memory_limit * (1 << 20)))
+    {
+      // if the memory usage is not too large
+      reach_sccs = find_scc_paths_(scc);
+      // std::vector<bool> another = find_scc_paths_(scc);
+    }
     // whether the state s can reach t
     auto scc_reach = [&scc, &reach_sccs](unsigned s, unsigned t) -> bool
     {
-      return s == t || (reach_sccs[t + scc.scc_count() * s]);
+      if (s == t) return true;
+      // s reach t, then s > t 
+      if (s < t) return false;
+      if (! reach_sccs.empty())
+        // return (reach_sccs[t + scc.scc_count() * s]);
+        return (reach_sccs[t + s * (s + 1)/2]);
+      else 
+      {
+        // we traverse the map
+        unsigned nscc = s;
+        std::vector<bool> reachable(scc.scc_count(), false);
+        reachable[s] = true;
+        while(true) // iterator of SCCs in reverse topological order
+        {
+          // larger nscc is closer to initial state?
+          if (reachable[nscc])
+            {
+              for (unsigned succ: scc.succ(nscc))
+              {
+                if (succ == t) return true;
+                reachable[succ] = true;
+              }
+            }
+            // s != t
+            if (! nscc)
+            {
+              break;
+            }
+            --nscc;
+        }
+        return false;
+      }
     };
     // set of states -> the forest of reachability in the states.
     // output
@@ -205,7 +250,11 @@ namespace cola
     // if(sn) res->copy_state_names_from(dpa_);
     res->set_init_state(replace_states[dpa_->get_init_state_number()]);
     // now acceptance condition
-    res->set_acceptance(dpa_->num_sets(), spot::acc_cond::acc_code::parity_min_even(dpa_->num_sets()));
+    if(dpa_->acc().is_co_buchi())
+    {
+      dpa_->set_co_buchi();
+    }else 
+      res->set_acceptance(dpa_->num_sets(), spot::acc_cond::acc_code::parity_min_even(dpa_->num_sets()));
     if (dpa_->prop_complete().is_true())
       res->prop_complete(true);
     res->prop_universal(true);
@@ -323,6 +372,8 @@ namespace cola
   {
     unsigned scc_of_i = si_.scc_of(i);
     unsigned scc_of_j = si_.scc_of(j);
+    if (scc_of_i < scc_of_j) return 0;
+    if (scc_of_i == scc_of_j) return 1;
     // test whether j is reachable from i
     return is_connected_[scc_of_j + si_.scc_count() * scc_of_i];
   }

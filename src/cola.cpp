@@ -26,6 +26,7 @@
 #include <bscc.hpp>
 #include <breakpoint_twa.hpp>
 #include <vector>
+#include <sstream>
 
 #include <spot/twaalgos/degen.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -35,6 +36,9 @@
 #include <spot/misc/optionmap.hh>
 #include <spot/twaalgos/sccfilter.hh>
 #include <spot/twa/bddprint.hh>
+#include <spot/twaalgos/word.hh>
+#include <spot/twaalgos/complement.hh>
+#include <spot/twa/twagraph.hh>
 
 namespace cola
 {
@@ -53,6 +57,52 @@ namespace cola
     }
     return true;
   }
+
+  bool
+  is_elevator_automaton(const spot::scc_info &scc, std::string& scc_str)
+  {
+    for (unsigned sc = 0; sc < scc.scc_count(); ++sc)
+    {
+      if ((scc_str[sc]&SCC_INSIDE_DET_TYPE) > 0 
+      || (scc_str[sc]&SCC_WEAK_TYPE) > 0)
+      {
+          continue;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  bool
+  is_weak_automaton(const spot::const_twa_graph_ptr &aut)
+  {
+    spot::scc_info si(aut);
+    unsigned nc = si.scc_count();
+    for (unsigned scc = 0; scc < nc; ++scc)
+    {
+      if (spot::is_inherently_weak_scc(si, scc))
+      {
+          continue;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  bool
+  is_weak_automaton(const spot::scc_info &scc, std::string& scc_str)
+  {
+    for (unsigned sc = 0; sc < scc.scc_count(); ++sc)
+    {
+      if (scc_str[sc]&SCC_WEAK_TYPE)
+      {
+          continue;
+      }
+      return false;
+    }
+    return true;
+  }
+
 
   std::vector<bool>
   get_deterministic_sccs(spot::scc_info &si)
@@ -88,14 +138,18 @@ namespace cola
   }
 
   // NOTE: copied from spot/twaalgos/deterministic.cc in SPOT
-  std::vector<char>
+  //res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
+  std::vector<bool>
   find_scc_paths(const spot::scc_info &scc)
   {
     unsigned scccount = scc.scc_count();
-    std::vector<char> res(scccount * scccount, 0);
-    for (unsigned i = 0; i != scccount; ++i)
-      res[i + scccount * i] = 1;
-    for (unsigned i = 0; i != scccount; ++i)
+    std::vector<bool> res(scccount * scccount, 0);
+    for (unsigned i = 0; i < scccount; ++i)
+      {
+        // reach itself
+        res[i + scccount * i] = true;
+      }
+    for (unsigned i = 0; i < scccount; ++i)
     {
       unsigned ibase = i * scccount;
       for (unsigned d : scc.succ(i))
@@ -104,8 +158,43 @@ namespace cola
         // numbered, so we can build the transitive closure by
         // just ORing any SCC reachable from d.
         unsigned dbase = d * scccount;
-        for (unsigned j = 0; j != scccount; ++j)
-          res[ibase + j] |= res[dbase + j];
+        // j reach d (i can reach d, so res[d + i * scccount] = 1)
+        for (unsigned j = 0; j < scccount; ++j)
+        {
+          // j is reachable from i if j is reachable from d 
+          res[ibase + j] = res[ibase + j] || res[dbase + j];
+        }
+      }
+    }
+    return res;
+  }
+
+  /// Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC j
+  std::vector<bool>
+  find_scc_paths_(const spot::scc_info &scc)
+  {
+    unsigned scccount = scc.scc_count();
+    std::vector<bool> res(scccount * (scccount + 1) / 2 , false);
+    for (unsigned i = 0; i < scccount; ++i)
+      {
+        // reach itself
+        res[i + i * (i + 1) / 2] = true;
+      }
+    for (unsigned i = 0; i < scccount; ++i)
+    {
+      unsigned ibase = (i * ( i + 1)) / 2;
+      for (unsigned d : scc.succ(i))
+      {
+        // we necessarily have d < i because of the way SCCs are
+        // numbered, so we can build the transitive closure by
+        // just ORing any SCC reachable from d.
+        unsigned dbase = d * (d + 1) / 2;
+        // j reach d (i can reach d, so res[d + i * scccount] = 1)
+        for (unsigned j = 0; j <= d; ++j)
+        {
+          // j is reachable from i if j is reachable from d (d > j)
+          res[ibase + j] = res[ibase + j] || res[dbase + j];
+        }
       }
     }
     return res;
@@ -160,5 +249,97 @@ namespace cola
       }
     while (nscc);
     return res;
+  }
+
+  bool
+  is_limit_deterministic_automaton(const spot::scc_info &si, std::string& scc_str)
+  {
+    unsigned nscc = si.scc_count();
+    assert(nscc);
+    std::vector<bool> reachable_from_acc(nscc);
+    do // iterator of SCCs in reverse topological order
+      {
+        --nscc;
+        // larger nscc is closer to initial state?
+        if ((scc_str[nscc] & SCC_ACC) > 0 || reachable_from_acc[nscc])
+          {
+            // need to check all outgoing transitions of states in the SCC
+            if ((scc_str[nscc] & SCC_DET_TYPE) == 0)
+            {
+              return false;
+            }
+            for (unsigned succ: si.succ(nscc))
+              reachable_from_acc[succ] = true;
+          }
+      }
+    while (nscc);
+    return true;
+  }
+
+  std::string
+  get_scc_types(spot::scc_info &si)
+  {
+    unsigned nc = si.scc_count();
+    std::string res(nc, 0);
+    for (unsigned sc = 0; sc < nc; ++sc)
+    {
+      char type = 0;
+      type |= is_deterministic_scc(sc, si) ? SCC_INSIDE_DET_TYPE : 0; // only care about the states inside SCC
+      type |= is_deterministic_scc(sc, si, false) ? SCC_DET_TYPE : 0; // must also be deterministic for all transitions after accepting
+      type |=  spot::is_inherently_weak_scc(si, sc) ? SCC_WEAK_TYPE : 0;
+      type |= si.is_accepting_scc(sc) ? SCC_ACC : 0;
+      // other type is 0
+      res[sc] = type;
+    }
+    return res;
+  }
+
+  void
+  print_scc_types(std::string& scc_types, spot::scc_info &scc)
+  {
+    std::vector<bool> reach_sccs = get_accepting_reachable_sccs(scc);
+    for (unsigned i = 0; i < scc.scc_count(); i ++)
+    {
+      std::cout << "Scc " << i;
+      if (scc_types[i] & SCC_WEAK_TYPE)
+      {
+        std::cout << " weak";
+      }
+      if (scc_types[i] & SCC_INSIDE_DET_TYPE)
+      {
+        std::cout << " inside-det";
+      }
+      if (scc_types[i] & SCC_DET_TYPE)
+      {
+        std::cout << " det";
+      }
+      if (scc_types[i] & SCC_ACC)
+      {
+        std::cout << " accepting";
+      }
+      std::cout << " " << reach_sccs[i]<< std::endl;
+    }
+  }
+
+  void
+  check_equivalence(spot::const_twa_graph_ptr nba, spot::twa_graph_ptr dpa)
+  {
+    spot::twa_graph_ptr dualized_dpa = spot::complement(dpa);
+    spot::twa_word_ptr word = nba->intersecting_word(dualized_dpa);
+    std::stringstream ss;
+    if (word != nullptr)
+    {
+      ss << (*word);
+      std::cout << "dpa should accept word: " << ss.str() << std::endl;
+      exit(-1);
+    }
+    spot::twa_graph_ptr dualized_nba = spot::complement(nba);
+    word = dpa->intersecting_word(dualized_nba);
+    if (word != nullptr)
+    {
+      ss << (*word);
+      std::cout << "dpa should not accept word: " <<  ss.str() << std::endl;
+      exit(-1);
+    }
   }
 }

@@ -39,6 +39,7 @@
 #include <spot/twaalgos/sccfilter.hh>
 #include <spot/twaalgos/complement.hh>
 #include <spot/twaalgos/minimize.hh>
+#include <spot/twaalgos/totgba.hh>
 #include <spot/twaalgos/determinize.hh>
 #include <spot/misc/version.hh>
 
@@ -51,23 +52,30 @@ void print_help()
 {
   print_usage(std::cout);
   std::cout <<
-      R"(The tool transforms TLDBA/TBA into equivalent deterministic Parity automata.
+      R"(The tool transforms TLDBA/TBA into equivalent deterministic automata.
 
 By default, it reads a (limit deterministic) Büchi automaton from standard input
-and converts it into deterministic Parity automata.
+and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|ldba|ba|cola]
-                    Use Spot or our algorithm for ldba and ba or let cola decide which one to obtain deterministic Parity automata
+    --determinize=[spot|ldba|eba|ba|cola]
+                    Use Spot or our algorithm for ldba, eba and ba or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --unambiguous
             Check whether the input is unambiguous and use this fact in determinization
+    --scc-mem-limit=[INT] 
+            The memory limit (MB) for computing the SCC reachability (default = 0, no limit)
+    --scc-num-limit=[INT] 
+            The largest number of SCCs in the deterministic automaton for merging macrostates (default = 0, no limit)
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
     -o FILENAME Write the output to FILENAME instead of stdout
+    --generic   Output the automaton with Emenson-Lei acceptance condition (Default)
+    --rabin     Output the automaton with Rabin acceptance condition
+    --parity    Output the automaton with Pairty acceptance condition
 
 Optimizations:
     --simulation          Use direct simulation for determinization
@@ -120,24 +128,32 @@ enum determinize_t
   NBA,
   COLA,
   LDBA,
+  EBA, // elevator Buchi automata
   Spot
 };
 
 spot::twa_graph_ptr
-to_parity(spot::twa_graph_ptr aut, spot::option_map &om, bool is_elevator, determinize_t algo)
+to_parity(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_t algo)
 {
   // determinization
   spot::twa_graph_ptr res;
   if (algo == COLA)
   {
-    if (is_elevator)
-      res = cola::determinize_tldba(aut, om);
+    if (aut_type & INHERENTLY_WEAK)
+      res = cola::determinize_twba(aut, om);
+    else if (aut_type & LIMIT_DETERMINISTIC)
+      res = cola::determinize_televator(aut, om);
+    else if (aut_type & ELEVATOR)
+      res = cola::determinize_televator(aut, om);
     else
       res = cola::determinize_tba(aut, om);
   }
   else if (algo == LDBA)
   {
     res = cola::determinize_tldba(aut, om);
+  }else if (algo == EBA)
+  {
+    res = cola::determinize_televator(aut, om);
   }
   else if (algo == NBA)
   {
@@ -168,6 +184,8 @@ int main(int argc, char *argv[])
   om.set(VERBOSE_LEVEL, 0);
   om.set(USE_DELAYED_SIMULATION, 0);
   om.set(MORE_ACC_EDGES, 0);
+  om.set(SCC_REACH_MEMORY_LIMIT, 0);
+  om.set(NUM_SCC_LIMIT_MERGER, 0);
 
   bool cut_det = false;
   jobs_type jobs = 0;
@@ -196,6 +214,7 @@ int main(int argc, char *argv[])
   bool use_unambiguous = false;
   bool use_stutter = false;
   bool decompose = false;
+  bool preprocess = true;
 
   enum postprocess_level
   {
@@ -208,12 +227,24 @@ int main(int argc, char *argv[])
   bool use_scc = false;
   unsigned num_post = 30000;
 
+  enum output_aut_type
+  {
+    Generic = 0,
+    Rabin,
+    Parity
+  };
+
+  output_aut_type output_type = Generic; 
+
   std::string output_filename = "";
 
   for (int i = 1; i < argc; i++)
   {
     std::string arg = argv[i];
-    if (arg == "--postprocess-det=0")
+    if (arg == "--preprocess=0")
+    {
+      preprocess = false;
+    }else if (arg == "--postprocess-det=0")
       post_process = None;
     else if (arg == "--postprocess-det=1")
       post_process = Low;
@@ -221,7 +252,16 @@ int main(int argc, char *argv[])
       post_process = Medium;
     else if (arg == "--postprocess-det=3")
       post_process = High;
-    else if (arg == "--simulation")
+    else if (arg == "--generic")
+    {
+      output_type = Generic;
+    }else if (arg == "--parity")
+    {
+      output_type = Parity;
+    }else if (arg == "--rabin")
+    {
+      output_type = Rabin;
+    }else if (arg == "--simulation")
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
@@ -234,7 +274,8 @@ int main(int argc, char *argv[])
     {
       use_scc = true;
       om.set(USE_SCC_INFO, 1);
-    }else if (arg == "--more-acc-edges")
+    }
+    else if (arg == "--more-acc-edges")
     {
       om.set(MORE_ACC_EDGES, 1);
     }
@@ -274,6 +315,8 @@ int main(int argc, char *argv[])
       determinize = NBA;
     else if (arg == "--determinize=ldba")
       determinize = LDBA;
+    else if (arg == "--determinize=eba")
+      determinize = EBA;
     else if (arg == "--determinize=spot")
       determinize = Spot;
     else if (arg == "--determinize=cola")
@@ -314,6 +357,14 @@ int main(int argc, char *argv[])
     else if (arg.find("--verbose=") != std::string::npos)
     {
       om.set(VERBOSE_LEVEL, parse_int(arg));
+    }
+    else if (arg.find("--scc-mem-limit=") !=  std::string::npos)
+    {
+      om.set(SCC_REACH_MEMORY_LIMIT, parse_int(arg));
+    }
+    else if (arg.find("--scc-num-limit=") !=  std::string::npos)
+    {
+      om.set(NUM_SCC_LIMIT_MERGER, parse_int(arg));
     }
     else if ((arg == "--help") || (arg == "-h"))
     {
@@ -377,7 +428,7 @@ int main(int argc, char *argv[])
   for (std::string &path_to_file : path_to_files)
   {
     if (om.get(VERBOSE_LEVEL))
-      std::cout << "current path: " << path_to_file << std::endl;
+      std::cout << "File: " << path_to_file << " Algo: " << determinize << std::endl;
     spot::automaton_stream_parser parser(path_to_file);
 
     for (;;)
@@ -407,12 +458,12 @@ int main(int argc, char *argv[])
           type = true;
           std::cout << "deterministic" << std::endl;
         }
-        else if (is_cut_deterministic(aut))
+        if (is_cut_deterministic(aut))
         {
           type = true;
           std::cout << "cut-deterministic" << std::endl;
         }
-        else if (is_semi_deterministic(aut))
+        if (is_semi_deterministic(aut))
         {
           type = true;
           std::cout << "limit-deterministic" << std::endl;
@@ -420,6 +471,10 @@ int main(int argc, char *argv[])
         if (cola::is_elevator_automaton(aut))
         {
           std::cout << "elevator" << std::endl;
+        }
+        if (cola::is_weak_automaton(aut))
+        {
+          std::cout << "inherently weak" << std::endl;
         }
         if (is_unambiguous(aut))
         {
@@ -441,12 +496,13 @@ int main(int argc, char *argv[])
       if (om.get(MORE_ACC_EDGES) > 0)
       {
         const unsigned num = 200;
-        // strengther 
+        // strengther
         spot::scc_info si(aut, spot::scc_info_options::ALL);
         cola::edge_strengther e_strengther(aut, si, 200);
-        for (unsigned sc = 0; sc < si.scc_count(); sc ++)
+        for (unsigned sc = 0; sc < si.scc_count(); sc++)
         {
-          if (si.is_accepting_scc(sc)) {
+          if (si.is_accepting_scc(sc))
+          {
             e_strengther.fix_scc(sc);
           }
         }
@@ -459,22 +515,40 @@ int main(int argc, char *argv[])
       }
       else if (!is_deterministic(aut))
       {
+        // spot::scc_info si(aut);
+        // std::string scc_types = cola::get_scc_types(si);
+        // cola::print_scc_types(scc_types, si);
+        // //std::cout << "scc types: " << scc_types << "\n";
+        // std::cout << "weak: " << cola::is_weak_automaton(si, scc_types) << " " << cola::is_weak_automaton(aut) << std::endl;
+        // std::cout << "elevator: " << cola::is_elevator_automaton(si, scc_types) << " " << cola::is_elevator_automaton(aut) << std::endl;
+        // std::cout << "ldba: " << cola::is_limit_deterministic_automaton(si, scc_types) << " " << spot::is_semi_deterministic(aut) << std::endl;
+        // // exit(1);
         clock_t c_start = clock();
+        unsigned aut_type = NONDETERMINISTIC;
+        if (cola::is_weak_automaton(aut))
+        {
+          aut_type |= INHERENTLY_WEAK;
+        }
+        if (is_semi_deterministic(aut))
+        {
+          aut_type |= LIMIT_DETERMINISTIC;
+        }
+        if (cola::is_elevator_automaton(aut))
+        {
+          aut_type |= ELEVATOR;
+        }
         // bool is_semi_det = is_semi_deterministic(aut);
-        bool is_elevator = cola::is_elevator_automaton(aut);
         {
           // preprocessing for the input.
-          spot::postprocessor preprocessor;
-          aut = preprocessor.run(aut);
-          // if (!is_semi_deterministic(aut) && is_semi_det)
-          // {
-          //   std::cerr << "Automata after preprocessing that are not semi-deterministic..." << std::endl;
-          //   return 1;
-          // }
-          if (!cola::is_elevator_automaton(aut) && is_elevator)
+          if (preprocess)
           {
-            std::cerr << "Automata after preprocessing that are not elevator..." << std::endl;
-            return 1;
+            spot::postprocessor preprocessor;
+            aut = preprocessor.run(aut);
+            if (!cola::is_elevator_automaton(aut) && aut_type == ELEVATOR)
+            {
+              std::cerr << "Automata after preprocessing that are not elevator..." << std::endl;
+              return 1;
+            }
           }
         }
         if (om.get(VERBOSE_LEVEL) >= 2)
@@ -495,28 +569,17 @@ int main(int argc, char *argv[])
           std::vector<spot::twa_graph_ptr> dpas;
           for (unsigned i = 0; i < subnbas.size(); i++)
           {
-            // if(om.get(VERBOSE_LEVEL) >=2 )
-            // {
-            //   std::string fn = "decomp_nba_" + std::to_string(i) + ".hoa";
-            //   cola::output_file(subnbas[i], fn.c_str());
-            // }
-            spot::twa_graph_ptr dpa = to_parity(subnbas[i], om, is_elevator, determinize);
+            spot::twa_graph_ptr dpa = to_parity(subnbas[i], om, aut_type, determinize);
             dpas.push_back(dpa);
-
-            // if(om.get(VERBOSE_LEVEL) >=2 )
-            // {
-            //   std::string fn = "decomp_dpa_" + std::to_string(i) + ".hoa";
-            //   cola::output_file(dpa, fn.c_str());
-            // }
           }
           cola::composer dpa_composer(dpas, om);
           aut = dpa_composer.run();
-        }else
-        if (determinize != NoDeterminize && aut->acc().is_buchi())
+        }
+        else if (determinize != NoDeterminize && aut->acc().is_buchi())
         {
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
-          res = to_parity(aut, om, is_elevator, determinize);
+          res = to_parity(aut, om, aut_type, determinize);
           c_end = clock();
           if (om.get(VERBOSE_LEVEL) > 0)
           {
@@ -537,7 +600,7 @@ int main(int argc, char *argv[])
                   << aut->num_states() << "," << aut->num_edges() << "," << aut->num_sets() << ")" << std::endl;
       // postprocessing, remove dead states
       //aut->purge_unreachable_states();
-      if (post_process != None && ! decompose)
+      if (post_process != None && !decompose)
       {
         clock_t c_start = clock();
         if (aut->acc().is_all())
@@ -547,7 +610,13 @@ int main(int argc, char *argv[])
         else if (aut->num_states() < num_post)
         {
           spot::postprocessor p;
-          p.set_type(spot::postprocessor::Parity);
+          if (output_type == Parity)
+          {
+            p.set_type(spot::postprocessor::Parity);
+          }else if (output_type == Generic || output_type == Rabin)
+          {
+            p.set_type(spot::postprocessor::Generic);
+          }
           p.set_pref(spot::postprocessor::Deterministic);
           // set postprocess level
           if (post_process == Low)
@@ -563,6 +632,10 @@ int main(int argc, char *argv[])
             p.set_level(spot::postprocessor::High);
           }
           aut = p.run(aut);
+        }
+        if (output_type == Rabin)
+        {
+          aut = spot::to_generalized_rabin(aut, true);
         }
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)

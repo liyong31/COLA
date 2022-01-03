@@ -138,7 +138,7 @@ namespace cola
                             {
                                 continue;
                             }
-                            std::cout << states_[p].first << " is simulated by " << states_[q].first << std::endl;
+                            //std::cout << states_[p].first << " is simulated by " << states_[q].first << std::endl;
 
                             // spot::twa::prop_set pro(false, false, false, false, false, false);
                             // spot::twa_graph_ptr p_aut = spot::make_twa_graph(nba_, pro);

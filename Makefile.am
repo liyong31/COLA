@@ -42,7 +42,9 @@ src_libcola_la_SOURCES =			\
   src/decomposer.hpp			\
   src/decomposer.cpp			\
   src/determinize_tba.cpp			\
+  src/determinize_teba.cpp			\
   src/determinize_tldba.cpp			\
+  src/determinize_twba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
   src/powerset.cpp				\
