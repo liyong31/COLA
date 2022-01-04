@@ -41,6 +41,7 @@
 #include <spot/twaalgos/minimize.hh>
 #include <spot/twaalgos/totgba.hh>
 #include <spot/twaalgos/determinize.hh>
+#include <spot/twaalgos/zlktree.hh>
 #include <spot/misc/version.hh>
 
 void print_usage(std::ostream &os)
@@ -76,6 +77,8 @@ Output options:
     --generic   Output the automaton with Emenson-Lei acceptance condition (Default)
     --rabin     Output the automaton with Rabin acceptance condition
     --parity    Output the automaton with Pairty acceptance condition
+    --acd       Use alternating cylcle decomposition to obtain parity automaton (Default)
+
 
 Optimizations:
     --simulation          Use direct simulation for determinization
@@ -86,7 +89,7 @@ Optimizations:
     --decompose=[NUM-SCC]           Use SCC decomposition to determinizing small BAs 
 
 Pre- and Post-processing:
-    --preprocess[=0|1]       Simplify the input automaton (default)
+    --preprocess=0       Disable the simplification of the input automaton
     --postprocess-det[=0|1|2|3]  simplify the output of the determinization
                              (default=1)
     --num-states=[INT]       Simplify the output with number of states less than INT 
@@ -215,6 +218,7 @@ int main(int argc, char *argv[])
   bool use_stutter = false;
   bool decompose = false;
   bool preprocess = true;
+  bool use_acd = false;
 
   enum postprocess_level
   {
@@ -289,6 +293,9 @@ int main(int argc, char *argv[])
       decompose = true;
       unsigned num_scc = parse_int(arg);
       om.set(NUM_NBA_DECOMPOSED, num_scc);
+    }else if (arg == "--acd")
+    {
+      use_acd = true;
     }
     // Prefered output
     else if (arg == "--cd")
@@ -612,7 +619,13 @@ int main(int argc, char *argv[])
           spot::postprocessor p;
           if (output_type == Parity)
           {
-            p.set_type(spot::postprocessor::Parity);
+            if (use_acd)
+            {
+              p.set_type(spot::postprocessor::Generic);
+            }else
+            {
+              p.set_type(spot::postprocessor::Parity);
+            } 
           }else if (output_type == Generic || output_type == Rabin)
           {
             p.set_type(spot::postprocessor::Generic);
@@ -636,6 +649,9 @@ int main(int argc, char *argv[])
         if (output_type == Rabin)
         {
           aut = spot::to_generalized_rabin(aut, true);
+        }else if (output_type == Parity && use_acd)
+        {
+          aut = spot::acd_transform(aut);
         }
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)
