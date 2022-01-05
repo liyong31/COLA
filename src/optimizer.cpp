@@ -208,6 +208,10 @@ namespace cola
         {
           replace_states[t] = scc2repr[smallest_bottom_scc];
           ++num_replaced_states;
+          if (om_.get(VERBOSE_LEVEL) >= 2)
+          {
+            std::cout << "State " << t << " replaced by State " << scc2repr[smallest_bottom_scc] << "\n";
+          }
         }
       }
     }
@@ -215,6 +219,7 @@ namespace cola
     {
       return dpa_;
     }
+
     // now construct new DPAs
     spot::twa_graph_ptr res = spot::make_twa_graph(dpa_->get_dict());
     res->copy_ap_of(dpa_);
@@ -246,15 +251,19 @@ namespace cola
       //t.src != replace_states[t.src] && t.dst != replace_states[t.dst])
     }
     // names
-    // auto sn = dpa_->get_named_prop<std::vector<std::string>>("state-names");
-    // if(sn) res->copy_state_names_from(dpa_);
+    if (om_.get(VERBOSE_LEVEL) > 0)
+    {
+      auto sn = dpa_->get_named_prop<std::vector<std::string>>("state-names");
+      if(sn) res->copy_state_names_from(dpa_);
+    }
+    
     res->set_init_state(replace_states[dpa_->get_init_state_number()]);
     // now acceptance condition
     if(dpa_->acc().is_co_buchi())
     {
       dpa_->set_co_buchi();
     }else 
-      res->set_acceptance(dpa_->num_sets(), spot::acc_cond::acc_code::parity_min_even(dpa_->num_sets()));
+      res->set_acceptance(dpa_->num_sets(), dpa_->get_acceptance());
     if (dpa_->prop_complete().is_true())
       res->prop_complete(true);
     res->prop_universal(true);

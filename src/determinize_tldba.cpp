@@ -747,7 +747,7 @@ namespace cola
       {
         output_file(res_, "dpa.hoa");
       }
-      res_ = postprocess(res_);
+      if (om_.get(VERBOSE_LEVEL) > 0) res_ = postprocess(res_);
       cleanup_parity_here(res_);
 
       return res_;

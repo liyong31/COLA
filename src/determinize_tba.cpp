@@ -872,7 +872,7 @@ namespace cola
       res_->prop_state_acc(false);
       // spot::print_hoa(std::cout, res_, nullptr);
       //   std::cout << "\n";
-      res_ = postprocess(res_);
+      if (om_.get(VERBOSE_LEVEL) > 0) res_ = postprocess(res_);
       cleanup_parity_here(res_);
       // spot::print_hoa(std::cout, res_, nullptr);
       //   std::cout << "\n";

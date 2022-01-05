@@ -411,7 +411,7 @@ namespace cola
     // compute the successor N={nondeterministic states and nonaccepting SCCs} O = {breakpoint for weak SCCs}
     // and labelling states for each SCC
     void
-    compute_labelling_successors(const elevator_mstate &ms, bdd letter, elevator_mstate &nxt, std::vector<int> &color)
+    compute_successors(const elevator_mstate &ms, bdd letter, elevator_mstate &nxt, std::vector<int> &color)
     {
       elevator_mstate succ(si_, nb_states_, RANK_M);
       // used for unambiguous automaton
@@ -708,7 +708,7 @@ namespace cola
           // next state
           elevator_mstate tmp_succ(si_, nb_states_, RANK_M);
           std::vector<int> tmp_color(acc_detsccs_.size() + 1, -1);
-          compute_labelling_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
+          compute_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
           ms = tmp_succ;
           for (unsigned i = 0; i < mincolor.size(); i++)
           {
@@ -754,7 +754,7 @@ namespace cola
       }
       else
       {
-        compute_labelling_successors(ms, letter, succ, colors);
+        compute_successors(ms, letter, succ, colors);
       }
     }
     bool
@@ -1031,17 +1031,21 @@ namespace cola
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
-      res_ = postprocess(res_);
       if (om_.get(VERBOSE_LEVEL) >= 2)
       {
         output_file(res_, "dpa.hoa");
+        std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
+        check_equivalence(aut_, res_);
+      }
+      if (om_.get(USE_SCC_INFO) > 0) res_ = postprocess(res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2)
+      {
+        std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
+        output_file(res_, "dpa1.hoa");
         check_equivalence(aut_, res_);
       }
       simplify_acceptance_here(res_);
-      if (om_.get(VERBOSE_LEVEL) >= 2)
-      {
-        output_file(res_, "dpa1.hoa");
-      }
+
       return res_;
     }
 
