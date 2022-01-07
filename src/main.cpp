@@ -66,10 +66,6 @@ Input options:
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --unambiguous
             Check whether the input is unambiguous and use this fact in determinization
-    --scc-mem-limit=[INT] 
-            The memory limit (MB) for computing the SCC reachability (default = 0, no limit)
-    --scc-num-limit=[INT] 
-            The largest number of SCCs in the deterministic automaton for merging macrostates (default = 0, no limit)
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
@@ -83,10 +79,10 @@ Output options:
 Optimizations:
     --simulation          Use direct simulation for determinization
     --stutter             Use stutter invariance for determinization
-    --use-scc             Use SCC information for determinization
+    --use-scc             Use SCC information for determinization (Spot) or macrostates merging (COLA)
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
     --delayed-sim         Use delayed simulation for determinization
-    --decompose=[NUM-SCC]           Use SCC decomposition to determinizing small BAs 
+    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
 
 Pre- and Post-processing:
     --preprocess=0       Disable the simplification of the input automaton
@@ -143,7 +139,7 @@ to_parity(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, dete
   if (algo == COLA)
   {
     if (aut_type & INHERENTLY_WEAK)
-      res = cola::determinize_twba(aut, om);
+      res = cola::determinize_televator(aut, om);
     else if (aut_type & LIMIT_DETERMINISTIC)
       res = cola::determinize_televator(aut, om);
     else if (aut_type & ELEVATOR)
@@ -187,6 +183,12 @@ int main(int argc, char *argv[])
   om.set(VERBOSE_LEVEL, 0);
   om.set(USE_DELAYED_SIMULATION, 0);
   om.set(MORE_ACC_EDGES, 0);
+
+  // Will be deleted
+  //  --scc-mem-limit=[INT] 
+  //          The memory limit (MB) for computing the SCC reachability (default = 0, no limit)
+  //  --scc-num-limit=[INT] 
+  //          The largest number of SCCs in the deterministic automaton for merging macrostates (default = 0, no limit)
   om.set(SCC_REACH_MEMORY_LIMIT, 0);
   om.set(NUM_SCC_LIMIT_MERGER, 0);
 

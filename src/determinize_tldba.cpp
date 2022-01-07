@@ -799,7 +799,7 @@ namespace cola
   spot::twa_graph_ptr
   determinize_tldba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   {
-    if (!is_elevator_automaton(aut))
+    if (!is_semi_deterministic(aut))
       throw std::runtime_error("determinize_tldba() requires a semi-deterministic input");
 
     // now we compute the simulator
