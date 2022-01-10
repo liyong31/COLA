@@ -262,11 +262,7 @@ namespace cola
     
     res->set_init_state(replace_states[dpa_->get_init_state_number()]);
     // now acceptance condition
-    if(dpa_->acc().is_co_buchi())
-    {
-      dpa_->set_co_buchi();
-    }else 
-      res->set_acceptance(dpa_->num_sets(), dpa_->get_acceptance());
+    res->set_acceptance(dpa_->num_sets(), dpa_->get_acceptance());
     if (dpa_->prop_complete().is_true())
       res->prop_complete(true);
     res->prop_universal(true);
