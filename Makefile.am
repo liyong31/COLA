@@ -28,17 +28,10 @@ cola_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 src_libcola_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
 
 src_libcola_la_SOURCES =			\
-  src/breakpoint_twa.cpp			\
-  src/breakpoint_twa.hpp			\
-  src/bscc.cpp					\
-  src/bscc.hpp					\
   src/cola.hpp			\
   src/cola.cpp			\
-  src/complement.cpp			\
   src/composer.cpp				\
   src/composer.hpp				\
-  src/cutdet.cpp				\
-  src/cutdet.hpp				\
   src/decomposer.hpp			\
   src/decomposer.cpp			\
   src/determinize_teba.cpp			\
@@ -46,10 +39,6 @@ src_libcola_la_SOURCES =			\
   src/determinize_tnba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
-  src/powerset.cpp				\
-  src/powerset.hpp				\
-  src/seminator.cpp				\
-  src/seminator.hpp				\
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp

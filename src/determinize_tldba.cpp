@@ -18,7 +18,6 @@
 
 //#include "optimizer.hpp"
 #include "cola.hpp"
-#include "bscc.hpp"
 #include "simulation.hpp"
 //#include "struct.hpp"
 

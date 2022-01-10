@@ -20,11 +20,6 @@
 #include "cola.hpp"
 #include "optimizer.hpp"
 
-#include <seminator.hpp>
-
-#include <cutdet.hpp>
-#include <bscc.hpp>
-#include <breakpoint_twa.hpp>
 #include <vector>
 #include <sstream>
 
@@ -341,6 +336,26 @@ namespace cola
       std::cout << "dpa should not accept word: " <<  ss.str() << std::endl;
       exit(-1);
     }
+  }
+  // copied from siminator/cutdet.cpp, this function is similar to spot/is_det.cpp/ about semi-deterministic..
+  bool 
+  is_deterministic_scc(unsigned scc, spot::scc_info& si,
+                     bool inside_only)
+  {
+    for (unsigned src: si.states_of(scc))
+    {
+      bdd available = bddtrue;
+      for (auto& t: si.get_aut()->out(src))
+      {
+        if (inside_only && (si.scc_of(t.dst) != scc))
+          continue;
+        if (!bdd_implies(t.cond, available))
+          return false;
+        else
+          available -= t.cond;
+      }
+    }
+    return true;
   }
 
   bool

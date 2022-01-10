@@ -17,8 +17,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "config.h"
-#include "seminator.hpp"
-#include "cutdet.hpp"
+
 #include "cola.hpp"
 #include "composer.hpp"
 #include "optimizer.hpp"
@@ -34,6 +33,7 @@
 #include <spot/twaalgos/simulation.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/isunamb.hh>
+#include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/degen.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/twaalgos/sccfilter.hh>
@@ -55,7 +55,7 @@ void print_help()
   std::cout <<
       R"(The tool transforms TLDBA/TBA into equivalent deterministic automata.
 
-By default, it reads a (limit deterministic) Büchi automaton from standard input
+By default, it reads a Büchi automaton from standard input
 and converts it into deterministic automata.
 
 Input options:
@@ -196,24 +196,7 @@ int main(int argc, char *argv[])
   om.set(SCC_REACH_MEMORY_LIMIT, 0);
   om.set(NUM_SCC_LIMIT_MERGER, 0);
 
-  bool cut_det = false;
-  jobs_type jobs = 0;
-  enum complement_t
-  {
-    NoComplement = 0,
-    NCSBBest,
-    NCSBSpot,
-    NCSBPLDI,
-    NCSBPLDIB,
-    NCSBPLDIF,
-    NCSBPLDIBF,
-    NCB,
-    NSBC
-  };
-  complement_t complement = NoComplement;
   determinize_t determinize = NoDeterminize;
-
-  output_type desired_output = TBA;
 
   // options
   bool use_simulation = false;
@@ -304,10 +287,6 @@ int main(int argc, char *argv[])
       use_acd = true;
     }
     // Prefered output
-    else if (arg == "--cd")
-      cut_det = true;
-    else if (arg == "--sd")
-      cut_det = false;
     else if (arg == "--d")
       debug = true;
     // else if (arg == "--merge-transitions")
@@ -466,17 +445,17 @@ int main(int argc, char *argv[])
       if (aut_type)
       {
         bool type = false;
-        if (is_deterministic(aut))
+        if (spot::is_deterministic(aut))
         {
           type = true;
           std::cout << "deterministic" << std::endl;
         }
-        if (is_cut_deterministic(aut))
-        {
-          type = true;
-          std::cout << "cut-deterministic" << std::endl;
-        }
-        if (is_semi_deterministic(aut))
+        // if (is_cut_deterministic(aut))
+        // {
+        //   type = true;
+        //   std::cout << "cut-deterministic" << std::endl;
+        // }
+        if (spot::is_semi_deterministic(aut))
         {
           type = true;
           std::cout << "limit-deterministic" << std::endl;
@@ -489,7 +468,7 @@ int main(int argc, char *argv[])
         {
           std::cout << "inherently weak" << std::endl;
         }
-        if (is_unambiguous(aut))
+        if (spot::is_unambiguous(aut))
         {
           std::cout << "unambiguous" << std::endl;
         }
@@ -521,11 +500,6 @@ int main(int argc, char *argv[])
         }
       }
 
-      if (cd_check)
-      {
-        if (!is_cut_deterministic(aut))
-          continue;
-      }
       else if (!is_deterministic(aut))
       {
         // spot::scc_info si(aut);

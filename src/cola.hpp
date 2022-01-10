@@ -199,4 +199,8 @@ namespace cola
   bool
   is_accepting_nondetscc(std::string& scc_types, unsigned scc);
 
+  bool 
+  is_deterministic_scc(unsigned scc, spot::scc_info& si,
+                     bool inside_only = true);
+
 }
