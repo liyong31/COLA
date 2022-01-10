@@ -163,6 +163,7 @@ namespace cola
     tnba_mstate(spot::scc_info &si, size_t num, int value, unsigned num_nondet_acc_sccs)
         : si_(si), ordered_states_(num, value)
     {
+      nondetscc_breaces_.clear();
       for (unsigned i = 0; i < num_nondet_acc_sccs; i++)
       {
         std::vector<int> braces;
@@ -183,11 +184,11 @@ namespace cola
       this->nondetscc_breaces_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces;
-        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        {
-          braces.push_back(other.nondetscc_breaces_[i][j]);
-        }
+        std::vector<int> braces = other.nondetscc_breaces_[i];
+        // for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
+        // {
+        //   braces.push_back(other.nondetscc_breaces_[i][j]);
+        // }
         this->nondetscc_breaces_.push_back(braces);
       }
     }
@@ -228,11 +229,11 @@ namespace cola
       this->nondetscc_breaces_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces;
-        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        {
-          braces.push_back(other.nondetscc_breaces_[i][j]);
-        }
+        std::vector<int> braces = other.nondetscc_breaces_[i];
+        // for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
+        // {
+        //   braces.push_back(other.nondetscc_breaces_[i][j]);
+        // }
         this->nondetscc_breaces_.push_back(braces);
       }
       return *this;
@@ -287,8 +288,10 @@ namespace cola
       {
         return break_set_ < other.break_set_;
       }
+    }else 
+    {
+      return ordered_states_ < other.ordered_states_;
     }
-    return ordered_states_ < other.ordered_states_;
   }
   bool
   tnba_mstate::operator==(const tnba_mstate &other) const
@@ -307,8 +310,10 @@ namespace cola
         }
       }
       return true;
+    }else
+    {
+      return false;
     }
-    return false;
   }
   int tnba_mstate::get_max_rank() const
   {
@@ -422,13 +427,20 @@ namespace cola
   tnba_mstate::hash() const
   {
     size_t res = 0;
-    for (unsigned i : ordered_states_) // not sure how you're storing them
+    for (unsigned i : ordered_states_)
     {
       res = (res << 3) ^ i;
     }
     for (unsigned i : break_set_)
     {
       res ^= (res << 3) ^ i;
+    }
+    for (unsigned i = 0; i < nondetscc_breaces_.size(); i ++)
+    {
+      for (int k : nondetscc_breaces_[i])
+      {
+        res ^= (res << 3) ^ ((unsigned) k);
+      }
     }
 
     return res;
@@ -1118,11 +1130,12 @@ namespace cola
     // give color for the weak SCCs
     if (break_empty)
     {
-      colors.push_back(0);
+      colors.push_back(1);
     }
     else
     {
-      colors.push_back(-1);
+      // must be the one that infinitely often
+      colors.push_back(2);
     }
 
     //4. Reorgnize the indices of each accepting deterministic SCC
@@ -1143,7 +1156,7 @@ namespace cola
   void
   make_stutter_state(const tnba_mstate &curr, bdd letter, tnba_mstate &succ, std::vector<int> &colors)
   {
-    tnba_mstate ms(curr);
+    tnba_mstate ms = curr;
     std::vector<tnba_mstate> stutter_path;
     if (use_stutter_ && aut_->prop_stutter_invariant())
     {
@@ -1274,6 +1287,18 @@ public:
       }
       support_[i] = res_support;
       compat_[i] = res_compat;
+    }
+    // need to add support of reachable states 
+    if (use_stutter_ && aut_->prop_stutter_invariant())
+    {
+      for (unsigned c = 0; c != si_.scc_count(); ++c)
+          {
+            bdd c_supp = si_.scc_ap_support(c);
+            for (const auto& su: si_.succ(c))
+              c_supp &= support_[si_.one_state_of(su)];
+            for (unsigned st: si_.states_of(c))
+              support_[st] = c_supp;
+          }
     }
     // obtain the types of each SCC
     scc_types_ = get_scc_types(si_);
@@ -1430,7 +1455,8 @@ public:
         }
       }
       // has the value of fin
-      if (has_weak_acc && p->second.back() >= 0)
+      // empty is 1 and nonempty would be 1
+      if (has_weak_acc && (p->second.back() & 1))
       {
         has_weak = true;
         t.acc.set(weak_base);

@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
         }
       }
 
-      else if (!is_deterministic(aut))
+      else if (!spot::is_deterministic(aut))
       {
         // spot::scc_info si(aut);
         // std::string scc_types = cola::get_scc_types(si);
@@ -516,7 +516,7 @@ int main(int argc, char *argv[])
         {
           aut_type |= INHERENTLY_WEAK;
         }
-        if (is_semi_deterministic(aut))
+        if (spot::is_semi_deterministic(aut))
         {
           aut_type |= LIMIT_DETERMINISTIC;
         }

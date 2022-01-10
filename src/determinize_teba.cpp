@@ -510,6 +510,7 @@ namespace cola
             {
               continue;
             }
+
             // NORMAL way, inherit the labelling
             //int update_rnk = label;
             unsigned scc_succ_id = si_.scc_of(t.dst);
@@ -661,11 +662,11 @@ namespace cola
       // give color for the weak SCCs
       if (break_empty)
       {
-        colors.push_back(0);
+        colors.push_back(1);
       }
       else
       {
-        colors.push_back(-1);
+        colors.push_back(2);
       }
 
       //4. Reorgnize the indices of each accepting deterministic SCC
@@ -711,6 +712,7 @@ namespace cola
           elevator_mstate tmp_succ(si_, nb_states_, RANK_M);
           std::vector<int> tmp_color(acc_detsccs_.size() + 1, -1);
           compute_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
+         
           ms = tmp_succ;
           for (unsigned i = 0; i < mincolor.size(); i++)
           {
@@ -752,6 +754,7 @@ namespace cola
           }
         }
         succ = std::move(*cycle_seed);
+
         colors = mincolor;
       }
       else
@@ -815,6 +818,17 @@ namespace cola
         }
         support_[i] = res_support;
         compat_[i] = res_compat;
+      }
+      if (use_stutter_ && aut_->prop_stutter_invariant())
+      {
+        for (unsigned c = 0; c != si_.scc_count(); ++c)
+            {
+              bdd c_supp = si_.scc_ap_support(c);
+              for (const auto& su: si_.succ(c))
+                c_supp &= support_[si_.one_state_of(su)];
+              for (unsigned st: si_.states_of(c))
+                support_[st] = c_supp;
+            }
       }
       scc_types_ = get_scc_types(si_);
       // find out the accepting and deterministic SCCs
@@ -950,7 +964,7 @@ namespace cola
           }
         }
         // has the value of fin
-        if (has_weak_acc && p->second.back() >= 0)
+        if (has_weak_acc && (p->second.back() & 1))
         {
           has_weak = true;
           t.acc.set(weak_base);
