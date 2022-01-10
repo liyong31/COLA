@@ -342,4 +342,28 @@ namespace cola
       exit(-1);
     }
   }
+
+  bool
+  is_acepting_detscc(std::string& scc_types, unsigned scc)
+  {
+    return (scc_types[scc] & SCC_WEAK_TYPE) == 0 && (scc_types[scc] & SCC_INSIDE_DET_TYPE) > 0 && (scc_types[scc] & SCC_ACC) > 0;
+  }
+
+  bool 
+  is_accepting_weakscc(std::string& scc_types, unsigned scc)
+  {
+    return (scc_types[scc] & SCC_WEAK_TYPE) > 0 && (scc_types[scc] & SCC_ACC) > 0;
+  }
+
+  bool 
+  is_weakscc(std::string& scc_types, unsigned scc)
+  {
+    return (scc_types[scc] & SCC_WEAK_TYPE) > 0;
+  }
+
+  bool
+  is_accepting_nondetscc(std::string& scc_types, unsigned scc)
+  {
+    return (scc_types[scc] & SCC_WEAK_TYPE) == 0 && (scc_types[scc] & SCC_INSIDE_DET_TYPE) == 0 && (scc_types[scc] & SCC_ACC) > 0;
+  }
 }

@@ -45,6 +45,9 @@
 
 #include <types.hpp>
 
+
+// specific determinization construction for elevator automata
+// elevator automata have only deterministic SCCs and inherently weak SCCs
 namespace cola
 {
   // state and the labelling value
@@ -670,9 +673,9 @@ namespace cola
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         std::vector<label> acc_det_states = succ.get_detscc_states(acc_detsccs_[i]);
-        for (unsigned i = 0; i < acc_det_states.size(); i++)
+        for (unsigned j = 0; j < acc_det_states.size(); j++)
         {
-          succ.ordered_states_[acc_det_states[i].first] = i;
+          succ.ordered_states_[acc_det_states[j].first] = j;
         }
       }
 
@@ -760,7 +763,7 @@ namespace cola
     bool
     is_acc_detscc(unsigned scc)
     {
-      return (scc_types_[scc] & SCC_INSIDE_DET_TYPE) && (scc_types_[scc] & SCC_ACC) && ((scc_types_[scc] & SCC_WEAK_TYPE) == 0);
+      return (scc_types_[scc] & SCC_INSIDE_DET_TYPE) > 0 && (scc_types_[scc] & SCC_ACC) > 0 && ((scc_types_[scc] & SCC_WEAK_TYPE) == 0);
     }
 
     bool

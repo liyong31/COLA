@@ -95,8 +95,8 @@ namespace cola
   // determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
 
 
-  spot::twa_graph_ptr
-  determinize_twba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+  // spot::twa_graph_ptr
+  // determinize_twba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
   /// \brief Determinizing semi-deterministic or limit deterministic or elevator Buchi automaton
   ///
@@ -110,8 +110,16 @@ namespace cola
   ///
   /// The automaton \a aut should have Buchi condition.
   /// Output a deterministic parity automaton
+  // spot::twa_graph_ptr
+  // determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+
+  /// \brief Determinizing TNBA by independently determinizing different SCCs
+  ///
+  /// The automaton \a aut should have Buchi condition.
+  /// Output a deterministic Emenson-Lei automaton
   spot::twa_graph_ptr
-  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+  determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+
 
   /// \brief Determinizing elevator Buchi automaton that has either deterministic or weak SCCs
   ///
@@ -178,5 +186,17 @@ namespace cola
   // Check the equivalence of the constructed dpa and the input nba
   void
   check_equivalence(spot::const_twa_graph_ptr nba, spot::twa_graph_ptr dpa);
+
+  bool
+  is_acepting_detscc(std::string& scc_types, unsigned scc);
+
+  bool 
+  is_accepting_weakscc(std::string& scc_types, unsigned scc);
+
+  bool 
+  is_weakscc(std::string& scc_types, unsigned scc);
+
+  bool
+  is_accepting_nondetscc(std::string& scc_types, unsigned scc);
 
 }

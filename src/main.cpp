@@ -132,7 +132,7 @@ enum determinize_t
 };
 
 spot::twa_graph_ptr
-to_parity(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_t algo)
+to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_t algo)
 {
   // determinization
   spot::twa_graph_ptr res;
@@ -145,7 +145,7 @@ to_parity(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, dete
     else if (aut_type & ELEVATOR)
       res = cola::determinize_televator(aut, om);
     else
-      res = cola::determinize_tba(aut, om);
+      res = cola::determinize_tnba(aut, om);
   }
   else if (algo == LDBA)
   {
@@ -156,12 +156,16 @@ to_parity(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, dete
   }
   else if (algo == NBA)
   {
-    res = cola::determinize_tba(aut, om);
+    res = cola::determinize_tnba(aut, om);
   }
   else if (algo == Spot)
   {
     // pretty_print, use_scc, use_simulation, use_stutter, aborter
-    res = spot::tgba_determinize(aut, false, om.get(USE_SCC_INFO) > 0, om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
+    res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0, om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
+    if (om.get(VERBOSE_LEVEL) >= 2)
+    {
+      cola::output_file(res, "dpa_spot.hoa");
+    }
   }
   return res;
 }
@@ -578,7 +582,7 @@ int main(int argc, char *argv[])
           std::vector<spot::twa_graph_ptr> dpas;
           for (unsigned i = 0; i < subnbas.size(); i++)
           {
-            spot::twa_graph_ptr dpa = to_parity(subnbas[i], om, aut_type, determinize);
+            spot::twa_graph_ptr dpa = to_deterministic(subnbas[i], om, aut_type, determinize);
             dpas.push_back(dpa);
           }
           cola::composer dpa_composer(dpas, om);
@@ -588,7 +592,7 @@ int main(int argc, char *argv[])
         {
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
-          res = to_parity(aut, om, aut_type, determinize);
+          res = to_deterministic(aut, om, aut_type, determinize);
           c_end = clock();
           if (om.get(VERBOSE_LEVEL) > 0)
           {
