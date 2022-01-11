@@ -37,6 +37,7 @@ src_libcola_la_SOURCES =			\
   src/determinize_teba.cpp			\
   src/determinize_tldba.cpp			\
   src/determinize_tnba.cpp			\
+  src/determinize_twba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
   src/simulation.cpp			\

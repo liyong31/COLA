@@ -95,8 +95,8 @@ namespace cola
   // determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
 
 
-  // spot::twa_graph_ptr
-  // determinize_twba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+  spot::twa_graph_ptr
+  determinize_twba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
   /// \brief Determinizing semi-deterministic or limit deterministic or elevator Buchi automaton
   ///

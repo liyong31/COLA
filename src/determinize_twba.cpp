@@ -307,11 +307,11 @@ namespace cola
       if (use_simulation_)
         make_simulation_state(succ);
       
-      int parity = -1;
+      int parity = 2;
       // B' is empty
       if (succ.break_set_.empty())
       {
-        parity = 0;
+        parity = 1;
         state_set result;
         std::set_intersection(succ.reach_set_.begin(), succ.reach_set_.end()
               , coming_states.begin(), coming_states.end(), std::inserter(result, result.begin()));
@@ -360,8 +360,7 @@ namespace cola
           {
             mincolor = tmp_color;
           }
-        }
-        // check whether this ms has been seen before
+        }        // check whether this ms has been seen before
         bool in_seen = exists(*cycle_seed);
         for (auto it = cycle_seed + 1; it < stutter_path.end(); ++it)
         {
@@ -411,7 +410,7 @@ namespace cola
           compat_(nb_states_),
           simulator_(aut_, si, implications, om.get(USE_SIMULATION) > 0),
           delayed_simulator_(aut, om),
-          show_names_(om.get(VERBOSE_LEVEL) >= 2)
+          show_names_(om.get(VERBOSE_LEVEL) >= 1)
     {
       res_ = spot::make_twa_graph(aut->get_dict());
       res_->copy_ap_of(aut);
@@ -436,6 +435,18 @@ namespace cola
         }
         support_[i] = res_support;
         compat_[i] = res_compat;
+      }
+
+      if (use_stutter_ && aut_->prop_stutter_invariant())
+      {
+        for (unsigned c = 0; c != si_.scc_count(); ++c)
+            {
+              bdd c_supp = si_.scc_ap_support(c);
+              for (const auto& su: si_.succ(c))
+                c_supp &= support_[si_.one_state_of(su)];
+              for (unsigned st: si_.states_of(c))
+                support_[st] = c_supp;
+            }
       }
 
       //std::cout << "Simulator\n";
@@ -495,11 +506,11 @@ namespace cola
           // Create the automaton states
           unsigned dst = new_state(succ);
           // const unsigned MAX_PRI = 2* nb_det_states_ + 1;
-          if (color >= 0)
+          if (color & 1)
           {
             unsigned pri = (unsigned)color;
-            sets_ = std::max(pri, sets_);
-            res_->new_edge(origin, dst, letter, {pri});
+            //sets_ = std::max(pri, sets_);
+            res_->new_edge(origin, dst, letter, { 0});
           }
           else
           {
@@ -508,14 +519,14 @@ namespace cola
         }
       }
       // Acceptance is now min(odd) since we can emit Red on paths 0 with new opti
-      res_->set_co_buchi();
+      res_->set_acceptance(1, spot::acc_cond::acc_code::fin({0}));
       if (aut_->prop_complete().is_true())
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
       // spot::print_hoa(std::cout, res_, nullptr);
       //   std::cout << "\n";
-      if (om_.get(VERBOSE_LEVEL) > 0) res_ = postprocess(res_);
+      if (om_.get(USE_SCC_INFO) > 0) res_ = postprocess(res_);
       // cleanup_parity_here(res_);
       // spot::print_hoa(std::cout, res_, nullptr);
       //   std::cout << "\n";

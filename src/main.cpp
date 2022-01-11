@@ -139,7 +139,7 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   if (algo == COLA)
   {
     if (aut_type & INHERENTLY_WEAK)
-      res = cola::determinize_televator(aut, om);
+      res = cola::determinize_twba(aut, om);
     else if (aut_type & LIMIT_DETERMINISTIC)
       res = cola::determinize_televator(aut, om);
     else if (aut_type & ELEVATOR)

@@ -225,7 +225,7 @@ namespace cola
       }
       if (si_.scc_of(i) == scc)
       {
-        res.push_back(std::make_pair(i, ordered_states_[i]));
+        res.emplace_back(i, ordered_states_[i]);
       }
     }
     // std::cout << "\nBefore: ";
@@ -241,15 +241,16 @@ namespace cola
   elevator_mstate::hash() const
   {
     size_t res = 0;
-    for (unsigned i : ordered_states_) // not sure how you're storing them
+    for (unsigned i = 0; i < ordered_states_.size(); i ++)
     {
-      res = (res << 3) ^ i;
+      if (ordered_states_[i] == RANK_M) continue;
+      res = (res << 3) ^ (i);
+      res = (res << 3) ^ (ordered_states_[i]);
     }
     for (unsigned i : break_set_)
     {
       res ^= (res << 3) ^ i;
     }
-
     return res;
   }
 
@@ -486,12 +487,10 @@ namespace cola
       //2. Compute the labelling successors
       const int MAX_RANK = max_rnk + 3;
       std::vector<std::pair<int, int>> min_labellings;
-      
+
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         unsigned scc_curr_id = acc_detsccs_[i];
-        int min_acc = MAX_RANK;
-        int min_dcc = MAX_RANK;
         // list of deterministic states, already ordered by its labelling
         std::vector<label> acc_det_states = ms.get_detscc_states(scc_curr_id);
         // print_label_vec(acc_det_states);
@@ -499,8 +498,6 @@ namespace cola
         {
           unsigned s = acc_det_states[j].first;
           int curr_label = acc_det_states[j].second;
-          bool has_succ = false;
-          bool has_acc = false;
           // states and ranking
           for (const auto &t : aut_->out(s))
           {
@@ -544,35 +541,17 @@ namespace cola
               // else the successor is also in the same scc, no change, inherit the labelling
               if (succ.ordered_states_[t.dst] == RANK_M) succ.ordered_states_[t.dst] = curr_label;
               else succ.ordered_states_[t.dst] = std::min(succ.ordered_states_[t.dst], curr_label);
-
-              // record the successor of this label and whether it visits accepting transitions
-              if (succ.ordered_states_[t.dst] == curr_label)
-              {
-                has_succ = true;
-                has_acc = has_acc || t.acc;
-              }
             }
           }
-          
-          if (!has_succ && min_dcc == MAX_RANK)
-          {
-            // i. no successor, record the smaller label 
-            min_dcc = j;
-          } else if (has_acc && min_acc == MAX_RANK)
-          {
-            // ii. see an accepting transition
-            min_acc = j;
-          }
         }
-        // record the pair of labellings for the SCC
-        min_labellings.push_back(std::make_pair(min_dcc, min_acc));
       }
-
+      
       // remove redudant states
       if (use_simulation_)
       {
         make_simulation_state(succ);
-        min_labellings.clear();
+      }
+      min_labellings.clear();
         // record the numbers
         for (unsigned i = 0; i < acc_detsccs_.size(); i++)
         {
@@ -618,9 +597,8 @@ namespace cola
             }
           }
           // record the pair of labellings for the SCC
-          min_labellings.push_back(std::make_pair(min_dcc, min_acc));
+          min_labellings.emplace_back(min_dcc, min_acc);
         }
-      }
 
       bool break_empty = succ.break_set_.empty();
       // now determine the break set
@@ -789,7 +767,7 @@ namespace cola
           // is_accepting_(nb_states_),
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           delayed_simulator_(aut, om),
-          show_names_(om.get(VERBOSE_LEVEL) >= 2)
+          show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
       {
@@ -1053,18 +1031,18 @@ namespace cola
         res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
-      if (om_.get(VERBOSE_LEVEL) >= 2)
+      if (om_.get(VERBOSE_LEVEL) >= 1)
       {
         output_file(res_, "dpa.hoa");
         std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
-        check_equivalence(aut_, res_);
+        if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
       }
       if (om_.get(USE_SCC_INFO) > 0) res_ = postprocess(res_);
-      if (om_.get(VERBOSE_LEVEL) >= 2)
+      if (om_.get(VERBOSE_LEVEL) >= 1)
       {
         std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
         output_file(res_, "dpa1.hoa");
-        check_equivalence(aut_, res_);
+        if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
       }
       simplify_acceptance_here(res_);
 
@@ -1096,6 +1074,7 @@ namespace cola
           set2scc[set] = val->second;
         }
       }
+      
       mstate_merger merger(aut, set2scc, scc_dpa, om_);
       spot::twa_graph_ptr res = merger.run();
       if (om_.get(VERBOSE_LEVEL) >= 1)

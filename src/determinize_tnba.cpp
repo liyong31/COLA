@@ -167,7 +167,7 @@ namespace cola
       for (unsigned i = 0; i < num_nondet_acc_sccs; i++)
       {
         std::vector<int> braces;
-        nondetscc_breaces_.push_back(braces);
+        nondetscc_breaces_.emplace_back(braces);
       }
     }
 
@@ -177,19 +177,19 @@ namespace cola
       this->ordered_states_.clear();
       for (unsigned i = 0; i < other.ordered_states_.size(); i++)
       {
-        this->ordered_states_.push_back(other.ordered_states_[i]);
+        this->ordered_states_.emplace_back(other.ordered_states_[i]);
       }
       this->break_set_.clear();
       this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
       this->nondetscc_breaces_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces = other.nondetscc_breaces_[i];
-        // for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        // {
-        //   braces.push_back(other.nondetscc_breaces_[i][j]);
-        // }
-        this->nondetscc_breaces_.push_back(braces);
+        std::vector<int> braces; // = other.nondetscc_breaces_[i];
+        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
+        {
+          braces.emplace_back(other.nondetscc_breaces_[i][j]);
+        }
+        this->nondetscc_breaces_.emplace_back(braces);
       }
     }
 
@@ -222,19 +222,19 @@ namespace cola
       this->ordered_states_.clear();
       for (unsigned i = 0; i < other.ordered_states_.size(); i++)
       {
-        this->ordered_states_.push_back(other.ordered_states_[i]);
+        this->ordered_states_.emplace_back(other.ordered_states_[i]);
       }
       this->break_set_.clear();
       this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
       this->nondetscc_breaces_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces = other.nondetscc_breaces_[i];
-        // for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        // {
-        //   braces.push_back(other.nondetscc_breaces_[i][j]);
-        // }
-        this->nondetscc_breaces_.push_back(braces);
+        std::vector<int> braces; // = other.nondetscc_breaces_[i];
+        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
+        {
+          braces.emplace_back(other.nondetscc_breaces_[i][j]);
+        }
+        this->nondetscc_breaces_.emplace_back(braces);
       }
       return *this;
     }
@@ -427,9 +427,11 @@ namespace cola
   tnba_mstate::hash() const
   {
     size_t res = 0;
-    for (unsigned i : ordered_states_)
+    for (unsigned i = 0; i < ordered_states_.size(); i ++)
     {
-      res = (res << 3) ^ i;
+      if (ordered_states_[i] == RANK_MISSING) continue;
+      res = (res << 3) ^ (i);
+      res = (res << 3) ^ (ordered_states_[i]);
     }
     for (unsigned i : break_set_)
     {
@@ -437,12 +439,11 @@ namespace cola
     }
     for (unsigned i = 0; i < nondetscc_breaces_.size(); i ++)
     {
-      for (int k : nondetscc_breaces_[i])
+      for (const int k : nondetscc_breaces_[i])
       {
-        res ^= (res << 3) ^ ((unsigned) k);
+        res ^= (res << 3) ^ (k);
       }
     }
-
     return res;
   }
 
@@ -788,7 +789,7 @@ namespace cola
               // Step A1: Accepting edges generate new braces
               newb = braces.size();
               // put current brace node.second as the parent of newb
-              braces.push_back(node.second);
+              braces.emplace_back(node.second);
               // std::cout << " " << newb << " parent: " << node.second << std::endl;
             }
             auto i = succ_nodes.emplace(dst, newb);
@@ -824,7 +825,7 @@ namespace cola
         // If the state has not been added
         if (i.second || i.first->second == -1)
         {
-          braces.push_back(RANK_TOP_BRACE);
+          braces.emplace_back(RANK_TOP_BRACE);
           i.first->second = newb;
         }
       }
@@ -1012,7 +1013,7 @@ namespace cola
     for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
     {
       std::set<unsigned> states;
-      next_nondetstates.push_back(states);
+      next_nondetstates.emplace_back(states);
     }
     int max_rnk = ms.get_max_rank();
 
@@ -1070,10 +1071,10 @@ namespace cola
     for (unsigned i = 0; i < acc_detsccs_.size(); i++)
     {
       std::vector<label> labellings = ms.get_scc_states(acc_detsccs_[i]);
-      det_scc_labellings.push_back(labellings);
+      det_scc_labellings.emplace_back(labellings);
     }
     //2. Compute the labelling successors for deterministic SCCs
-    compute_deterministic_successors(ms, letter, succ, det_scc_labellings, can_ignore);
+    if (acc_detsccs_.size() > 0) compute_deterministic_successors(ms, letter, succ, det_scc_labellings, can_ignore);
 
     // std::cout << "After deterministic part = " << get_name(succ) << std::endl;
 
@@ -1085,7 +1086,7 @@ namespace cola
       nondet_scc_labellings.emplace_back(labellings, ms.get_nondet_braces(i));
     }
     //3. Compute the successors for nondeterministic SCCs
-    compute_nondeterministic_successors(ms, letter, succ, nondet_scc_labellings, next_nondetstates, can_ignore);
+    if (acc_nondetsccs_.size() > 0) compute_nondeterministic_successors(ms, letter, succ, nondet_scc_labellings, next_nondetstates, can_ignore);
     // std::cout << "After nondeterministic part = " << get_name(succ) << std::endl;
 
     // remove redudant states
@@ -1096,10 +1097,10 @@ namespace cola
     //now compute the labels
     std::vector<std::pair<int, int>> det_min_labellings;
     //4. decide the color for deterministic SCCs
-    compute_deterministic_color(ms, letter, succ, det_scc_labellings, det_min_labellings, can_ignore);
+    if (acc_detsccs_.size() > 0) compute_deterministic_color(ms, letter, succ, det_scc_labellings, det_min_labellings, can_ignore);
     //5. decide the color for nondeterministic SCCs
     std::vector<std::pair<int, int>> nondet_min_labellings;
-    compute_nondeterministic_color(ms, letter, succ, nondet_min_labellings);
+    if (acc_nondetsccs_.size() > 0) compute_nondeterministic_color(ms, letter, succ, nondet_min_labellings);
 
     bool break_empty = succ.break_set_.empty();
     // now determine the break set
@@ -1257,7 +1258,7 @@ public:
         MAX_RANK_(aut->num_states() + 2),
         simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
         delayed_simulator_(aut, om),
-        show_names_(om.get(VERBOSE_LEVEL) >= 2)
+        show_names_(om.get(VERBOSE_LEVEL) > 0)
   {
     if (om.get(VERBOSE_LEVEL) >= 2)
     {
@@ -1549,19 +1550,19 @@ public:
       res_->prop_complete(true);
     res_->prop_universal(true);
     res_->prop_state_acc(false);
-    if (om_.get(VERBOSE_LEVEL) >= 2)
+    if (om_.get(VERBOSE_LEVEL) >= 1)
     {
       output_file(res_, "dpa.hoa");
-      std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
-      check_equivalence(aut_, res_);
+      std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << " #Trans: " << res_->num_edges() << std::endl;
+      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
     }
     if (om_.get(USE_SCC_INFO) > 0)
       res_ = postprocess(res_);
-    if (om_.get(VERBOSE_LEVEL) >= 2)
+    if (om_.get(VERBOSE_LEVEL) >= 1)
     {
-      std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
+      std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << " #Trans: " << res_->num_edges() << std::endl;
       output_file(res_, "dpa1.hoa");
-      check_equivalence(aut_, res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
     }
     simplify_acceptance_here(res_);
 

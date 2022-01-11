@@ -37,6 +37,7 @@ namespace cola
   spot::twa_graph_ptr
   mstate_merger::run()
   {
+    clock_t c_start = clock();
     unsigned num_states = dpa_->num_states();
     // a map that maps the original mstate to the replaced mstate
     std::vector<unsigned> replace_states(num_states);
@@ -45,55 +46,6 @@ namespace cola
     {
       replace_states[s] = s;
     }
-    // reach_sccs[i + scccount*j] = 1 iff SCC i is reachable from SCC j
-    // unsigned num_size = scc.scc_count();
-    // num_size = 8 * num_size * num_size;
-    // int memory_limit = om_.get(SCC_REACH_MEMORY_LIMIT);
-    // std::vector<bool> reach_sccs;
-    // if (memory_limit == 0 || num_size <= (memory_limit * (1 << 20)))
-    // {
-    //   // if the memory usage is not too large
-    //   reach_sccs = find_scc_paths_(scc);
-    //   // std::vector<bool> another = find_scc_paths_(scc);
-    // }
-    // // whether the state s can reach t
-    // auto scc_reach = [&scc, &reach_sccs](unsigned s, unsigned t) -> bool
-    // {
-    //   if (s == t) return true;
-    //   // s reach t, then s > t 
-    //   if (s < t) return false;
-    //   if (! reach_sccs.empty())
-    //     // return (reach_sccs[t + scc.scc_count() * s]);
-    //     return (reach_sccs[t + s * (s + 1)/2]);
-    //   else 
-    //   {
-    //     // we traverse the map
-    //     unsigned nscc = s;
-    //     std::vector<bool> reachable(scc.scc_count(), false);
-    //     reachable[s] = true;
-    //     while(true) // iterator of SCCs in reverse topological order
-    //     {
-    //       // larger nscc is closer to initial state?
-    //       if (reachable[nscc])
-    //         {
-    //           for (unsigned succ: scc.succ(nscc))
-    //           {
-    //             if (succ == t) return true;
-    //             reachable[succ] = true;
-    //           }
-    //         }
-    //         // s != t
-    //         if (! nscc)
-    //         {
-    //           break;
-    //         }
-    //         --nscc;
-    //     }
-    //     return false;
-    //   }
-    // };
-    // set of states -> the forest of reachability in the states.
-    // output
     spot::scc_info scc = si_;
     bool debug = false;
     unsigned num_replaced_states = 0;
@@ -112,16 +64,7 @@ namespace cola
         }
         std::cout << "\n";
       }
-      // now compute states
-      // std::vector<unsigned> reach_vec(scc.scc_count());
-      // indicator for no successor SCC
-      // unsigned no_next_scc = scc.scc_count();
-      // for (unsigned scc_i = 0; scc_i < scc.scc_count(); scc_i++)
-      // {
-        // first set to non scc
-        // reach_vec[scc_i] = no_next_scc;
-      // }
-      // std::set<unsigned> not_bottom_set;
+
       std::set<unsigned> bottom_set;
       // traverse the number of states in p->second
       std::unordered_map<unsigned, unsigned> scc2repr;
@@ -148,69 +91,14 @@ namespace cola
       {
         continue;
       }
-      // check the reachability of SCCs
-      // for (auto fst_scc : bottom_set)
-      // {
-      //   for (auto snd_scc : bottom_set)
-      //   {
-      //     if (fst_scc == snd_scc)
-      //       continue;
-      //     if (scc_reach(fst_scc, snd_scc))
-      //     {
-      //       // only record the smallest SCC that fst_scc can reach so far
-      //       reach_vec[fst_scc] = std::min(snd_scc, reach_vec[fst_scc]);
-      //       // record the SCC that have successors
-      //       not_bottom_set.insert(fst_scc);
-      //       continue;
-      //     }
-      //   }
-      // }
-      // if (debug)
-      // {
-      //   std::cout << "Bottom set: {";
-      //   for (auto s : bottom_set)
-      //   {
-      //     if (not_bottom_set.find(s) == not_bottom_set.end())
-      //     {
-      //       std::cout << " " << s << " (state=" << scc2repr[s] << ")";
-      //     }
-      //     else
-      //     {
-      //       std::cout << " " << s << "(next=" << reach_vec[s] << ") ";
-      //     }
-      //   }
-      //   std::cout << "}\n";
-      // }
-      // reach the bottom scc from a given scc
-      // auto get_bottom_scc = [&reach_vec, &no_next_scc](unsigned scc_idx) -> unsigned
-      // {
-      //   while (true)
-      //   {
-      //     if (reach_vec[scc_idx] == no_next_scc)
-      //     {
-      //       break;
-      //     }
-      //     scc_idx = reach_vec[scc_idx];
-      //   }
-      //   return scc_idx;
-      // };
-      // compute the replacement of each state
-      // unsigned smallest_bottom_scc = scc.scc_count();
-      // for (auto t : p->second)
-      // {
-      //   unsigned scc_idx = scc.scc_of(t);
-        // unsigned bottom_scc_idx = get_bottom_scc(scc_idx);
-        // if t is not in the bottom scc, then it can be replace by a state in
-        // the bottom scc
-      //   smallest_bottom_scc = std::min(smallest_bottom_scc, bottom_scc_idx);
-      // }
+      
       for (auto t : p->second)
       {
         unsigned scc_idx = scc.scc_of(t);
         if (min_scc != scc_idx)
         {
           replace_states[t] = scc2repr[min_scc];
-          ++num_replaced_states;
+          ++ num_replaced_states;
           if (om_.get(VERBOSE_LEVEL) >= 2)
           {
             std::cout << "State " << t << " replaced by State " << scc2repr[min_scc] << "\n";
@@ -220,6 +108,9 @@ namespace cola
     }
     if (num_replaced_states == 0)
     {
+      clock_t c_end = clock();
+      if (om_.get(VERBOSE_LEVEL) > 0)
+          std::cout << "No states have been merged in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
       return dpa_;
     }
 
@@ -269,6 +160,10 @@ namespace cola
     res->prop_state_acc(false);
     // remove unreachable macrostates
     res->purge_unreachable_states();
+    clock_t c_end = clock();
+        if (om_.get(VERBOSE_LEVEL) > 0)
+          std::cout << "Done for state-merger in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+      
     return res;
   }
 
