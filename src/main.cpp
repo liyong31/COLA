@@ -530,6 +530,8 @@ int main(int argc, char *argv[])
           if (preprocess)
           {
             spot::postprocessor preprocessor;
+            // only a very low level of preprocessing is allowed
+            preprocessor.set_level(spot::postprocessor::Low);
             aut = preprocessor.run(aut);
             if (!cola::is_elevator_automaton(aut) && aut_type == ELEVATOR)
             {
