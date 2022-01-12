@@ -1,14 +1,15 @@
 ## Copyright (C) 2019-2020  The Seminator Authors
+## Copyright (C) 2022  The COLA Authors
 ##
-## This file is a part of Seminator, a tool for semi-determinization
-## of omega automata.
+## This file is a part of COLA, a tool for determinization
+## of Buchi automata.
 ##
-## Seminator is free software: you can redistribute it and/or modify
+## COLA is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ##
-## Seminator is distributed in the hope that it will be useful,
+## COLA is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.

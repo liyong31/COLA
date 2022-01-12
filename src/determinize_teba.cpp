@@ -1,7 +1,4 @@
-// Copyright (C) 2017-2019 Laboratoire de Recherche et Développement
-// de l'Epita.
-// Copyright (C) 2020  The Seminator Authors
-// Copyright (C) 2021  The COLA Authors
+// Copyright (C) 2022  The COLA Authors
 //
 // COLA is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

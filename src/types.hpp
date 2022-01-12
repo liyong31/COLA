@@ -1,5 +1,5 @@
 // Copyright (c) 2017-2020  The Seminator Authors
-// Copyright (C) 2021  The COLA Authors
+// Copyright (C) 2022  The COLA Authors
 //
 // This file is a part of Seminator, a tool for semi-determinization
 // of omega automata.

@@ -1,4 +1,5 @@
-// Copyright (C) 2021  The COLA Authors
+// Copyright (C) 2019-2020  The Seminator Authors
+// Copyright (C) 2022  The COLA Authors
 //
 // This file is a part of cola, a tool for complementation and determinization
 // of omega automata.
