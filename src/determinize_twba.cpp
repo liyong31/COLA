@@ -209,7 +209,7 @@ namespace cola
 
     bool exists(wmstate &s)
     {
-      return rank2n_.end() == rank2n_.find(s);
+      return rank2n_.end() != rank2n_.find(s);
     }
 
     // remove a state i if it is simulated by a state j
