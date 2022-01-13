@@ -86,8 +86,8 @@ Optimizations:
     --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
 
 Pre- and Post-processing:
-    --preprocess=0       Disable the simplification of the input automaton
-    --postprocess-det[=0|1|2|3]  simplify the output of the determinization
+    --preprocess[=0|1|2|3]       Simplify the input automaton at different level (default=1)
+    --postprocess-det[=0|1|2|3]  Simplify the output of the determinization
                              (default=1)
     --num-states=[INT]       Simplify the output with number of states less than INT 
                              (default: 30000)
@@ -207,7 +207,6 @@ int main(int argc, char *argv[])
   bool use_unambiguous = false;
   bool use_stutter = false;
   bool decompose = false;
-  bool preprocess = true;
   bool use_acd = false;
 
   enum postprocess_level
@@ -217,6 +216,7 @@ int main(int argc, char *argv[])
     Medium,
     High
   };
+  postprocess_level preprocess = Low;
   postprocess_level post_process = Low;
   bool use_scc = false;
   unsigned num_post = 30000;
@@ -235,17 +235,39 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
   {
     std::string arg = argv[i];
-    if (arg == "--preprocess=0")
+    if (arg.find("--preprocess=") != std::string::npos)
     {
-      preprocess = false;
-    }else if (arg == "--postprocess-det=0")
-      post_process = None;
-    else if (arg == "--postprocess-det=1")
-      post_process = Low;
-    else if (arg == "--postprocess-det=2")
-      post_process = Medium;
-    else if (arg == "--postprocess-det=3")
-      post_process = High;
+      unsigned level = parse_int(arg);
+      if (level == 0)
+      {
+        preprocess = None;
+      }else if (level == 1)
+      {
+        preprocess = Low;
+      }else if (level == 2)
+      {
+        preprocess = Medium;
+      }else if (level == 3)
+      {
+        preprocess = High;
+      }
+    }else if (arg.find("--postprocess-det=") != std::string::npos)
+    {
+      unsigned level = parse_int(arg);
+      if (level == 0)
+      {
+        post_process = None;
+      }else if (level == 1)
+      {
+        post_process = Low;
+      }else if (level == 2)
+      {
+        post_process = Medium;
+      }else if (level == 3)
+      {
+        post_process = High;
+      }
+    }
     else if (arg == "--generic")
     {
       output_type = Generic;
@@ -530,9 +552,14 @@ int main(int argc, char *argv[])
           // preprocessing for the input.
           if (preprocess)
           {
-            spot::postprocessor preprocessor;
             // only a very low level of preprocessing is allowed
-            preprocessor.set_level(spot::postprocessor::Low);
+            spot::postprocessor preprocessor;
+            if (preprocess == Low)
+               preprocessor.set_level(spot::postprocessor::Low);
+            else if (preprocess == Medium)
+               preprocessor.set_level(spot::postprocessor::Medium);
+            else if (preprocess == High)
+               preprocessor.set_level(spot::postprocessor::High);
             aut = preprocessor.run(aut);
             if (!cola::is_elevator_automaton(aut) && aut_type == ELEVATOR)
             {
@@ -541,9 +568,9 @@ int main(int argc, char *argv[])
             }
           }
         }
-        if (om.get(VERBOSE_LEVEL) >= 2)
+        if (om.get(VERBOSE_LEVEL) >= 1)
         {
-          cola::output_file(aut, "sim_aut.hoa");
+          if (om.get(VERBOSE_LEVEL) >= 2) cola::output_file(aut, "sim_aut.hoa");
           std::cout << "Output processed automaton (" << aut->num_states() << ", " << aut->num_edges() << ") to sim_aut.hoa\n";
         }
         clock_t c_end = clock();

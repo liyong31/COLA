@@ -35,7 +35,7 @@
 #include <spot/twaalgos/parity.hh>
 
 #include <spot/twaalgos/postproc.hh>
-
+#include <spot/misc/bddlt.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
@@ -467,6 +467,8 @@ namespace cola
     spot::twa_graph_ptr
     run()
     {
+      // add a cache here?
+      std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
       // Main stuff happens here
       // todo_ is a queue for handling states
       while (!todo_.empty())
@@ -477,22 +479,23 @@ namespace cola
         wmstate ms = top.first;
         // Compute support of all available states.
         bdd msupport = bddtrue;
-        bdd n_s_compat = bddfalse;
-        // compute the occurred variables in the outgoing transitions of ms, stored in msupport
         for (unsigned s : ms.reach_set_)
-        {
-          msupport &= support_[s];
-          n_s_compat |= compat_[s];
-        }
-
-        bdd all = n_s_compat;
-        while (all != bddfalse)
-        {
-          bdd letter = bdd_satoneset(all, msupport, bddfalse);
-          all -= letter;
-          // Compute all new states available from the generated
-          // letter.
-
+          {
+            msupport &= support_[s];
+            // n_s_compat |= compat_[s];
+          }
+      
+      auto i = cache.emplace(msupport, std::vector<bdd>());
+      if (i.second) // 
+      {
+          std::vector<bdd>& rs = i.first->second;
+          //enumerate all possible letters
+          for (bdd one: minterms_of(bddtrue, msupport))
+              rs.emplace_back(one);
+      }
+      const std::vector<bdd>& letters_vec = i.first->second;
+      for (auto & letter : letters_vec)
+      {
           wmstate succ;
           int color = -1;
           //rank_successors(std::move(ms), top.second, letter, succ, color);

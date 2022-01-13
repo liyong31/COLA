@@ -33,12 +33,11 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
-
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
 #include <spot/twa/acc.hh>
-
+#include <spot/misc/bddlt.hh>
 #include <types.hpp>
 
 // Compositional determinization of Buchi automara based on SCC decomposition
@@ -1481,6 +1480,8 @@ public:
   spot::twa_graph_ptr
   run()
   {
+    // add a cache here?
+    std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
     // Main stuff happens here
     // todo_ is a queue for handling states
     while (!todo_.empty())
@@ -1492,21 +1493,26 @@ public:
 
       // Compute support of all available states.
       bdd msupport = bddtrue;
-      bdd n_s_compat = bddfalse;
+      // bdd n_s_compat = bddfalse;
       // compute the occurred variables in the outgoing transitions of ms, stored in msupport
       for (unsigned s = 0; s < nb_states_; ++s)
         if (ms.ordered_states_[s] != RANK_MISSING)
         {
           msupport &= support_[s];
-          n_s_compat |= compat_[s];
+          // n_s_compat |= compat_[s];
         }
-
-      bdd all = n_s_compat;
-      while (all != bddfalse)
+      
+      auto i = cache.emplace(msupport, std::vector<bdd>());
+      if (i.second) // 
       {
-        bdd letter = bdd_satoneset(all, msupport, bddfalse);
-        all -= letter;
-
+          std::vector<bdd>& rs = i.first->second;
+          //enumerate all possible letters
+          for (bdd one: minterms_of(bddtrue, msupport))
+              rs.emplace_back(one);
+      }
+      const std::vector<bdd>& letters_vec = i.first->second;
+      for (auto & letter : letters_vec)
+      {
         // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
         tnba_mstate succ(si_, nb_states_, RANK_MISSING, acc_nondetsccs_.size());
         // the number of SCCs we care is the accepting det SCCs and the weak SCCs
@@ -1539,6 +1545,7 @@ public:
           // record this color
         }
         auto r = trans2colors_.emplace(std::make_pair(origin, letter), colors);
+
       }
     }
     finalize_acceptance();
