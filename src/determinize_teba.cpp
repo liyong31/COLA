@@ -33,7 +33,7 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
-#include <spot/misc/bddlt.hh>
+
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
@@ -966,7 +966,6 @@ namespace cola
     spot::twa_graph_ptr
     run()
     {
-      std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
       // Main stuff happens here
       // todo_ is a queue for handling states
       while (!todo_.empty())
@@ -978,24 +977,21 @@ namespace cola
 
         // Compute support of all available states.
         bdd msupport = bddtrue;
+        bdd n_s_compat = bddfalse;
+        // compute the occurred variables in the outgoing transitions of ms, stored in msupport
         for (unsigned s = 0; s < nb_states_; ++s)
           if (ms.ordered_states_[s] != RANK_M)
           {
             msupport &= support_[s];
-            // n_s_compat |= compat_[s];
+            n_s_compat |= compat_[s];
           }
-      
-      auto i = cache.emplace(msupport, std::vector<bdd>());
-      if (i.second) // 
-      {
-          std::vector<bdd>& rs = i.first->second;
-          //enumerate all possible letters
-          for (bdd one: minterms_of(bddtrue, msupport))
-              rs.emplace_back(one);
-      }
-      const std::vector<bdd>& letters_vec = i.first->second;
-      for (auto & letter : letters_vec)
-      {
+
+        bdd all = n_s_compat;
+        while (all != bddfalse)
+        {
+          bdd letter = bdd_satoneset(all, msupport, bddfalse);
+          all -= letter;
+
           elevator_mstate succ(si_, nb_states_, RANK_M);
           // the number of SCCs we care is the accepting det SCCs and the weak SCCs
           std::vector<int> colors(acc_detsccs_.size() + 1, -1);

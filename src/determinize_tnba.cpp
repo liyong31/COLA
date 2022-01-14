@@ -1,4 +1,7 @@
-// Copyright (C) 2022  The COLA Authors
+// Copyright (C) 2017-2019 Laboratoire de Recherche et Développement
+// de l'Epita.
+// Copyright (C) 2020  The Seminator Authors
+// Copyright (C) 2021  The COLA Authors
 //
 // COLA is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,11 +36,12 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
+#include <spot/misc/bddlt.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
 #include <spot/twa/acc.hh>
-#include <spot/misc/bddlt.hh>
+
 #include <types.hpp>
 
 // Compositional determinization of Buchi automara based on SCC decomposition
@@ -156,36 +160,44 @@ namespace cola
   {
   public:
     // the number of states num, default values, and number of NACs
-    tnba_mstate(spot::scc_info &si, size_t num, int value, unsigned num_nondet_acc_sccs)
-        : si_(si), ordered_states_(num, value)
+    tnba_mstate(spot::scc_info &si, unsigned num_det_acc_sccs, unsigned num_nondet_acc_sccs)
+        : si_(si)
     {
-      nondetscc_breaces_.clear();
+      for (unsigned i = 0; i < num_det_acc_sccs; i ++)
+      {
+        detscc_labels_.emplace_back(std::vector<label>());
+      }
       for (unsigned i = 0; i < num_nondet_acc_sccs; i++)
       {
         std::vector<int> braces;
         nondetscc_breaces_.emplace_back(braces);
+        nondetscc_labels_.emplace_back(std::vector<label>());
       }
     }
 
     tnba_mstate(const tnba_mstate &other)
         : si_(other.si_)
     {
-      this->ordered_states_.clear();
-      for (unsigned i = 0; i < other.ordered_states_.size(); i++)
-      {
-        this->ordered_states_.emplace_back(other.ordered_states_[i]);
-      }
       this->break_set_.clear();
       this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
+      this->weak_set_.clear();
+      this->weak_set_.insert(other.weak_set_.begin(), other.weak_set_.end());
+
+      this->detscc_labels_.clear();
+      for (unsigned i = 0; i < other.detscc_labels_.size(); i ++)
+      {
+        std::vector<label> copy = other.detscc_labels_[i];
+        detscc_labels_.emplace_back(copy);
+      }
+  
       this->nondetscc_breaces_.clear();
+      this->nondetscc_labels_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces; // = other.nondetscc_breaces_[i];
-        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        {
-          braces.emplace_back(other.nondetscc_breaces_[i][j]);
-        }
+        std::vector<int> braces = other.nondetscc_breaces_[i];
         this->nondetscc_breaces_.emplace_back(braces);
+        std::vector<label> copy = other.nondetscc_labels_[i];
+        this->nondetscc_labels_.emplace_back(copy);
       }
     }
 
@@ -206,7 +218,7 @@ namespace cola
     get_nondet_braces(unsigned ith_nondet_scc) const;
 
     std::vector<safra_node>
-    get_safra_nodes(unsigned scc, unsigned index) const;
+    get_safra_nodes(unsigned index) const;
 
     bool operator<(const tnba_mstate &other) const;
     bool operator==(const tnba_mstate &other) const;
@@ -215,22 +227,26 @@ namespace cola
     operator=(const tnba_mstate &other)
     {
       this->si_ = other.si_;
-      this->ordered_states_.clear();
-      for (unsigned i = 0; i < other.ordered_states_.size(); i++)
-      {
-        this->ordered_states_.emplace_back(other.ordered_states_[i]);
-      }
       this->break_set_.clear();
       this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
+      this->weak_set_.clear();
+      this->weak_set_.insert(other.weak_set_.begin(), other.weak_set_.end());
+
+      this->detscc_labels_.clear();
+      for (unsigned i = 0; i < other.detscc_labels_.size(); i ++)
+      {
+        std::vector<label> copy = other.detscc_labels_[i];
+        detscc_labels_.emplace_back(copy);
+      }
+  
       this->nondetscc_breaces_.clear();
+      this->nondetscc_labels_.clear();
       for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
       {
-        std::vector<int> braces; // = other.nondetscc_breaces_[i];
-        for (unsigned j = 0; j < other.nondetscc_breaces_[i].size(); j++)
-        {
-          braces.emplace_back(other.nondetscc_breaces_[i][j]);
-        }
+        std::vector<int> braces = other.nondetscc_breaces_[i];
         this->nondetscc_breaces_.emplace_back(braces);
+        std::vector<label> copy = other.nondetscc_labels_[i];
+        this->nondetscc_labels_.emplace_back(copy);
       }
       return *this;
     }
@@ -240,12 +256,15 @@ namespace cola
     // SCC information
     spot::scc_info &si_;
     // 1. NAC states point to its braces
-    // 2. DAC states point to its labelling
-    // 3. IWC states point to RANK_WEAK
-    std::vector<int> ordered_states_;
+    std::vector<std::vector<label>> nondetscc_labels_; 
     // the braces for each NAC
     std::vector<std::vector<int>> nondetscc_breaces_;
+    // 2. DAC states point to its labelling
+    std::vector<std::vector<label>> detscc_labels_;
+    // 3. IWC states point to RANK_WEAK
+    // std::vector<int> ordered_states_;
     // breakpoint construction for weak accepting SCCs
+    std::set<unsigned> weak_set_;
     std::set<unsigned> break_set_;
   };
 
@@ -261,13 +280,22 @@ namespace cola
   bool
   tnba_mstate::operator<(const tnba_mstate &other) const
   {
-    if (ordered_states_ == other.ordered_states_)
+    if (weak_set_ == other.weak_set_)
     {
       if (break_set_ == other.break_set_)
       {
+        for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+        {
+          if (detscc_labels_[i] == other.detscc_labels_[i])
+          {
+            continue;
+          }else 
+          {
+            return detscc_labels_[i] < other.detscc_labels_[i];
+          }
+        }
         // equal size
-        unsigned minsize = nondetscc_breaces_.size();
-        for (unsigned i = 0; i < minsize; i++)
+        for (unsigned i = 0; i < nondetscc_breaces_.size(); i++)
         {
           if (nondetscc_breaces_[i] == other.nondetscc_breaces_[i])
           {
@@ -276,6 +304,13 @@ namespace cola
           else
           {
             return nondetscc_breaces_[i] < other.nondetscc_breaces_[i];
+          }
+          if (nondetscc_labels_[i] == other.nondetscc_labels_[i])
+          {
+            continue;
+          }else 
+          {
+            return nondetscc_labels_[i] < other.nondetscc_labels_[i];
           }
         }
         return false;
@@ -286,116 +321,104 @@ namespace cola
       }
     }else 
     {
-      return ordered_states_ < other.ordered_states_;
+      return weak_set_ < other.weak_set_;
     }
   }
   bool
   tnba_mstate::operator==(const tnba_mstate &other) const
   {
-    if (ordered_states_ == other.ordered_states_ && break_set_ == other.break_set_)
-    {
-      for (unsigned i = 0; i < other.nondetscc_breaces_.size(); i++)
-      {
-        if (nondetscc_breaces_[i] == other.nondetscc_breaces_[i])
-        {
-          continue;
-        }
-        else
-        {
-          return false;
-        }
-      }
-      return true;
-    }else
+    if (this->weak_set_ != other.weak_set_)
     {
       return false;
     }
-  }
-  int tnba_mstate::get_max_rank() const
-  {
-    int max_rnk = -1;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    if (this->break_set_ != other.break_set_)
     {
-      max_rnk = std::max(max_rnk, ordered_states_[i]);
+      return false;
     }
-    return max_rnk;
-  }
-  bool tnba_mstate::is_empty() const
-  {
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
     {
-      if (ordered_states_[i] != RANK_MISSING)
+      if (detscc_labels_[i] != other.detscc_labels_[i])
+      {
+        return false;
+      }
+    }
+
+    for (unsigned i = 0; i < nondetscc_labels_.size(); i ++)
+    {
+      if (nondetscc_labels_[i] != other.nondetscc_labels_[i])
+      {
+        return false;
+      }
+      if (nondetscc_breaces_[i] != other.nondetscc_breaces_[i])
       {
         return false;
       }
     }
     return true;
   }
+  int tnba_mstate::get_max_rank() const
+  {
+    return -1;
+  }
   std::set<unsigned>
   tnba_mstate::get_reach_set() const
   {
     std::set<unsigned> result;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    result.insert(weak_set_.begin(), weak_set_.end());
+    for (auto & vec : detscc_labels_)
     {
-      if (ordered_states_[i] == RANK_MISSING)
-        continue;
-      result.insert(i);
+      for (auto& p : vec)
+      {
+        result.insert(p.first);
+      }
+    }
+    for (auto & vec : nondetscc_labels_)
+    {
+      for (auto& p : vec)
+      {
+        result.insert(p.first);
+      }
     }
     return result;
+  }
+  bool tnba_mstate::is_empty() const
+  {
+    if (! weak_set_.empty())
+    {
+      return false;
+    }
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+    {
+      if (! detscc_labels_[i].empty())
+      {
+        return false;
+      }
+    }
+    for (unsigned i = 0; i < nondetscc_labels_.size(); i ++)
+    {
+      if (! nondetscc_labels_[i].empty())
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   std::set<unsigned>
   tnba_mstate::get_weak_set() const
   {
-    std::set<unsigned> result;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
-    {
-      if (ordered_states_[i] == RANK_WEAK)
-        result.insert(i);
-    }
-    return result;
-  }
-
-  std::vector<label>
-  tnba_mstate::get_scc_states(unsigned scc) const
-  {
-    std::vector<label> res;
-    // traverse all states
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
-    {
-      if (ordered_states_[i] == RANK_MISSING || ordered_states_[i] == RANK_WEAK)
-      {
-        continue;
-      }
-      if (si_.scc_of(i) == scc)
-      {
-        res.emplace_back(i, ordered_states_[i]);
-      }
-    }
-    // std::cout << "\nBefore: ";
-    // print_label_vec(res);
-    // ordered the states
-    std::sort(res.begin(), res.end(), label_compare);
-    // std::cout << "After: ";
-    // print_label_vec(res);
-    return res;
+    return weak_set_;
   }
 
   // Return the nodes sorted in ascending order
   std::vector<safra_node>
-  tnba_mstate::get_safra_nodes(unsigned scc, unsigned index) const
+  tnba_mstate::get_safra_nodes(unsigned index) const
   {
     std::vector<safra_node> res;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    for (unsigned i = 0; i < nondetscc_labels_[index].size(); i++)
     {
-      if (ordered_states_[i] == RANK_MISSING || ordered_states_[i] == RANK_WEAK)
-      {
-        continue;
-      }
-      if (si_.scc_of(i) == scc)
-      {
         // last brace
-        int brace = ordered_states_[i];
+        int brace = nondetscc_labels_[index][i].second;
         std::vector<int> tmp;
         while (brace >= 0)
         {
@@ -405,7 +428,6 @@ namespace cola
           brace = nondetscc_breaces_[index][brace];
         }
         res.emplace_back(i, std::move(tmp));
-      }
     }
     // compare the node according to its labelling
     std::sort(res.begin(), res.end(), node_compare());
@@ -423,23 +445,35 @@ namespace cola
   tnba_mstate::hash() const
   {
     size_t res = 0;
-    for (unsigned i = 0; i < ordered_states_.size(); i ++)
+    for (unsigned i : weak_set_)
     {
-      if (ordered_states_[i] == RANK_MISSING) continue;
-      res = (res << 3) ^ (i);
-      res = (res << 3) ^ (ordered_states_[i]);
+      res = (res << 3) ^ i;
     }
     for (unsigned i : break_set_)
     {
       res ^= (res << 3) ^ i;
     }
-    for (unsigned i = 0; i < nondetscc_breaces_.size(); i ++)
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
     {
-      for (const int k : nondetscc_breaces_[i])
+      for (auto& p : detscc_labels_[i])
       {
-        res ^= (res << 3) ^ (k);
+        res ^= (res << 3) ^ (p.first);
+        res ^= (res << 3) ^ (p.second);
       }
     }
+    for (unsigned i = 0; i < nondetscc_breaces_.size(); i ++)
+    {
+      for (auto& p : nondetscc_labels_[i])
+      {
+        res ^= (res << 3) ^ (p.first);
+        res ^= (res << 3) ^ (p.second);
+      }
+      for (int k : nondetscc_breaces_[i])
+      {
+        res ^= (res << 3) ^ ((unsigned) k);
+      }
+    }
+
     return res;
   }
 
@@ -523,22 +557,13 @@ namespace cola
     get_name(const tnba_mstate &ms)
     {
       // nondeterministic states (including weak states)
-      std::string res = "N={";
       bool first_state = true;
-      for (unsigned i = 0; i < ms.ordered_states_.size(); i++)
-        if (ms.ordered_states_[i] == RANK_WEAK)
-        {
-          if (!first_state)
-            res += ",";
-          first_state = false;
-          res += std::to_string(i);
-        }
-      res += "}";
+      std::string res = "P=" + get_set_string(ms.weak_set_);
       res += ", O=" + get_set_string(ms.break_set_);
       // now output according SCCs
       for (unsigned scc_id : acc_detsccs_)
       {
-        std::vector<label> states = ms.get_scc_states(scc_id);
+        std::vector<label> states = ms.detscc_labels_[scc_id];
         res += ",[";
         first_state = true;
         for (unsigned p = 0; p < states.size(); p++)
@@ -554,7 +579,7 @@ namespace cola
       for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
       {
         unsigned scc_id = acc_nondetsccs_[i];
-        std::vector<safra_node> states = ms.get_safra_nodes(scc_id, i);
+        std::vector<safra_node> states = ms.get_safra_nodes(i);
         res += ",{";
         first_state = true;
         for (unsigned p = 0; p < states.size(); p++)
@@ -599,41 +624,44 @@ namespace cola
       return rank2n_.end() != rank2n_.find(s);
     }
 
-    // remove a state i if it is simulated by a state j
-    void
-    make_simulation_state(tnba_mstate &ms)
+
+    void remove_label(std::vector<label>& nodes, std::set<unsigned>& to_remove)
     {
-      std::set<unsigned> reached_states = ms.get_reach_set();
-      for (unsigned i : reached_states)
+      std::vector<label> tmp;
+      auto it1 = nodes.begin();
+      while (it1 != nodes.end())
       {
-        for (unsigned j : reached_states)
+        auto old_it1 = it1++;
+        if (to_remove.find(old_it1->first) != to_remove.end())
         {
-          if (i == j)
-            continue;
-          // j simulates i and j cannot reach i
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
+          it1 = nodes.erase(old_it1);
+        }
+      }
+    }
+
+  void merge_redundant_states(tnba_mstate &ms, std::vector<label>& nodes, bool nondet)
+  {
+    auto it1 = nodes.begin();
+    while (it1 != nodes.end())
+      {
+        auto old_it1 = it1++;
+        for (auto it2 = nodes.begin(); it2 != nodes.end(); ++it2)
           {
-            // std::cout << j << " simulated " << i << std::endl;
-            // std::cout << "can_reach = " << simulator_.can_reach(j, i) << std::endl;
-            ms.ordered_states_[i] = RANK_MISSING;
-            ms.break_set_.erase(i);
-          }
-          // (j, k1) and (i, k2), if j simulates i and k1 < k2, then remove k2
-          // Note that here i and j are not equivalent
-          unsigned scc_i = si_.scc_of(i);
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) 
-              && ms.ordered_states_[j] >= 0 && ms.ordered_states_[i] >= 0 && (scc_i == si_.scc_of(j)))
-          // if j can reach i, then scc(j) must be larger scc(i) ms[j] > RANK_N && ms[j] < ms[i])
-          {
-            bool remove = false;
-            if (is_acepting_detscc(scc_types_, scc_i) && ms.ordered_states_[j] < ms.ordered_states_[i])
+            if (old_it1 == it2)
+              continue;
+            unsigned i = old_it1->first;
+            unsigned j = it2->first;
+            if (!(simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)))
             {
-              remove = true;
-            }else if (is_accepting_nondetscc(scc_types_, scc_i) )
+              continue;
+            }
+            int brace_i = old_it1->second;
+            int brace_j = it2->second;
+            bool remove = false;
+            if (nondet)
             {
               // need to compare there nesting pattern
-              int brace_i = ms.ordered_states_[i];
-              int brace_j = ms.ordered_states_[j];
+              unsigned scc_i = si_.scc_of(i);
               int scc_index = get_nondetscc_index(scc_i);
               std::vector<int>& braces = ms.nondetscc_breaces_[scc_index];
               // std::cout << "State " << i << " brace: " << brace_i << std::endl;
@@ -643,55 +671,120 @@ namespace cola
               {
                 remove = true;
               }
+            }else if (brace_j < brace_i)
+            {
+              remove = true;
             }
             if (remove)
+              {
+                it1 = nodes.erase(old_it1);
+                break;
+              }
+          }
+      }
+  }
+
+    
+
+    // remove a state i if it is simulated by a state j
+    void
+    make_simulation_state(tnba_mstate &ms)
+    {
+      const std::set<unsigned> reached_states = ms.get_reach_set();
+      std::vector<std::set<unsigned>> det_remove(acc_detsccs_.size(), std::set<unsigned>());
+      std::vector<std::set<unsigned>> nondet_remove(acc_nondetsccs_.size(), std::set<unsigned>());
+      for (unsigned i : reached_states)
+      {
+        for (unsigned j : reached_states)
+        {
+          if (i == j)
+            continue;
+          unsigned scc_i = si_.scc_of(i);
+          // j simulates i and j cannot reach i
+          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
+          {
+            // std::cout << j << " simulated " << i << std::endl;
+            // std::cout << "can_reach = " << simulator_.can_reach(j, i) << std::endl;
+            if (is_weakscc(scc_types_, scc_i))
             {
-              // std::cout << j << " simulated " << i << std::endl;
-              ms.ordered_states_[i] = RANK_MISSING;
+              ms.weak_set_.erase(i);
               ms.break_set_.erase(i);
+            }else if (is_acepting_detscc(scc_types_, scc_i))
+            {
+              int index = get_detscc_index(scc_i);
+              det_remove[index].insert(i);
+            }else if (is_accepting_nondetscc(scc_types_, scc_i))
+            {
+              int index = get_nondetscc_index(scc_i);
+              nondet_remove[index].insert(i);
             }
           }
         }
       }
+      for (unsigned i = 0; i < det_remove.size(); i ++)
+      {
+        remove_label(ms.detscc_labels_[i], det_remove[i]);
+        // now remove more
+        merge_redundant_states(ms, ms.detscc_labels_[i], false);
+      }
+      for (unsigned i = 0; i < nondet_remove.size(); i ++)
+      {
+        remove_label(ms.nondetscc_labels_[i], nondet_remove[i]);
+        merge_redundant_states(ms, ms.nondetscc_labels_[i], true);
+      }
     }
 
     // Runs with higher labelling may be merged by those with lower labelling
-    void compute_deterministic_successors(const tnba_mstate &ms, bdd letter, tnba_mstate &succ, std::vector<std::vector<label>> &det_scc_labellings, std::function<bool(bool, unsigned)> can_ignore)
+    void compute_deterministic_successors(const tnba_mstate &ms, tnba_mstate &succ, std::vector<std::set<unsigned>>& next_detstates
+    , std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>>& det_cache)
     {
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         unsigned curr_scc = acc_detsccs_[i];
         // list of deterministic states, already ordered by its labelling
-        std::vector<label> &acc_det_states = det_scc_labellings[i];
+        const std::vector<label> &acc_det_states = ms.detscc_labels_[i];
+        std::map<unsigned, int> succ_nodes;
         // print_label_vec(acc_det_states);
         for (unsigned j = 0; j < acc_det_states.size(); j++)
         {
           unsigned s = acc_det_states[j].first;
           int curr_label = acc_det_states[j].second;
           // states and ranking
-          for (const auto &t : aut_->out(s))
+          for (const auto &t : det_cache[s])
           {
-            if (!bdd_implies(letter, t.cond))
-              continue;
-            if (can_ignore(use_unambiguous_, t.dst))
-            {
-              continue;
-            }
-            unsigned succ_scc = si_.scc_of(t.dst);
+            unsigned succ_scc = si_.scc_of(t.second);
             // ignore the states that go to other SCCs
             if (curr_scc != succ_scc)
               continue;
-            assert(succ.ordered_states_[t.dst] != RANK_MISSING);
+            next_detstates[i].erase(t.second);
             // Stay in the same accepting deterministic SCC or just enter this SCC
             // All DAC-states already have assigned with MAX_RANK
-            succ.ordered_states_[t.dst] = std::min(succ.ordered_states_[t.dst], curr_label);
+            auto it = succ_nodes.emplace(t.second, curr_label);
+            if (! it.second) // already there
+            {
+              int prev_label = it.first->second;
+              it.first->second = std::min(curr_label, prev_label);
+            }
           }
+        }
+        int max_rnk = nb_states_ + 1;
+        // put them into succ
+        for (unsigned p : next_detstates[i])
+        {
+          succ_nodes.emplace(p, max_rnk);
+          ++ max_rnk;
+        }
+        for (auto& node : succ_nodes)
+        {
+          succ.detscc_labels_[i].emplace_back(node.first, node.second);
         }
       }
     }
 
-    void compute_deterministic_color(const tnba_mstate &ms, bdd letter, tnba_mstate &succ, std::vector<std::vector<label>> &det_scc_labellings, std::vector<std::pair<int, int>> &min_labellings, std::function<bool(bool, unsigned)> can_ignore)
+    void compute_deterministic_color(const tnba_mstate &ms, tnba_mstate &succ, std::vector<std::pair<int, int>> &min_labellings
+    , std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>>& det_cache)
     {
+      
       // record the numbers
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
@@ -699,9 +792,17 @@ namespace cola
         int min_acc = MAX_RANK_;
         int min_dcc = MAX_RANK_;
         // list of deterministic states, already ordered by its labelling
-        std::vector<label> &acc_det_states = det_scc_labellings[i];
+        const std::vector<label> &acc_det_states = ms.detscc_labels_[i];
+        std::map<unsigned, int> succ_nodes;
+        for (auto & p : succ.detscc_labels_[i])
+        {
+          succ_nodes[p.first] = p.second;
+        }
         // std::cout << "Computing scc " << curr_scc << "\n";
         // print_label_vec(acc_det_states);
+        std::vector<unsigned> decr_by;
+        decr_by.assign(acc_det_states.size(), 0);
+        unsigned decr = 0;
         for (unsigned j = 0; j < acc_det_states.size(); j++)
         {
           bool has_succ = false;
@@ -709,51 +810,59 @@ namespace cola
           unsigned s = acc_det_states[j].first;
           int curr_label = acc_det_states[j].second;
           assert(curr_label == j);
-          for (const auto &t : aut_->out(s))
+          for (const auto &t : det_cache[s])
           {
-            if (!bdd_implies(letter, t.cond))
-              continue;
-            if (can_ignore(use_unambiguous_, t.dst))
-            {
-              continue;
-            }
             // 1. first they should be in the same SCC
             // 2. second the label should be equal
-            if (si_.scc_of(s) == si_.scc_of(t.dst) && succ.ordered_states_[t.dst] == curr_label)
+            if (si_.scc_of(s) == si_.scc_of(t.second) && succ_nodes[t.second] == curr_label)
             {
               has_succ = true;
-              has_acc = has_acc || t.acc;
+              has_acc = has_acc || t.first;
             }
           }
-          if (!has_succ && min_dcc == MAX_RANK_)
+          if (!has_succ)
           {
+            ++ decr;
             // i. no successor, record the smaller label
-            min_dcc = j;
+            if (min_dcc == MAX_RANK_)
+            {
+              min_dcc = j;
+            }
           }
           else if (has_acc && min_acc == MAX_RANK_)
           {
             // ii. see an accepting transition
             min_acc = j;
           }
+          // number
+          decr_by[j] = decr;
         }
         // record the pair of labellings for the SCC
-        min_labellings.push_back(std::make_pair(min_dcc, min_acc));
+        min_labellings.emplace_back(min_dcc, min_acc);
+
+        // reorganize the indices
+        std::sort(succ.detscc_labels_[i].begin(), succ.detscc_labels_[i].end(), label_compare);
+        for (int k = 0; k < succ.detscc_labels_[i].size(); k ++)
+        {
+          succ.detscc_labels_[i][k].second = k;
+        }
       }
     }
 
   void
-  compute_nondeterministic_successors(const tnba_mstate &ms, bdd letter, tnba_mstate &succ, std::vector<std::pair<std::vector<label>, std::vector<int>>> &nondet_scc_labellings, std::vector<std::set<unsigned>> &next_nondetstates, std::function<bool(bool, unsigned)> can_ignore)
+  compute_nondeterministic_successors(const tnba_mstate &ms, tnba_mstate &succ
+  , std::vector<std::set<unsigned>> &next_nondetstates, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>>& nondet_cache)
   {
     for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
     {
       unsigned curr_scc = acc_nondetsccs_[i];
       // list of nondeterministic states, already ordered by its labelling (not necessary)
-      std::vector<label> &acc_nondet_states = nondet_scc_labellings[i].first;
+      const std::vector<label> &acc_nondet_states = ms.nondetscc_labels_[i];
       // for (unsigned k = 0; k < acc_nondet_states.size(); k ++)
       // {
       //   std::cout << "State " << acc_nondet_states[k].first << " Label: " << acc_nondet_states[k].second << "\n";
       // }
-      std::vector<int> braces = nondet_scc_labellings[i].second; //copy
+      std::vector<int> braces = ms.nondetscc_breaces_[i]; //copy
       // for (unsigned k = 0; k < braces.size(); k ++)
       // {
       //   std::cout << " " << k << " parent: " << braces[k] << "\n";
@@ -765,22 +874,18 @@ namespace cola
       // labels and then state number
       for (const auto &node : acc_nondet_states)
       {
-        for (const auto &t : aut_->out(node.first))
+        for (const auto &t : nondet_cache[node.first])
         {
-          if (!bdd_implies(letter, t.cond))
-            continue;
-          if (can_ignore(use_unambiguous_, t.dst))
-            continue;
-          unsigned succ_scc = si_.scc_of(t.dst);
+          unsigned dst = t.second;
+          unsigned succ_scc = si_.scc_of(dst);
           int newb = node.second;
-          unsigned dst = t.dst;
           // Only care about the states in the current SCC
           if (curr_scc == succ_scc)
           {
             // std::cout << " " << node.first << " -> " << t.dst << " : " << letter << " " << t.acc << std::endl;
             // Delete a newincoming state who is already a successor from the same SCC
             next_nondetstates[i].erase(dst);
-            if (t.acc)
+            if (t.first)
             {
               // Step A1: Accepting edges generate new braces
               newb = braces.size();
@@ -821,14 +926,15 @@ namespace cola
         // If the state has not been added
         if (i.second || i.first->second == -1)
         {
-          braces.emplace_back(RANK_TOP_BRACE);
+          braces.push_back(RANK_TOP_BRACE);
           i.first->second = newb;
         }
       }
       // now store the results to succ
+      succ.nondetscc_labels_[i].clear();
       for (auto &node : succ_nodes)
       {
-        succ.ordered_states_[node.first] = node.second;
+        succ.nondetscc_labels_[i].emplace_back(node.first, node.second);
       }
       // replace the braces
       succ.nondetscc_breaces_[i] = braces;
@@ -837,14 +943,14 @@ namespace cola
 
   // This function is basically minor adaption from spot/twaalgos/deterministic.cc/finalize_construction
   void
-  compute_nondeterministic_color(const tnba_mstate &ms, bdd letter, tnba_mstate &succ, std::vector<std::pair<int, int>> &nondet_labellings)
+  compute_nondeterministic_color(const tnba_mstate &ms, tnba_mstate &succ, std::vector<std::pair<int, int>> &nondet_labellings)
   {
     // now check the good events and the bad events
     for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
     {
       unsigned curr_scc = acc_nondetsccs_[i];
-      std::vector<label> nodes = succ.get_scc_states(curr_scc);
-      std::vector<int> braces = succ.get_nondet_braces(i); // copy the vector
+      std::vector<label>& nodes = succ.nondetscc_labels_[i];
+      std::vector<int> braces = succ.nondetscc_breaces_[i]; // copy the vector
 
       int min_dcc = MAX_RANK_;
       int min_acc = MAX_RANK_;
@@ -917,7 +1023,7 @@ namespace cola
         decr_by[b] = decr;
       }
       // std::cout << "min_dcc = " << min_dcc << ", min_acc = " << min_acc << std::endl;
-      nondet_labellings.push_back(std::make_pair(min_dcc, min_acc));
+      nondet_labellings.emplace_back(min_dcc, min_acc);
       // drease the values
 
       // Update nodes with new braces numbers
@@ -933,7 +1039,7 @@ namespace cola
                         ? braces[i] - decr_by[braces[i]]
                         : -1;
               n.second = i - decr_by[i];
-              succ.ordered_states_[n.first] = n.second;
+              // succ.ordered_states_[n.first] = n.second;
               newbs[n.second] = j;
             }
         }
@@ -974,7 +1080,7 @@ namespace cola
   void
   compute_successors(const tnba_mstate &ms, bdd letter, tnba_mstate &nxt, std::vector<int> &color)
   {
-    tnba_mstate succ(si_, nb_states_, RANK_MISSING, acc_nondetsccs_.size());
+    tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
     // used for unambiguous automaton
     std::vector<bool> incoming(nb_states_, false);
     std::vector<bool> ignores(nb_states_, false);
@@ -1011,13 +1117,32 @@ namespace cola
       std::set<unsigned> states;
       next_nondetstates.emplace_back(states);
     }
-    int max_rnk = ms.get_max_rank();
+    std::vector<std::set<unsigned>> next_detstates;
+    for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+    {
+      std::set<unsigned> states;
+      next_detstates.emplace_back(states);
+    }
+    int max_rnk = INT_MAX;
+
+    std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> det_cache;
+    std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> nondet_cache;
 
     //1. first handle inherently weak states
     for (unsigned s : current_states)
     {
       // nondeterministic states or states in nonaccepting SCCs
       bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
+      bool in_acc_det = is_acepting_detscc(scc_types_, si_.scc_of(s));
+      if (in_acc_det)
+      {
+        det_cache.emplace(s, std::vector<std::pair<bool, unsigned>>());
+      }
+      bool in_acc_nondet = is_accepting_nondetscc(scc_types_, si_.scc_of(s));
+      if (in_acc_nondet)
+      {
+        nondet_cache.emplace(s, std::vector<std::pair<bool, unsigned>>());
+      }
       for (const auto &t : aut_->out(s))
       {
         if (!bdd_implies(letter, t.cond))
@@ -1030,12 +1155,20 @@ namespace cola
         // we move the states in accepting det SCC to ordered states
         if (is_acepting_detscc(scc_types_, scc_id))
         {
-          succ.ordered_states_[t.dst] = max_rnk + 1; //Sharing labels
+          int det_scc_index = get_detscc_index(scc_id); 
+          assert(det_scc_index != -1);
+          // incoming states
+          next_detstates[det_scc_index].insert(t.dst);
+          if (in_acc_det)
+          {
+            det_cache[s].emplace_back(t.acc.has(0), t.dst);
+          }
+          // succ.ordered_states_[t.dst] = max_rnk; //Sharing labels
         }
         else if (is_weakscc(scc_types_, scc_id))
         {
           // weak states or nondeterministic or nonaccepting det scc
-          succ.ordered_states_[t.dst] = RANK_WEAK;
+          succ.weak_set_.insert(t.dst);
           // be accepting and weak
           bool in_acc_set = (scc_types_[scc_id] & SCC_ACC) > 0;
           // in breakpoint and it is accepting
@@ -1055,6 +1188,10 @@ namespace cola
           assert(nondet_scc_index != -1);
           // reached states for each NAC
           next_nondetstates[nondet_scc_index].insert(t.dst);
+          if (in_acc_nondet)
+          {
+            nondet_cache[s].emplace_back(t.acc.has(0), t.dst);
+          }
         }
         else
         {
@@ -1063,26 +1200,12 @@ namespace cola
       }
     }
     // std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
-    std::vector<std::vector<label>> det_scc_labellings;
-    for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-    {
-      std::vector<label> labellings = ms.get_scc_states(acc_detsccs_[i]);
-      det_scc_labellings.emplace_back(labellings);
-    }
     //2. Compute the labelling successors for deterministic SCCs
-    if (acc_detsccs_.size() > 0) compute_deterministic_successors(ms, letter, succ, det_scc_labellings, can_ignore);
+    compute_deterministic_successors(ms, succ, next_detstates, det_cache);
 
     // std::cout << "After deterministic part = " << get_name(succ) << std::endl;
-
-
-    std::vector<std::pair<std::vector<label>, std::vector<int>>> nondet_scc_labellings;
-    for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
-    {
-      std::vector<label> labellings = ms.get_scc_states(acc_nondetsccs_[i]);
-      nondet_scc_labellings.emplace_back(labellings, ms.get_nondet_braces(i));
-    }
     //3. Compute the successors for nondeterministic SCCs
-    if (acc_nondetsccs_.size() > 0) compute_nondeterministic_successors(ms, letter, succ, nondet_scc_labellings, next_nondetstates, can_ignore);
+    compute_nondeterministic_successors(ms, succ, next_nondetstates, nondet_cache);
     // std::cout << "After nondeterministic part = " << get_name(succ) << std::endl;
 
     // remove redudant states
@@ -1093,10 +1216,10 @@ namespace cola
     //now compute the labels
     std::vector<std::pair<int, int>> det_min_labellings;
     //4. decide the color for deterministic SCCs
-    if (acc_detsccs_.size() > 0) compute_deterministic_color(ms, letter, succ, det_scc_labellings, det_min_labellings, can_ignore);
+    compute_deterministic_color(ms, succ, det_min_labellings, det_cache);
     //5. decide the color for nondeterministic SCCs
     std::vector<std::pair<int, int>> nondet_min_labellings;
-    if (acc_nondetsccs_.size() > 0) compute_nondeterministic_color(ms, letter, succ, nondet_min_labellings);
+    compute_nondeterministic_color(ms, succ, nondet_min_labellings);
 
     bool break_empty = succ.break_set_.empty();
     // now determine the break set
@@ -1104,7 +1227,7 @@ namespace cola
     {
       // if the breakpoint is empty, then fill it with newly-incoming accepting weak SCC states
       std::set<unsigned> result;
-      std::set<unsigned> reach_sucss = succ.get_reach_set();
+      std::set<unsigned> reach_sucss = succ.weak_set_; // copy
       std::set_intersection(reach_sucss.begin(), reach_sucss.end(), acc_weak_coming_states.begin(), acc_weak_coming_states.end(), std::inserter(result, result.begin()));
       succ.break_set_ = result;
     }
@@ -1136,14 +1259,6 @@ namespace cola
     }
 
     //4. Reorgnize the indices of each accepting deterministic SCC
-    for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-    {
-      std::vector<label> acc_det_states = succ.get_scc_states(acc_detsccs_[i]);
-      for (unsigned j = 0; j < acc_det_states.size(); j++)
-      {
-        succ.ordered_states_[acc_det_states[j].first] = j;
-      }
-    }
     //5. Reorganize the indices for each accepting nondeterministic SCC
     // already done in deciding colors
     nxt = succ;
@@ -1176,7 +1291,7 @@ namespace cola
         }
         stutter_path.emplace_back(std::move(ms));
         // next state
-        tnba_mstate tmp_succ(si_, nb_states_, RANK_MISSING, acc_nondetsccs_.size());
+        tnba_mstate tmp_succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
         std::vector<int> tmp_color(acc_detsccs_.size() + acc_nondetsccs_.size() + 1, -1);
         compute_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
         ms = tmp_succ;
@@ -1238,6 +1353,17 @@ namespace cola
     }
     return -1;
   }
+  int get_detscc_index(unsigned scc)
+  {
+    for (int idx = 0; idx < acc_detsccs_.size(); idx++)
+    {
+      if (acc_detsccs_[idx] == scc)
+      {
+        return idx;
+      }
+    }
+    return -1;
+  }
 
 public:
   tnba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
@@ -1254,7 +1380,7 @@ public:
         MAX_RANK_(aut->num_states() + 2),
         simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
         delayed_simulator_(aut, om),
-        show_names_(om.get(VERBOSE_LEVEL) > 0)
+        show_names_(om.get(VERBOSE_LEVEL) >= 2)
   {
     if (om.get(VERBOSE_LEVEL) >= 2)
     {
@@ -1330,27 +1456,27 @@ public:
 
     // we only handle one initial state
     unsigned init_state = aut->get_init_state_number();
-    tnba_mstate new_init_state(si_, nb_states_, RANK_MISSING, acc_nondetsccs_.size());
+    tnba_mstate new_init_state(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
     unsigned init_scc = si_.scc_of(init_state);
     if ((scc_types_[init_scc] & SCC_WEAK_TYPE))
     {
-      new_init_state.ordered_states_[init_state] = RANK_WEAK;
+      new_init_state.weak_set_.insert(init_state);
     }
     else if (is_acepting_detscc(scc_types_, init_scc))
     {
-      new_init_state.ordered_states_[init_state] = 0;
+      int init_scc_index = get_detscc_index(init_scc);
+      new_init_state.detscc_labels_[init_scc_index].emplace_back(init_state, 0);
     }
     else if (is_accepting_nondetscc(scc_types_, init_scc))
     {
       // initialize the safra_node
-      new_init_state.ordered_states_[init_state] = 0;
       int init_scc_index = get_nondetscc_index(init_scc);
       assert (init_scc_index != -1);
-      new_init_state.nondetscc_breaces_[init_scc_index].push_back(RANK_TOP_BRACE);
+      new_init_state.nondetscc_labels_[init_scc_index].emplace_back(init_state, 0);
+      new_init_state.nondetscc_breaces_[init_scc_index].emplace_back(RANK_TOP_BRACE);
     }
     // we assume that the initial state is not in deterministic part
     res_->set_init_state(new_state(new_init_state));
-
   }
 
   // by default, the number of colors for each set is even
@@ -1480,9 +1606,8 @@ public:
   spot::twa_graph_ptr
   run()
   {
-    // add a cache here?
-    std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
     // Main stuff happens here
+    // std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
     // todo_ is a queue for handling states
     while (!todo_.empty())
     {
@@ -1493,28 +1618,33 @@ public:
 
       // Compute support of all available states.
       bdd msupport = bddtrue;
-      // bdd n_s_compat = bddfalse;
+      bdd n_s_compat = bddfalse;
+      const std::set<unsigned>& reach_set = ms.get_reach_set();
       // compute the occurred variables in the outgoing transitions of ms, stored in msupport
-      for (unsigned s = 0; s < nb_states_; ++s)
-        if (ms.ordered_states_[s] != RANK_MISSING)
+      for (unsigned s : reach_set)
         {
           msupport &= support_[s];
-          // n_s_compat |= compat_[s];
+          n_s_compat |= compat_[s];
         }
-      
-      auto i = cache.emplace(msupport, std::vector<bdd>());
-      if (i.second) // 
+
+      // auto i = cache.emplace(msupport, std::vector<bdd>());
+      // if (i.second)
+      // {
+      //   std::vector<bdd>& rs = i.first->second;
+      //   for (auto one : minterms_of(bddtrue, msupport))
+      //   {
+      //     rs.emplace_back(one);
+      //   }
+      // }
+      bdd all = n_s_compat;
+      while (all != bddfalse)
       {
-          std::vector<bdd>& rs = i.first->second;
-          //enumerate all possible letters
-          for (bdd one: minterms_of(bddtrue, msupport))
-              rs.emplace_back(one);
-      }
-      const std::vector<bdd>& letters_vec = i.first->second;
-      for (auto & letter : letters_vec)
-      {
+        bdd letter = bdd_satoneset(all, msupport, bddfalse);
+        all -= letter;
+      // for (auto letter : i.first->second)
+      // {
         // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
-        tnba_mstate succ(si_, nb_states_, RANK_MISSING, acc_nondetsccs_.size());
+        tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
         // the number of SCCs we care is the accepting det SCCs and the weak SCCs
         std::vector<int> colors(acc_detsccs_.size() + acc_nondetsccs_.size() + 1, -1);
         //compute_labelling_successors(std::move(ms), top.second, letter, succ, color);
@@ -1545,7 +1675,6 @@ public:
           // record this color
         }
         auto r = trans2colors_.emplace(std::make_pair(origin, letter), colors);
-
       }
     }
     finalize_acceptance();
@@ -1554,19 +1683,19 @@ public:
       res_->prop_complete(true);
     res_->prop_universal(true);
     res_->prop_state_acc(false);
-    if (om_.get(VERBOSE_LEVEL) >= 1)
+    if (om_.get(VERBOSE_LEVEL) >= 2)
     {
       output_file(res_, "dpa.hoa");
-      std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << " #Trans: " << res_->num_edges() << std::endl;
-      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
+      std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
+      check_equivalence(aut_, res_);
     }
     if (om_.get(USE_SCC_INFO) > 0)
       res_ = postprocess(res_);
-    if (om_.get(VERBOSE_LEVEL) >= 1)
+    if (om_.get(VERBOSE_LEVEL) >= 2)
     {
-      std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << " #Trans: " << res_->num_edges() << std::endl;
+      std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
       output_file(res_, "dpa1.hoa");
-      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
+      check_equivalence(aut_, res_);
     }
     simplify_acceptance_here(res_);
 
@@ -1582,7 +1711,7 @@ public:
     // record the representative of every SCC
     for (auto p = rank2n_.begin(); p != rank2n_.end(); p++)
     {
-      std::set<unsigned> set = p->first.get_reach_set();
+      const std::set<unsigned> set = p->first.get_reach_set();
       // first the set of reached states
       auto val = set2scc.find(set);
       if (val == set2scc.end())
@@ -1613,7 +1742,7 @@ determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
 {
   if (!aut->acc().is_buchi())
     throw std::runtime_error("determinize_tnba() requires a Buchi input");
-
+  const int trans_pruning = 512;
   // now we compute the simulator
   spot::const_twa_graph_ptr aut_reduced;
   std::vector<bdd> implications;
@@ -1621,7 +1750,7 @@ determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   if (om.get(USE_SIMULATION) > 0)
   {
     aut_tmp = spot::scc_filter(aut);
-    auto aut2 = spot::simulation(aut_tmp, &implications);
+    auto aut2 = spot::simulation(aut_tmp, &implications, trans_pruning);
     aut_tmp = aut2;
   }
   if (aut_tmp)
