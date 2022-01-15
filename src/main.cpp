@@ -66,8 +66,8 @@ Input options:
                     Use Spot or our algorithm for ldba, eba and ba or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
-    --unambiguous
-            Check whether the input is unambiguous and use this fact in determinization
+    --print-scc
+            Output the information about the SCCs in the input NBA
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
@@ -85,6 +85,8 @@ Optimizations:
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
     --delayed-sim         Use delayed simulation for determinization
     --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
+    --unambiguous
+            Check whether the input is unambiguous and use this fact in determinization
 
 Pre- and Post-processing:
     --preprocess=0       Disable the simplification of the input automaton
@@ -140,13 +142,13 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   spot::twa_graph_ptr res;
   if (algo == COLA)
   {
-    // if (aut_type & INHERENTLY_WEAK)
-    //   res = cola::determinize_twba(aut, om);
-    // else if (aut_type & LIMIT_DETERMINISTIC)
-    //   res = cola::determinize_televator(aut, om);
-    // else if (aut_type & ELEVATOR)
-    //   res = cola::determinize_televator(aut, om);
-    // else
+    if (aut_type & INHERENTLY_WEAK)
+      res = cola::determinize_twba(aut, om);
+    else if (aut_type & LIMIT_DETERMINISTIC)
+      res = cola::determinize_televator(aut, om);
+    else if (aut_type & ELEVATOR)
+      res = cola::determinize_televator(aut, om);
+    else
       res = cola::determinize_tnba(aut, om);
   }
   else if (algo == LDBA)
@@ -208,8 +210,9 @@ int main(int argc, char *argv[])
   bool use_unambiguous = false;
   bool use_stutter = false;
   bool decompose = false;
-  bool preprocess = true;
   bool use_acd = false;
+  bool print_scc = false;
+
 
   enum postprocess_level
   {
@@ -218,6 +221,7 @@ int main(int argc, char *argv[])
     Medium,
     High
   };
+  postprocess_level preprocess = Low;
   postprocess_level post_process = Low;
   bool use_scc = false;
   unsigned num_post = 30000;
@@ -236,9 +240,25 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
   {
     std::string arg = argv[i];
-    if (arg == "--preprocess=0")
+    if (arg.find("--preprocess=") != std::string::npos)
     {
-      preprocess = false;
+      unsigned level = parse_int(arg);
+      if (level == 0)
+      {
+        preprocess = None;
+      }else if (level == 1)
+      {
+        preprocess = Low;
+      }else if (level == 2)
+      {
+        preprocess = Medium;
+      }else if (level == 3)
+      {
+        preprocess = High;
+      }
+    }else if (arg == "--print-scc")
+    {
+      print_scc = true;
     }else if (arg == "--postprocess-det=0")
       post_process = None;
     else if (arg == "--postprocess-det=1")
@@ -485,6 +505,46 @@ int main(int argc, char *argv[])
       if (!aut->acc().is_generalized_buchi())
       {
         aut = spot::degeneralize_tba(aut);
+      }
+
+      if (print_scc)
+      {
+        // strengther
+        spot::scc_info si(aut, spot::scc_info_options::ALL);
+        unsigned num_iwcs = 0;
+        unsigned num_acc_iwcs = 0;
+        unsigned num_iwcs_states = 0;
+        unsigned num_dacs = 0;
+        unsigned num_dacs_states = 0;
+        unsigned num_nacs = 0;
+        unsigned num_nacs_states = 0;
+
+        std::string types = cola::get_scc_types(si);
+        for (unsigned sc = 0; sc < si.scc_count(); sc++)
+        {
+          num_iwcs +=  cola::is_weakscc(types, sc) ? 1 : 0;
+          if (cola::is_weakscc(types, sc))
+          {
+            num_iwcs_states += si.states_of(sc).size();
+          }
+          num_acc_iwcs += cola::is_accepting_weakscc(types, sc)? 1 : 0;
+          
+          num_dacs += cola::is_acepting_detscc(types, sc);
+          if (cola::is_acepting_detscc(types, sc))
+          {
+            num_dacs_states += si.states_of(sc).size();
+          }
+          num_nacs + cola::is_accepting_nondetscc(types, sc);
+          if (cola::is_accepting_nondetscc(types, sc))
+          {
+            num_nacs_states += si.states_of(sc).size();
+          }
+        }
+        std::cout << "Number of IWCs: " << num_iwcs << " out of which " << num_acc_iwcs << " are accepting" << std::endl;
+        std::cout << "Number of states in IWCs: " << num_iwcs_states << std::endl;
+        std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states\n";
+        std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states\n";
+        continue;
       }
 
       if (om.get(MORE_ACC_EDGES) > 0)

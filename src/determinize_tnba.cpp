@@ -1380,7 +1380,7 @@ public:
         MAX_RANK_(aut->num_states() + 2),
         simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
         delayed_simulator_(aut, om),
-        show_names_(om.get(VERBOSE_LEVEL) >= 2)
+        show_names_(om.get(VERBOSE_LEVEL) >= 1)
   {
     if (om.get(VERBOSE_LEVEL) >= 2)
     {
@@ -1683,19 +1683,19 @@ public:
       res_->prop_complete(true);
     res_->prop_universal(true);
     res_->prop_state_acc(false);
-    if (om_.get(VERBOSE_LEVEL) >= 2)
+    if (om_.get(VERBOSE_LEVEL) >= 1)
     {
       output_file(res_, "dpa.hoa");
       std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
-      check_equivalence(aut_, res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
     }
     if (om_.get(USE_SCC_INFO) > 0)
       res_ = postprocess(res_);
-    if (om_.get(VERBOSE_LEVEL) >= 2)
+    if (om_.get(VERBOSE_LEVEL) >= 1)
     {
       std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
       output_file(res_, "dpa1.hoa");
-      check_equivalence(aut_, res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
     }
     simplify_acceptance_here(res_);
 
