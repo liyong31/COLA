@@ -63,7 +63,7 @@ and converts it into deterministic automata.
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
     --determinize=[spot|ldba|eba|ba|cola]
-                    Use Spot or our algorithm for ldba, eba and ba or let cola decide which one to obtain deterministic automata
+            Use Spot or our algorithm for ldba, eba and ba or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
@@ -71,11 +71,11 @@ Input options:
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
-    -o FILENAME Write the output to FILENAME instead of stdout
-    --generic   Output the automaton with Emenson-Lei acceptance condition (Default)
-    --rabin     Output the automaton with Rabin acceptance condition
-    --parity    Output the automaton with Pairty acceptance condition
-    --acd       Use alternating cylcle decomposition to obtain parity automaton (Default)
+    -o FILENAME     Write the output to FILENAME instead of stdout
+    --generic       Output the automaton with Emenson-Lei acceptance condition (Default)
+    --rabin         Output the automaton with Rabin acceptance condition
+    --parity        Output the automaton with Pairty acceptance condition
+    --acd           Use alternating cylcle decomposition to obtain parity automaton (Default)
 
 
 Optimizations:
@@ -84,16 +84,14 @@ Optimizations:
     --use-scc             Use SCC information for determinization (Spot) or macrostates merging (COLA)
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
     --delayed-sim         Use delayed simulation for determinization
+    --trans-pruning=[INT] Number to limit the transition pruning in simulation (default=512) 
     --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
-    --unambiguous
-            Check whether the input is unambiguous and use this fact in determinization
+    --unambiguous         Check whether the input is unambiguous and use this fact in determinization
 
 Pre- and Post-processing:
-    --preprocess=0       Disable the simplification of the input automaton
-    --postprocess-det[=0|1|2|3]  simplify the output of the determinization
-                             (default=1)
-    --num-states=[INT]       Simplify the output with number of states less than INT 
-                             (default: 30000)
+    --preprocess=[0|1|2|3]       Level for simplifying the input automaton (default=1)
+    --postprocess-det[=0|1|2|3]  Level for simplifying the output of the determinization (default=1)
+    --num-states=[INT]           Simplify the output with number of states less than INT (default=30000)
 
 Miscellaneous options:
   -h, --help    Print this help
@@ -165,7 +163,8 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   else if (algo == Spot)
   {
     // pretty_print, use_scc, use_simulation, use_stutter, aborter
-    res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0, om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr);
+    res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0
+    , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr, om.get(NUM_TRANS_PRUNING));
     if (om.get(VERBOSE_LEVEL) >= 2)
     {
       cola::output_file(res, "dpa_spot.hoa");
@@ -191,6 +190,7 @@ int main(int argc, char *argv[])
   om.set(VERBOSE_LEVEL, 0);
   om.set(USE_DELAYED_SIMULATION, 0);
   om.set(MORE_ACC_EDGES, 0);
+  om.set(NUM_TRANS_PRUNING, 512);
 
   // Will be deleted
   //  --scc-mem-limit=[INT] 
@@ -280,6 +280,10 @@ int main(int argc, char *argv[])
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
+    }else if (arg.find("--trans-pruning=") != std::string::npos)
+    {
+      int trans_pruning = parse_int(arg);
+      om.set(NUM_TRANS_PRUNING, trans_pruning);
     }
     else if (arg == "--delayed-sim")
     {

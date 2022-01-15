@@ -1742,7 +1742,7 @@ determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
 {
   if (!aut->acc().is_buchi())
     throw std::runtime_error("determinize_tnba() requires a Buchi input");
-  const int trans_pruning = 512;
+  const int trans_pruning = om.get(NUM_TRANS_PRUNING);
   // now we compute the simulator
   spot::const_twa_graph_ptr aut_reduced;
   std::vector<bdd> implications;

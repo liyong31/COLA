@@ -38,7 +38,8 @@ static const char *VERBOSE_LEVEL = "verbose-level";
 static const char *NUM_NBA_DECOMPOSED = "num-nba-decomposed";
 static const char *NUM_SCC_LIMIT_MERGER = "num-scc-limit-merger";
 static const char *SCC_REACH_MEMORY_LIMIT = "scc-reach-memory-limit";
-static const char* REQUIRE_PARITY = "require-parity";
+static const char *REQUIRE_PARITY = "require-parity";
+static const char *NUM_TRANS_PRUNING = "num-trans-pruning"; 
 
 
 static const char SCC_WEAK_TYPE = 1;
