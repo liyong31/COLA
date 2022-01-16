@@ -62,8 +62,8 @@ and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|ldba|eba|ba|cola]
-            Use Spot or our algorithm for ldba, eba and ba or let cola decide which one to obtain deterministic automata
+    --determinize=[spot|ba|cola]
+            Use Spot or our algorithm for TBA or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
@@ -142,10 +142,10 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   {
     if (aut_type & INHERENTLY_WEAK)
       res = cola::determinize_twba(aut, om);
-    else if (aut_type & LIMIT_DETERMINISTIC)
-      res = cola::determinize_televator(aut, om);
-    else if (aut_type & ELEVATOR)
-      res = cola::determinize_televator(aut, om);
+    // else if (aut_type & LIMIT_DETERMINISTIC)
+    //   res = cola::determinize_televator(aut, om);
+    // else if (aut_type & ELEVATOR)
+    //   res = cola::determinize_televator(aut, om);
     else
       res = cola::determinize_tnba(aut, om);
   }
