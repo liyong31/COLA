@@ -698,7 +698,34 @@ int main(int argc, char *argv[])
           aut = spot::to_generalized_rabin(aut, true);
         }else if (output_type == Parity && use_acd)
         {
+          // call the alternating cycle decomposition to translate our rabin automaton 
+          // to parity automaton
           aut = spot::acd_transform(aut);
+        }
+        // now post processing again since we may not do postprocessing above
+        {
+          spot::postprocessor p;
+          if (post_process == Low)
+          {
+            p.set_level(spot::postprocessor::Low);
+          }
+          else if (post_process == Medium)
+          {
+            p.set_level(spot::postprocessor::Medium);
+          }
+          else if (post_process == High)
+          {
+            p.set_level(spot::postprocessor::High);
+          }
+          p.set_pref(spot::postprocessor::Deterministic);
+          if (output_type == Generic)
+          {
+            p.set_type(spot::postprocessor::Generic);
+          }else if (output_type == Parity)
+          {
+            p.set_type(spot::postprocessor::Parity);
+          }
+          aut = p.run(aut);
         }
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)
