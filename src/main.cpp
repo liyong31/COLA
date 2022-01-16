@@ -518,36 +518,50 @@ int main(int argc, char *argv[])
         unsigned num_iwcs = 0;
         unsigned num_acc_iwcs = 0;
         unsigned num_iwcs_states = 0;
+        unsigned num_max_iwcs_states = 0;
+        unsigned num_acciwcs_states = 0;
+        unsigned num_max_acciwcs_states = 0;
         unsigned num_dacs = 0;
         unsigned num_dacs_states = 0;
+        unsigned num_max_dacs_states = 0;
         unsigned num_nacs = 0;
         unsigned num_nacs_states = 0;
+        unsigned num_max_nacs_states = 0;
 
         std::string types = cola::get_scc_types(si);
         for (unsigned sc = 0; sc < si.scc_count(); sc++)
         {
-          num_iwcs +=  cola::is_weakscc(types, sc) ? 1 : 0;
+          unsigned num = si.states_of(sc).size();
           if (cola::is_weakscc(types, sc))
           {
-            num_iwcs_states += si.states_of(sc).size();
+            num_iwcs_states += num;
+            num_iwcs ++;
+            num_max_iwcs_states = std::max(num_max_iwcs_states, num);
           }
-          num_acc_iwcs += cola::is_accepting_weakscc(types, sc)? 1 : 0;
+          if (cola::is_accepting_weakscc(types, sc))
+          {
+            num_acciwcs_states += num;
+            num_acc_iwcs ++;
+            num_max_acciwcs_states = std::max(num_max_acciwcs_states, num);
+          }
           
-          num_dacs += cola::is_acepting_detscc(types, sc);
           if (cola::is_acepting_detscc(types, sc))
           {
-            num_dacs_states += si.states_of(sc).size();
+            num_dacs_states += num;
+            num_dacs ++;
+            num_max_dacs_states = std::max(num_max_dacs_states, num);
           }
-          num_nacs + cola::is_accepting_nondetscc(types, sc);
           if (cola::is_accepting_nondetscc(types, sc))
           {
-            num_nacs_states += si.states_of(sc).size();
+            num_nacs_states += num;
+            num_nacs ++;
+            num_max_nacs_states = std::max(num_max_nacs_states, num);
           }
         }
-        std::cout << "Number of IWCs: " << num_iwcs << " out of which " << num_acc_iwcs << " are accepting" << std::endl;
-        std::cout << "Number of states in IWCs: " << num_iwcs_states << std::endl;
-        std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states\n";
-        std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states\n";
+        std::cout << "Number of IWCs: " << num_iwcs << " with " << num_iwcs_states << " states, in which max IWC with " << num_max_iwcs_states << " states\n";
+        std::cout << "Number of ACC_IWCs: " << num_acc_iwcs << " with " << num_acciwcs_states << " states, in which max IWC with " << num_max_acciwcs_states << " states\n";
+        std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states, in which max DAC with " << num_max_dacs_states << " states\n";
+        std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states, in which max NAC with " << num_max_nacs_states << " states\n";
         continue;
       }
 
