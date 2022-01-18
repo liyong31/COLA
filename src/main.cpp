@@ -44,6 +44,7 @@
 #include <spot/twaalgos/totgba.hh>
 #include <spot/twaalgos/determinize.hh>
 #include <spot/twaalgos/zlktree.hh>
+#include <spot/twaalgos/dualize.hh>
 #include <spot/misc/version.hh>
 
 void print_usage(std::ostream &os)
@@ -76,6 +77,7 @@ Output options:
     --rabin         Output the automaton with Rabin acceptance condition
     --parity        Output the automaton with Pairty acceptance condition
     --acd           Use alternating cylcle decomposition to obtain parity automaton (Default)
+    --complement    Output the complement Buchi automaton of the input after determinization
 
 
 Optimizations:
@@ -173,6 +175,17 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   return res;
 }
 
+spot::twa_graph_ptr
+complement_deterministic(spot::twa_graph_ptr aut)
+{
+  aut = spot::dualize(aut);
+  spot::postprocessor p;
+  p.set_level(spot::postprocessor::Low);
+  p.set_type(spot::postprocessor::Buchi);
+  aut = p.run(aut);
+  return aut;
+}
+
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -212,7 +225,7 @@ int main(int argc, char *argv[])
   bool decompose = false;
   bool use_acd = false;
   bool print_scc = false;
-
+  bool comp = false;
 
   enum postprocess_level
   {
@@ -276,7 +289,13 @@ int main(int argc, char *argv[])
     }else if (arg == "--rabin")
     {
       output_type = Rabin;
-    }else if (arg == "--simulation")
+    }else if (arg == "--complement")
+    {
+      comp = true;
+      use_acd = true;
+      output_type = Parity;
+    }
+    else if (arg == "--simulation")
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
@@ -744,6 +763,10 @@ int main(int argc, char *argv[])
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)
           std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+      }
+      if (comp)
+      {
+        aut = complement_deterministic(aut);
       }
       if (output_filename != "")
       {
