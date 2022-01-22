@@ -763,6 +763,9 @@ int main(int argc, char *argv[])
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)
           std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+      }else if (output_type == Parity)
+      {
+        aut = spot::acd_transform(aut);
       }
       if (comp)
       {
