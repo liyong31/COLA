@@ -24,7 +24,7 @@ Please run the following steps to compile COLA after cloning this repo:
 autoreconf -i
 ```
 ```
-./configure
+./configure [--with-spot=where/spot/is/installed]
 ```
 ```
 make
@@ -40,3 +40,5 @@ To output the result to a file, use ```./cola --determinize=cola filename -o out
 To output a deterministic Parity automaton, use ```./cola --determinize=cola filename --parity --acd --simulation --stutter --use-scc```
 
 To output a deterministic Rabin automaton, use ```./cola --determinize=cola filename --rabin --simulation --stutter --use-scc```
+
+To output a complement automaton, use ```./cola --determinize=cola filename --parity --acd --complement --simulation --stutter --use-scc```
