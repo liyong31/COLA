@@ -24,7 +24,8 @@
 bin_PROGRAMS = cola
 lib_LTLIBRARIES = src/libcola.la
 
-AM_CPPFLAGS = -I$(srcdir)/src
+AM_CPPFLAGS = -I$(srcdir)/src -I$(SPOTPREFIX)/include
+
 cola_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 src_libcola_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
 
