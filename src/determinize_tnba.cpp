@@ -19,6 +19,7 @@
 //#include "optimizer.hpp"
 #include "cola.hpp"
 #include "simulation.hpp"
+#include "types.hpp"
 //#include "struct.hpp"
 
 #include <deque>
@@ -41,8 +42,6 @@
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
 #include <spot/twa/acc.hh>
-
-#include <types.hpp>
 
 // Compositional determinization of Buchi automara based on SCC decomposition
 // We classify three types of SCCs in the input NBA:
@@ -561,9 +560,11 @@ namespace cola
       std::string res = "P=" + get_set_string(ms.weak_set_);
       res += ", O=" + get_set_string(ms.break_set_);
       // now output according SCCs
-      for (unsigned scc_id : acc_detsccs_)
+      for (unsigned i = 0; i < acc_detsccs_.size(); i ++)
       {
-        std::vector<label> states = ms.detscc_labels_[scc_id];
+        unsigned scc_id = acc_detsccs_[i];
+        std::vector<label> states = ms.detscc_labels_[i];
+        std::sort(states.begin(), states.end(), label_compare);
         res += ",[";
         first_state = true;
         for (unsigned p = 0; p < states.size(); p++)
@@ -571,10 +572,11 @@ namespace cola
           if (!first_state)
             res += "<";
           first_state = false;
-          res += std::to_string(states[p].first);
+          res += std::to_string(states[p].first) + ":" + std::to_string(states[p].second);
         }
         res += "] = scc " + std::to_string(scc_id);
       }
+
       // now output nondeterministic sccs
       for (unsigned i = 0; i < acc_nondetsccs_.size(); i++)
       {
@@ -623,7 +625,6 @@ namespace cola
     {
       return rank2n_.end() != rank2n_.find(s);
     }
-
 
     void remove_label(std::vector<label>& nodes, std::set<unsigned>& to_remove)
     {
@@ -744,11 +745,14 @@ namespace cola
         // list of deterministic states, already ordered by its labelling
         const std::vector<label> &acc_det_states = ms.detscc_labels_[i];
         std::map<unsigned, int> succ_nodes;
+        int max_rnk = -1;
         // print_label_vec(acc_det_states);
         for (unsigned j = 0; j < acc_det_states.size(); j++)
         {
           unsigned s = acc_det_states[j].first;
           int curr_label = acc_det_states[j].second;
+          max_rnk = std::max(max_rnk, curr_label);
+          assert (curr_label == j);
           // states and ranking
           for (const auto &t : det_cache[s])
           {
@@ -767,13 +771,15 @@ namespace cola
             }
           }
         }
-        int max_rnk = nb_states_ + 1;
+        ++ max_rnk ;
         // put them into succ
         for (unsigned p : next_detstates[i])
         {
+          // insertion failed is possible
           succ_nodes.emplace(p, max_rnk);
           ++ max_rnk;
         }
+        //succ.detscc_labels_[i].clear();
         for (auto& node : succ_nodes)
         {
           succ.detscc_labels_[i].emplace_back(node.first, node.second);
@@ -784,7 +790,6 @@ namespace cola
     void compute_deterministic_color(const tnba_mstate &ms, tnba_mstate &succ, std::vector<std::pair<int, int>> &min_labellings
     , std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>>& det_cache)
     {
-      
       // record the numbers
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
@@ -812,6 +817,11 @@ namespace cola
           assert(curr_label == j);
           for (const auto &t : det_cache[s])
           {
+            // ignore the states that are not existing any more
+            if (succ_nodes.find(t.second) == succ_nodes.end())
+            {
+              continue;
+            }
             // 1. first they should be in the same SCC
             // 2. second the label should be equal
             if (si_.scc_of(s) == si_.scc_of(t.second) && succ_nodes[t.second] == curr_label)
@@ -1080,6 +1090,7 @@ namespace cola
   void
   compute_successors(const tnba_mstate &ms, bdd letter, tnba_mstate &nxt, std::vector<int> &color)
   {
+    // std::cout << "current state: " << get_name(ms) << std::endl;
     tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
     // used for unambiguous automaton
     std::vector<bool> incoming(nb_states_, false);
@@ -1213,6 +1224,7 @@ namespace cola
     {
       make_simulation_state(succ);
     }
+    // std::cout << "After similation part = " << get_name(succ) << std::endl;
     //now compute the labels
     std::vector<std::pair<int, int>> det_min_labellings;
     //4. decide the color for deterministic SCCs
@@ -1268,7 +1280,9 @@ namespace cola
   void
   make_stutter_state(const tnba_mstate &curr, bdd letter, tnba_mstate &succ, std::vector<int> &colors)
   {
-    tnba_mstate ms = curr;
+    // std::cout << "Hello make_stutter_state" << std::endl;
+    tnba_mstate ms(curr);
+    //  std::cout << "copied successors" << std::endl;
     std::vector<tnba_mstate> stutter_path;
     if (use_stutter_ && aut_->prop_stutter_invariant())
     {
@@ -1386,7 +1400,6 @@ public:
     {
       simulator_.output_simulation();
     }
-    // std::cout << "Hello NBA" << std::endl;
     res_ = spot::make_twa_graph(aut->get_dict());
     res_->copy_ap_of(aut);
     res_->prop_copy(aut,
@@ -1425,7 +1438,7 @@ public:
     }
     // obtain the types of each SCC
     scc_types_ = get_scc_types(si_);
-
+    // std::cout << "scc types : " << scc_types_ << " " << scc_types_.size() << std::endl;
     // find out the DACs and NACs
     for (unsigned i = 0; i < scc_types_.size(); i++)
     {
