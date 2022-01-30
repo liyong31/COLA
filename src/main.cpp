@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "config.h"
+//#include "config.h"
 
 #include "cola.hpp"
 #include "composer.hpp"
@@ -144,10 +144,6 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   {
     if (aut_type & INHERENTLY_WEAK)
       res = cola::determinize_twba(aut, om);
-    // else if (aut_type & LIMIT_DETERMINISTIC)
-    //   res = cola::determinize_televator(aut, om);
-    // else if (aut_type & ELEVATOR)
-    //   res = cola::determinize_televator(aut, om);
     else
       res = cola::determinize_tnba(aut, om);
   }
@@ -357,8 +353,15 @@ int main(int argc, char *argv[])
     else if (arg == "--determinize=spot")
       determinize = Spot;
     else if (arg == "--determinize=cola")
+    {
       determinize = COLA;
-    else if (arg == "-f")
+      // default settings
+      om.set(USE_SIMULATION, 1);
+      om.set(USE_SCC_INFO, 1);
+      om.set(USE_STUTTER, 1);
+      use_acd = true;
+      output_type = Parity;
+    }else if (arg == "-f")
     {
       if (argc < i + 1)
       {
@@ -411,7 +414,7 @@ int main(int argc, char *argv[])
     }
     else if (arg == "--version")
     {
-      std::cout << "cola " PACKAGE_VERSION
+      std::cout << "cola " //PACKAGE_VERSION
                    " (using Spot "
                 << spot::version() << ")\n\n"
                                       "Copyright (C) 2020  The cola Authors.\n"
@@ -495,11 +498,6 @@ int main(int argc, char *argv[])
           type = true;
           std::cout << "deterministic" << std::endl;
         }
-        // if (is_cut_deterministic(aut))
-        // {
-        //   type = true;
-        //   std::cout << "cut-deterministic" << std::endl;
-        // }
         if (spot::is_semi_deterministic(aut))
         {
           type = true;
