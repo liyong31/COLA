@@ -88,12 +88,12 @@ namespace cola
   spot::twa_graph_ptr
   new_complement_semidet(const spot::const_twa_graph_ptr &aut, bool show_names = false);
 
-  // /// \brief Determinization
-  // ///
-  // /// The automaton \a aut should be a semideterminisitc.
-  // /// Output a deterministic rabin automaton
-  // spot::twa_graph_ptr
-  // determinize_rabin(const spot::const_twa_graph_ptr& aut, bool show_names = false);
+  /// \brief Complementation
+  ///
+  /// The automaton \a aut should be an elevator automaton for now.
+  /// Output a generalized Buchi automaton
+  spot::twa_graph_ptr
+  complement_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
 
   spot::twa_graph_ptr
