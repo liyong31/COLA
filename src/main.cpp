@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//#include "config.h"
+#include "config.h"
 
 #include "cola.hpp"
 #include "composer.hpp"
@@ -56,38 +56,40 @@ void print_help()
 {
   print_usage(std::cout);
   std::cout <<
-      R"(The tool transforms TLDBA/TBA into equivalent deterministic automata.
+      R"(The tool obtains the equivalent deterministic automaton or complement automaton of input Buchi automaton.
 
-By default, it reads a Büchi automaton from standard input
+By default, it reads a (generalized) Büchi automaton from standard input
 and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|ba|cola]
-            Use Spot or our algorithm for TBA or let cola decide which one to obtain deterministic automata
-    --algo=[det|comp]
-            Use determinization or complementation algorithms to obtain the output
+    --algo=[cola|dc|iar|comp|ncsb]
+            Use determinization or complementation algorithms (comp or ncsb) to obtain the output
+              cola     Default setting for determinization (--algo=dc --simulation --use-scc --stutter --parity)
+              dc       Divide-and-Conquer determinization based on SCC decomposition
+              iar      Specialized algorithm for limit-deterministic Buchi automata in TACAS'17 paper by Esparza et al.
+              comp     Complementation algorithm based on SCC decomposition
+              ncsb     NCSB complementation variants for limit deterministic Buchi automata 
     --type 
-            Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
+            Output the type of the input Buchi automaton: deterministic, limit-deterministic, elevator, unambiguous or none of them
     --print-scc
             Output the information about the SCCs in the input NBA
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
     -o FILENAME     Write the output to FILENAME instead of stdout
-    --generic       Output the automaton with Emenson-Lei acceptance condition (Default)
-    --rabin         Output the automaton with Rabin acceptance condition
-    --parity        Output the automaton with Pairty acceptance condition
-    --acd           Use alternating cylcle decomposition to obtain parity automaton (Default)
-    --complement    Output the complement Buchi automaton of the input after determinization
+    --generic       Output the automaton with Emenson-Lei acceptance condition
+    --rabin         Output the automaton with generalized Rabin condition
+    --parity        Output the automaton with Pairty acceptance condition (Default)
+    --complement    Output the complement Buchi automaton of the input (default with --algo=comp)
 
 
 Optimizations:
-    --simulation          Use direct simulation for determinization
+    --simulation          Use direct simulation for determinization/complementation
     --stutter             Use stutter invariance for determinization
-    --use-scc             Use SCC information for determinization (Spot) or macrostates merging (COLA)
+    --use-scc             Use SCC information for macrostates merging
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
-    --delayed-sim         Use delayed simulation for determinization
+    --delayed-sim         Use delayed simulation for determinization (deprecated)
     --trans-pruning=[INT] Number to limit the transition pruning in simulation (default=512) 
     --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
     --unambiguous         Check whether the input is unambiguous and use this fact in determinization
@@ -127,56 +129,41 @@ parse_int(const std::string &arg)
 }
 
 // determinization
-enum determinize_t
+enum determinize_algo
 {
   NoDeterminize = 0,
-  NBA,
-  COLA,
-  LDBA,
-  EBA, // elevator Buchi automata
-  Spot
+  DC,
+  IAR // induction appearance record
 };
 
 // determinization
-enum complement_t
+enum complement_algo
 {
   NoComplement = 0,
-  NCSB,
-  SCC,
+  COMP,
+  NCSB
 };
 
+// We may provide multiple algorithms for comparison
 spot::twa_graph_ptr
-to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_t algo)
+to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_algo algo)
 {
   // determinization
   spot::twa_graph_ptr res;
-  if (algo == COLA)
+  if (algo == DC)
   {
     if (aut_type & INHERENTLY_WEAK)
       res = cola::determinize_twba(aut, om);
     else
       res = cola::determinize_tnba(aut, om);
   }
-  else if (algo == LDBA)
+  else if (algo == IAR)
   {
     res = cola::determinize_tldba(aut, om);
-  }else if (algo == EBA)
-  {
-    res = cola::determinize_televator(aut, om);
   }
-  else if (algo == NBA)
+  else
   {
     res = cola::determinize_tnba(aut, om);
-  }
-  else if (algo == Spot)
-  {
-    // pretty_print, use_scc, use_simulation, use_stutter, aborter
-    res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0
-    , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr, om.get(NUM_TRANS_PRUNING));
-    if (om.get(VERBOSE_LEVEL) >= 2)
-    {
-      cola::output_file(res, "dpa_spot.hoa");
-    }
   }
   return res;
 }
@@ -192,6 +179,89 @@ complement_deterministic(spot::twa_graph_ptr aut)
   return aut;
 }
 
+void output_input_type(spot::twa_graph_ptr aut)
+{
+  bool type = false;
+  if (spot::is_deterministic(aut))
+  {
+    type = true;
+    std::cout << "deterministic" << std::endl;
+  }
+  if (spot::is_semi_deterministic(aut))
+  {
+    type = true;
+    std::cout << "limit-deterministic" << std::endl;
+  }
+  if (cola::is_elevator_automaton(aut))
+  {
+    std::cout << "elevator" << std::endl;
+  }
+  if (cola::is_weak_automaton(aut))
+  {
+    std::cout << "inherently weak" << std::endl;
+  }
+  if (spot::is_unambiguous(aut))
+  {
+    std::cout << "unambiguous" << std::endl;
+  }
+  if (!type)
+  {
+    std::cout << "nondeterministic" << std::endl;
+  }
+}
+
+void output_scc_info(spot::twa_graph_ptr aut)
+{
+  // strengther
+  spot::scc_info si(aut, spot::scc_info_options::ALL);
+  unsigned num_iwcs = 0;
+  unsigned num_acc_iwcs = 0;
+  unsigned num_iwcs_states = 0;
+  unsigned num_max_iwcs_states = 0;
+  unsigned num_acciwcs_states = 0;
+  unsigned num_max_acciwcs_states = 0;
+  unsigned num_dacs = 0;
+  unsigned num_dacs_states = 0;
+  unsigned num_max_dacs_states = 0;
+  unsigned num_nacs = 0;
+  unsigned num_nacs_states = 0;
+  unsigned num_max_nacs_states = 0;
+
+  std::string types = cola::get_scc_types(si);
+  for (unsigned sc = 0; sc < si.scc_count(); sc++)
+  {
+    unsigned num = si.states_of(sc).size();
+    if (cola::is_weakscc(types, sc))
+    {
+      num_iwcs_states += num;
+      num_iwcs++;
+      num_max_iwcs_states = std::max(num_max_iwcs_states, num);
+    }
+    if (cola::is_accepting_weakscc(types, sc))
+    {
+      num_acciwcs_states += num;
+      num_acc_iwcs++;
+      num_max_acciwcs_states = std::max(num_max_acciwcs_states, num);
+    }
+
+    if (cola::is_acepting_detscc(types, sc))
+    {
+      num_dacs_states += num;
+      num_dacs++;
+      num_max_dacs_states = std::max(num_max_dacs_states, num);
+    }
+    if (cola::is_accepting_nondetscc(types, sc))
+    {
+      num_nacs_states += num;
+      num_nacs++;
+      num_max_nacs_states = std::max(num_max_nacs_states, num);
+    }
+  }
+  std::cout << "Number of IWCs: " << num_iwcs << " with " << num_iwcs_states << " states, in which max IWC with " << num_max_iwcs_states << " states\n";
+  std::cout << "Number of ACC_IWCs: " << num_acc_iwcs << " with " << num_acciwcs_states << " states, in which max IWC with " << num_max_acciwcs_states << " states\n";
+  std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states, in which max DAC with " << num_max_dacs_states << " states\n";
+  std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states, in which max NAC with " << num_max_nacs_states << " states\n";
+}
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -211,17 +281,12 @@ int main(int argc, char *argv[])
   om.set(MORE_ACC_EDGES, 0);
   om.set(NUM_TRANS_PRUNING, 512);
 
-  // Will be deleted
-  //  --scc-mem-limit=[INT] 
-  //          The memory limit (MB) for computing the SCC reachability (default = 0, no limit)
-  //  --scc-num-limit=[INT] 
-  //          The largest number of SCCs in the deterministic automaton for merging macrostates (default = 0, no limit)
   om.set(SCC_REACH_MEMORY_LIMIT, 0);
   om.set(NUM_SCC_LIMIT_MERGER, 0);
 
-  determinize_t determinize = NoDeterminize;
+  determinize_algo determinize = NoDeterminize;
 
-  complement_t complement_algo = NoComplement;
+  complement_algo complement = NoComplement;
 
   // options
   bool use_simulation = false;
@@ -250,11 +315,12 @@ int main(int argc, char *argv[])
   enum output_aut_type
   {
     Generic = 0,
+    Parity,
     Rabin,
-    Parity
+    Buchi
   };
 
-  output_aut_type output_type = Generic; 
+  output_aut_type output_type = Generic;
 
   std::string output_filename = "";
 
@@ -267,20 +333,25 @@ int main(int argc, char *argv[])
       if (level == 0)
       {
         preprocess = None;
-      }else if (level == 1)
+      }
+      else if (level == 1)
       {
         preprocess = Low;
-      }else if (level == 2)
+      }
+      else if (level == 2)
       {
         preprocess = Medium;
-      }else if (level == 3)
+      }
+      else if (level == 3)
       {
         preprocess = High;
       }
-    }else if (arg == "--print-scc")
+    }
+    else if (arg == "--print-scc")
     {
       print_scc = true;
-    }else if (arg == "--postprocess-det=0")
+    }
+    else if (arg == "--postprocess-det=0")
       post_process = None;
     else if (arg == "--postprocess-det=1")
       post_process = Low;
@@ -291,13 +362,16 @@ int main(int argc, char *argv[])
     else if (arg == "--generic")
     {
       output_type = Generic;
-    }else if (arg == "--parity")
+    }
+    else if (arg == "--parity")
     {
       output_type = Parity;
-    }else if (arg == "--rabin")
+    }
+    else if (arg == "--rabin")
     {
       output_type = Rabin;
-    }else if (arg == "--complement")
+    }
+    else if (arg == "--complement")
     {
       comp = true;
       use_acd = true;
@@ -307,7 +381,8 @@ int main(int argc, char *argv[])
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
-    }else if (arg.find("--trans-pruning=") != std::string::npos)
+    }
+    else if (arg.find("--trans-pruning=") != std::string::npos)
     {
       int trans_pruning = parse_int(arg);
       om.set(NUM_TRANS_PRUNING, trans_pruning);
@@ -335,15 +410,14 @@ int main(int argc, char *argv[])
       decompose = true;
       unsigned num_scc = parse_int(arg);
       om.set(NUM_NBA_DECOMPOSED, num_scc);
-    }else if (arg == "--acd")
+    }
+    else if (arg == "--acd")
     {
       use_acd = true;
     }
     // Prefered output
     else if (arg == "--d")
       debug = true;
-    // else if (arg == "--merge-transitions")
-    //   merge_transitions = true;
     else if (arg == "--type")
       aut_type = true;
     else if (arg == "--unambiguous")
@@ -356,26 +430,29 @@ int main(int argc, char *argv[])
       use_stutter = true;
       om.set(USE_STUTTER, 1);
     }
-    else if (arg == "--determinize=ba")
-      determinize = NBA;
-    else if (arg == "--determinize=ldba")
-      determinize = LDBA;
-    else if (arg == "--determinize=eba")
-      determinize = EBA;
-    else if (arg == "--determinize=spot")
-      determinize = Spot;
-    else if (arg == "--determinize=cola")
+    else if (arg == "--algo=dc")
+      determinize = DC;
+    else if (arg == "--algo=iar")
+      determinize = IAR;
+    else if (arg == "--algo=cola")
     {
-      determinize = COLA;
+      determinize = DC;
       // default settings
       om.set(USE_SIMULATION, 1);
       om.set(USE_SCC_INFO, 1);
       om.set(USE_STUTTER, 1);
       use_acd = true;
       output_type = Parity;
-    }else if (arg == "--algo=comp")
+    }
+    else if (arg == "--algo=comp")
     {
-      complement_algo = SCC;
+      comp = true;
+      complement = COMP;
+    }
+    else if (arg == "--algo=ncsb")
+    {
+      comp = true;
+      complement = NCSB;
     }
     else if (arg == "-f")
     {
@@ -414,11 +491,11 @@ int main(int argc, char *argv[])
     {
       om.set(VERBOSE_LEVEL, parse_int(arg));
     }
-    else if (arg.find("--scc-mem-limit=") !=  std::string::npos)
+    else if (arg.find("--scc-mem-limit=") != std::string::npos)
     {
       om.set(SCC_REACH_MEMORY_LIMIT, parse_int(arg));
     }
-    else if (arg.find("--scc-num-limit=") !=  std::string::npos)
+    else if (arg.find("--scc-num-limit=") != std::string::npos)
     {
       om.set(NUM_SCC_LIMIT_MERGER, parse_int(arg));
     }
@@ -430,7 +507,7 @@ int main(int argc, char *argv[])
     }
     else if (arg == "--version")
     {
-      std::cout << "cola " //PACKAGE_VERSION
+      std::cout << "cola " PACKAGE_VERSION
                    " (using Spot "
                 << spot::version() << ")\n\n"
                                       "Copyright (C) 2020  The cola Authors.\n"
@@ -441,13 +518,6 @@ int main(int argc, char *argv[])
                                       "There is NO WARRANTY, to the extent permitted by law.\n"
                 << std::flush;
       return 0;
-    }
-    // removed
-    else if (arg == "--cy")
-    {
-      std::cerr << ("cola: "
-                    "Invalid option --cy. Use --via-sba -s0 instead.\n");
-      return 2;
     }
     // Detection of unsupported options
     else if (arg[0] == '-')
@@ -460,8 +530,7 @@ int main(int argc, char *argv[])
       path_to_files.emplace_back(argv[i]);
     }
   }
-  //path_to_files.push_back("base_formula_130_0.hoa");
-  //determinize = Parity;
+
   if (path_to_files.empty())
   {
     if (isatty(STDIN_FILENO))
@@ -477,7 +546,6 @@ int main(int argc, char *argv[])
       path_to_files.emplace_back("-");
     }
   }
-  //path_to_files.push_back("formula_52_nba.hoa");
 
   auto dict = spot::make_bdd_dict();
 
@@ -508,33 +576,7 @@ int main(int argc, char *argv[])
 
       if (aut_type)
       {
-        bool type = false;
-        if (spot::is_deterministic(aut))
-        {
-          type = true;
-          std::cout << "deterministic" << std::endl;
-        }
-        if (spot::is_semi_deterministic(aut))
-        {
-          type = true;
-          std::cout << "limit-deterministic" << std::endl;
-        }
-        if (cola::is_elevator_automaton(aut))
-        {
-          std::cout << "elevator" << std::endl;
-        }
-        if (cola::is_weak_automaton(aut))
-        {
-          std::cout << "inherently weak" << std::endl;
-        }
-        if (spot::is_unambiguous(aut))
-        {
-          std::cout << "unambiguous" << std::endl;
-        }
-        if (!type)
-        {
-          std::cout << "nondeterministic" << std::endl;
-        }
+        output_input_type(aut);
         break;
       }
 
@@ -546,56 +588,8 @@ int main(int argc, char *argv[])
 
       if (print_scc)
       {
-        // strengther
-        spot::scc_info si(aut, spot::scc_info_options::ALL);
-        unsigned num_iwcs = 0;
-        unsigned num_acc_iwcs = 0;
-        unsigned num_iwcs_states = 0;
-        unsigned num_max_iwcs_states = 0;
-        unsigned num_acciwcs_states = 0;
-        unsigned num_max_acciwcs_states = 0;
-        unsigned num_dacs = 0;
-        unsigned num_dacs_states = 0;
-        unsigned num_max_dacs_states = 0;
-        unsigned num_nacs = 0;
-        unsigned num_nacs_states = 0;
-        unsigned num_max_nacs_states = 0;
-
-        std::string types = cola::get_scc_types(si);
-        for (unsigned sc = 0; sc < si.scc_count(); sc++)
-        {
-          unsigned num = si.states_of(sc).size();
-          if (cola::is_weakscc(types, sc))
-          {
-            num_iwcs_states += num;
-            num_iwcs ++;
-            num_max_iwcs_states = std::max(num_max_iwcs_states, num);
-          }
-          if (cola::is_accepting_weakscc(types, sc))
-          {
-            num_acciwcs_states += num;
-            num_acc_iwcs ++;
-            num_max_acciwcs_states = std::max(num_max_acciwcs_states, num);
-          }
-          
-          if (cola::is_acepting_detscc(types, sc))
-          {
-            num_dacs_states += num;
-            num_dacs ++;
-            num_max_dacs_states = std::max(num_max_dacs_states, num);
-          }
-          if (cola::is_accepting_nondetscc(types, sc))
-          {
-            num_nacs_states += num;
-            num_nacs ++;
-            num_max_nacs_states = std::max(num_max_nacs_states, num);
-          }
-        }
-        std::cout << "Number of IWCs: " << num_iwcs << " with " << num_iwcs_states << " states, in which max IWC with " << num_max_iwcs_states << " states\n";
-        std::cout << "Number of ACC_IWCs: " << num_acc_iwcs << " with " << num_acciwcs_states << " states, in which max IWC with " << num_max_acciwcs_states << " states\n";
-        std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states, in which max DAC with " << num_max_dacs_states << " states\n";
-        std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states, in which max NAC with " << num_max_nacs_states << " states\n";
-        continue;
+        output_scc_info(aut);
+        break;
       }
 
       if (om.get(MORE_ACC_EDGES) > 0)
@@ -612,16 +606,8 @@ int main(int argc, char *argv[])
           }
         }
       }
-      if (!spot::is_deterministic(aut))
-      {
-        // spot::scc_info si(aut);
-        // std::string scc_types = cola::get_scc_types(si);
-        // cola::print_scc_types(scc_types, si);
-        // //std::cout << "scc types: " << scc_types << "\n";
-        // std::cout << "weak: " << cola::is_weak_automaton(si, scc_types) << " " << cola::is_weak_automaton(aut) << std::endl;
-        // std::cout << "elevator: " << cola::is_elevator_automaton(si, scc_types) << " " << cola::is_elevator_automaton(aut) << std::endl;
-        // std::cout << "ldba: " << cola::is_limit_deterministic_automaton(si, scc_types) << " " << spot::is_semi_deterministic(aut) << std::endl;
-        // // exit(1);
+      
+      //1. preprocess
         clock_t c_start = clock();
         unsigned aut_type = NONDETERMINISTIC;
         if (cola::is_weak_automaton(aut))
@@ -636,7 +622,6 @@ int main(int argc, char *argv[])
         {
           aut_type |= ELEVATOR;
         }
-        // bool is_semi_det = is_semi_deterministic(aut);
         {
           // preprocessing for the input.
           if (preprocess)
@@ -662,8 +647,14 @@ int main(int argc, char *argv[])
         {
           std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
         }
-
-        if (determinize != NoDeterminize && decompose && aut->acc().is_buchi() && !spot::is_deterministic(aut))
+      if (aut->acc().is_all())
+        {
+          // trivial acceptance condition
+          aut = spot::minimize_monitor(aut);
+        }
+      if (!spot::is_deterministic(aut) && determinize)
+      {
+        if (decompose && aut->acc().is_buchi() && !spot::is_deterministic(aut))
         {
           cola::decomposer nba_decomposer(aut, om);
           std::vector<spot::twa_graph_ptr> subnbas = nba_decomposer.run();
@@ -676,7 +667,7 @@ int main(int argc, char *argv[])
           cola::composer dpa_composer(dpas, om);
           aut = dpa_composer.run();
         }
-        else if (determinize != NoDeterminize && aut->acc().is_buchi())
+        else if (aut->acc().is_buchi())
         {
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
@@ -688,15 +679,17 @@ int main(int argc, char *argv[])
           }
           aut = res;
         }
-        else if (aut->acc().is_all())
-        {
-          // trivial acceptance condition
-          aut = spot::minimize_monitor(aut);
-        }
       }
-      if (complement_algo && determinize == NoDeterminize)
+      if (complement && !determinize)
       {
-        aut = cola::complement_tnba(aut, om);
+        if (complement == COMP) 
+        {
+          aut = cola::complement_tnba(aut, om);
+        }else 
+        {
+          // set NCSB algorithm later
+          aut = cola::complement_tnba(aut, om);
+        }
         spot::postprocessor p;
         p.set_level(spot::postprocessor::Low);
         p.set_type(spot::postprocessor::Buchi);
@@ -726,11 +719,13 @@ int main(int argc, char *argv[])
             if (use_acd)
             {
               p.set_type(spot::postprocessor::Generic);
-            }else
+            }
+            else
             {
               p.set_type(spot::postprocessor::Parity);
-            } 
-          }else if (output_type == Generic || output_type == Rabin)
+            }
+          }
+          else if (output_type == Generic || output_type == Rabin)
           {
             p.set_type(spot::postprocessor::Generic);
           }
@@ -753,9 +748,10 @@ int main(int argc, char *argv[])
         if (output_type == Rabin)
         {
           aut = spot::to_generalized_rabin(aut, true);
-        }else if (output_type == Parity && use_acd)
+        }
+        else if (output_type == Parity && use_acd)
         {
-          // call the alternating cycle decomposition to translate our rabin automaton 
+          // call the alternating cycle decomposition to translate our rabin automaton
           // to parity automaton
           aut = spot::acd_transform(aut);
         }
@@ -778,7 +774,8 @@ int main(int argc, char *argv[])
           if (output_type == Generic)
           {
             p.set_type(spot::postprocessor::Generic);
-          }else if (output_type == Parity)
+          }
+          else if (output_type == Parity)
           {
             p.set_type(spot::postprocessor::Parity);
           }
@@ -787,7 +784,8 @@ int main(int argc, char *argv[])
         clock_t c_end = clock();
         if (om.get(VERBOSE_LEVEL) > 0)
           std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
-      }else if (output_type == Parity)
+      }
+      else if (output_type == Parity)
       {
         aut = spot::acd_transform(aut);
       }
