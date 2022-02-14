@@ -45,6 +45,7 @@
 #include <spot/twaalgos/determinize.hh>
 #include <spot/twaalgos/zlktree.hh>
 #include <spot/twaalgos/dualize.hh>
+#include <spot/twaalgos/word.hh>
 #include <spot/misc/version.hh>
 
 void print_usage(std::ostream &os)
@@ -74,6 +75,8 @@ Input options:
             Output the type of the input Buchi automaton: deterministic, limit-deterministic, elevator, unambiguous or none of them
     --print-scc
             Output the information about the SCCs in the input NBA
+    --contain=[FILENAME]
+            Test whether the language of the input contains the language of [FILENAME] 
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
@@ -262,6 +265,7 @@ void output_scc_info(spot::twa_graph_ptr aut)
   std::cout << "Number of DACs: " << num_dacs << " with " << num_dacs_states << " states, in which max DAC with " << num_max_dacs_states << " states\n";
   std::cout << "Number of NACs: " << num_nacs << " with " << num_nacs_states << " states, in which max NAC with " << num_max_nacs_states << " states\n";
 }
+
 int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
@@ -299,6 +303,8 @@ int main(int argc, char *argv[])
   bool use_acd = false;
   bool print_scc = false;
   bool comp = false;
+  bool contain = false;
+  std::string file_to_contain;
 
   enum postprocess_level
   {
@@ -480,6 +486,11 @@ int main(int argc, char *argv[])
         output_filename = str;
         i++;
       }
+    }else if (arg.find("--contain=") != std::string::npos)
+    {
+      contain = true;
+      std::size_t idx = arg.find('=');
+      file_to_contain = arg.substr(idx + 1, arg.length());
     }
     else if (arg.find("--num-states=") != std::string::npos)
     {
@@ -548,6 +559,21 @@ int main(int argc, char *argv[])
   }
 
   auto dict = spot::make_bdd_dict();
+
+  spot::twa_graph_ptr aut_to_contain = nullptr;
+  // contain
+  if (contain)
+  {
+    spot::automaton_stream_parser parser(file_to_contain);
+    spot::parsed_aut_ptr parsed_aut = parser.parse(dict);
+
+    if (parsed_aut->format_errors(std::cerr))
+    {
+      std::runtime_error("File " + file_to_contain + " is not in valid HOA format");
+      return 1;
+    }
+    aut_to_contain = parsed_aut->aut;
+  }
 
   for (std::string &path_to_file : path_to_files)
   {
@@ -793,7 +819,43 @@ int main(int argc, char *argv[])
       {
         aut = complement_deterministic(aut);
       }
-      if (output_filename != "")
+      if (contain)
+      {
+        //now check whether the output is complementation
+        if (!aut_to_contain)
+        {
+          std::cout << "Contained" << std::endl;
+          break;
+        }
+        std::stringstream ss ;
+        bool has_counterexample = false;
+        if (comp)
+        {
+          spot::twa_word_ptr word = aut->intersecting_word(aut_to_contain);
+          if (word != nullptr)
+          {
+            ss << (*word);
+            has_counterexample = true;
+          }
+        }else 
+        {
+          // not complement, now the automaton should be determinized
+          aut = spot::complement(aut);
+          spot::twa_word_ptr word = aut->intersecting_word(aut_to_contain);
+          if (word != nullptr)
+          {
+            ss << (*word);
+            has_counterexample = true;
+          }
+        }
+        if (!has_counterexample)
+        {
+          std::cout << "Contained" << std::endl;
+        }else 
+        {
+          std::cout << "Not contained: " << ss.str() << std::endl;
+        }
+      }else if (output_filename != "")
       {
         cola::output_file(aut, output_filename.c_str());
       }
