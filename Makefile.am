@@ -35,6 +35,8 @@ src_libcola_la_SOURCES =			\
   src/complement_tnba.cpp				\
   src/composer.cpp				\
   src/composer.hpp				\
+  src/congr.cpp				\
+  src/congr.hpp				\
   src/decomposer.hpp			\
   src/decomposer.cpp			\
   src/determinize_teba.cpp			\

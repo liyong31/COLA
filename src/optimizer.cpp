@@ -184,6 +184,7 @@ namespace cola
       }
       is_implies_.push_back(elem);
     }
+    
     // If use_simulation is false, implications is empty, so nothing is built
     std::vector<std::vector<char>> implies(
         implications.size(),
@@ -287,6 +288,10 @@ namespace cola
   // check whether state i simulates state j
   bool state_simulator::simulate(unsigned i, unsigned j)
   {
+    if (is_implies_.size() == 0)
+    {
+      return i == j;
+    }
     return is_implies_[i][j];
   }
 

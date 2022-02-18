@@ -64,13 +64,14 @@ and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --algo=[cola|dc|iar|comp|ncsb]
+    --algo=[cola|dc|iar|comp|ncsb|congr]
             Use determinization or complementation algorithms (comp or ncsb) to obtain the output
               cola     Default setting for determinization (--algo=dc --simulation --use-scc --stutter --parity)
               dc       Divide-and-Conquer determinization based on SCC decomposition
               iar      Specialized algorithm for limit-deterministic Buchi automata in TACAS'17 paper by Esparza et al.
               comp     Complementation algorithm based on SCC decomposition
               ncsb     NCSB complementation variants for limit deterministic Buchi automata 
+              congr    Congruence-based algorithm for containment checking (with --contain=...)
     --type 
             Output the type of the input Buchi automaton: deterministic, limit-deterministic, elevator, unambiguous or none of them
     --print-scc
@@ -144,7 +145,8 @@ enum complement_algo
 {
   NoComplement = 0,
   COMP,
-  NCSB
+  NCSB,
+  CONGR
 };
 
 // We may provide multiple algorithms for comparison
@@ -304,6 +306,7 @@ int main(int argc, char *argv[])
   bool print_scc = false;
   bool comp = false;
   bool contain = false;
+  bool congr = false;
   std::string file_to_contain;
 
   enum postprocess_level
@@ -459,6 +462,9 @@ int main(int argc, char *argv[])
     {
       comp = true;
       complement = NCSB;
+    }else if (arg == "--algo=congr")
+    {
+      complement = CONGR;
     }
     else if (arg == "-f")
     {
@@ -708,10 +714,15 @@ int main(int argc, char *argv[])
       }
       if (complement && !determinize)
       {
-        if (complement == COMP) 
+        if (complement == CONGR && contain)
+        {
+          if (! aut_to_contain)
+            std::cout << "Contained" << std::endl;
+          cola::congr_contain(aut, aut_to_contain, om);
+        }else if (complement == COMP) 
         {
           aut = cola::complement_tnba(aut, om);
-        }else 
+        }else
         {
           // set NCSB algorithm later
           aut = cola::complement_tnba(aut, om);
