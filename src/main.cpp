@@ -65,6 +65,8 @@ Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
     --determinize=[spot|ba|cola]
             Use Spot or our algorithm for TBA or let cola decide which one to obtain deterministic automata
+    --algo=[det|comp]
+            Use determinization or complementation algorithms to obtain the output
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
@@ -133,6 +135,14 @@ enum determinize_t
   LDBA,
   EBA, // elevator Buchi automata
   Spot
+};
+
+// determinization
+enum complement_t
+{
+  NoComplement = 0,
+  NCSB,
+  SCC,
 };
 
 spot::twa_graph_ptr
@@ -210,6 +220,8 @@ int main(int argc, char *argv[])
   om.set(NUM_SCC_LIMIT_MERGER, 0);
 
   determinize_t determinize = NoDeterminize;
+
+  complement_t complement_algo = NoComplement;
 
   // options
   bool use_simulation = false;
@@ -361,7 +373,11 @@ int main(int argc, char *argv[])
       om.set(USE_STUTTER, 1);
       use_acd = true;
       output_type = Parity;
-    }else if (arg == "-f")
+    }else if (arg == "--algo=comp")
+    {
+      complement_algo = SCC;
+    }
+    else if (arg == "-f")
     {
       if (argc < i + 1)
       {
@@ -484,6 +500,12 @@ int main(int argc, char *argv[])
       if (!aut)
         break;
 
+      // Check if input is TGBA
+      if (aut->acc().is_generalized_buchi())
+      {
+        aut = spot::degeneralize_tba(aut);
+      }
+
       if (!aut->acc().is_buchi())
       {
         std::cerr << "cola requires Buchi condition on input.\n";
@@ -520,12 +542,6 @@ int main(int argc, char *argv[])
           std::cout << "nondeterministic" << std::endl;
         }
         break;
-      }
-
-      // Check if input is TGBA
-      if (!aut->acc().is_generalized_buchi())
-      {
-        aut = spot::degeneralize_tba(aut);
       }
 
       if (print_scc)
@@ -677,6 +693,16 @@ int main(int argc, char *argv[])
           // trivial acceptance condition
           aut = spot::minimize_monitor(aut);
         }
+      }
+      if (complement_algo && determinize == NoDeterminize)
+      {
+        aut = cola::complement_tnba(aut, om);
+        spot::postprocessor p;
+        p.set_level(spot::postprocessor::Low);
+        p.set_type(spot::postprocessor::Buchi);
+        aut = p.run(aut);
+        comp = false;
+        post_process = None;
       }
       const char *opts = nullptr;
       aut->merge_edges();
