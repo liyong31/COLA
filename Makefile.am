@@ -32,6 +32,7 @@ src_libcola_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
 src_libcola_la_SOURCES =			\
   src/cola.hpp			\
   src/cola.cpp			\
+  src/complement_tnba.cpp			\
   src/composer.cpp				\
   src/composer.hpp				\
   src/decomposer.hpp			\
