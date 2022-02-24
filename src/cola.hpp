@@ -129,6 +129,13 @@ namespace cola
   spot::twa_graph_ptr
   determinize_televator(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
+  /// \brief Containment checking between Buchi automata based on congruence relations and SCC decomposition
+  ///
+  /// The automata \a A and \a B should be Buchi automata.
+  /// Output a counterexample if the language of A is not contained in that of B
+  void
+  congr_contain(spot::twa_graph_ptr B, spot::twa_graph_ptr A, spot::option_map& om);
+
 
   // ============================ helper functions ===================================
 

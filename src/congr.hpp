@@ -26,25 +26,25 @@ using namespace std;
 
 namespace cola
 {
-    // Arc: indicates whether src_ visits dst_ via accepting transitions (acc_) 
+    // Arc: indicates whether src_ visits dst_ via accepting transitions (acc_)
     class arc
     {
-        public:
-
+    public:
         unsigned src_;
         unsigned dst_;
-        bool     acc_;
+        int acc_;
 
-        arc(unsigned src, unsigned dst, bool acc)
-        : src_ (src), dst_ (dst), acc_ (acc)
-        {}
+        arc(unsigned src, unsigned dst, int acc)
+            : src_(src), dst_(dst), acc_(acc)
+        {
+        }
 
         bool operator<(const arc &other) const;
         bool operator==(const arc &other) const;
-        arc & operator=(const arc &other);
+        arc &operator=(const arc &other);
 
         size_t hash() const;
-        friend ostream& operator<<(ostream& os, const arc& c);
+        friend ostream &operator<<(ostream &os, const arc &c);
     };
 
     struct arc_hash
@@ -52,7 +52,7 @@ namespace cola
         size_t
         operator()(const arc &s) const noexcept
         {
-        return s.hash();
+            return s.hash();
         }
     };
 
@@ -60,8 +60,7 @@ namespace cola
 
     class prefix_graph
     {
-        public:
-
+    public:
         std::set<unsigned> repr_;
         std::vector<bdd> word_;
 
@@ -69,16 +68,15 @@ namespace cola
 
         bool operator<(const prefix_graph &other) const;
         bool operator==(const prefix_graph &other) const;
-        prefix_graph & operator=(const prefix_graph &other);
+        prefix_graph &operator=(const prefix_graph &other);
 
         size_t hash() const;
-        friend ostream& operator<<(ostream& os, const prefix_graph& g);
+        friend ostream &operator<<(ostream &os, const prefix_graph &g);
     };
 
     class period_graph
     {
-        public:
-
+    public:
         std::set<arc> repr_;
         std::vector<bdd> word_;
 
@@ -86,41 +84,35 @@ namespace cola
 
         bool operator<(const period_graph &other) const;
         bool operator==(const period_graph &other) const;
-        period_graph & operator=(const period_graph &other);
+        period_graph &operator=(const period_graph &other);
 
         size_t hash() const;
-        friend ostream& operator<<(ostream& os, const period_graph& g);
+        friend ostream &operator<<(ostream &os, const period_graph &g);
     };
 
-    typedef std::pair<unsigned, std::set<unsigned>> prefix_word_key;
-    typedef std::pair<unsigned, std::set<arc>> period_word_key;
+    // struct word_key_hash
+    // {
+    //     template <class T1, class T2>
+    //     size_t
+    //     operator()(const std::pair<T1, std::set<T2>> &s) const noexcept
+    //     {
+    //         size_t res = 0;
+    //         res = (res << 3)^ std::hash<T1>{}(s.first);
+    //         for (T2& e : s.second)
+    //         {
+    //             res = (res << 3)^std::hash<T2>{}(e);
+    //         }
+    //         return res;
+    //     }
+    // };
 
-    
-    struct word_key_hash
-    {
-        template <class T1, class T2>
-        size_t
-        operator()(const std::pair<T1, std::set<T2>> &s) const noexcept
-        {
-            size_t res = 0;
-            res = (res << 3)^ std::hash<T1>{}(s.first);
-            for (T2& e : s.second)
-            {
-                res = (res << 3)^std::hash<T2>{}(e);
-            }
-            return res;
-        }
-    };
-
-    // Congruence relations for checking language containment between A_ and B_ 
+    // Congruence relations for checking language containment between A_ and B_
     class congr
     {
-        public:
-
-        const spot::option_map& om_;
-        spot::scc_info si_B_; 
-        spot::scc_info si_A_; 
-
+    protected:
+        const spot::option_map &om_;
+        spot::scc_info si_B_;
+        spot::scc_info si_A_;
 
         spot::twa_graph_ptr A_;
         std::vector<bool> is_accepting_A_;
@@ -131,42 +123,45 @@ namespace cola
         std::vector<bdd> support_B_;
         std::string scc_types_B_;
 
-        std::map<unsigned, std::set<prefix_graph>> prefix_map;
-        std::map<unsigned, std::set<period_graph>> period_map; 
-
-        // word map
-        //std::unordered_map<std::pair<unsigned, state_set>, spot::twa_word_ptr, word_key_hash> prefix_word_map;
-	    //std::unordered_map<std::pair<unsigned, arc_set>, spot::twa_word_ptr, word_key_hash> period_word_map;
+        std::map<unsigned, std::set<prefix_graph>> prefix_map_;
+        std::map<unsigned, std::set<period_graph>> period_map_;
 
         state_simulator simulator_;
 
-        congr(spot::option_map& om, spot::twa_graph_ptr B, spot::scc_info& si_B, spot::twa_graph_ptr A, spot::scc_info& si_A, std::vector<bdd>& implications);
+        bool found_;
+    public:
+        std::vector<bdd> ce_prefix_;
+        std::vector<bdd> ce_period_;
+    
+        congr(spot::option_map &om, spot::twa_graph_ptr B, spot::scc_info &si_B, spot::twa_graph_ptr A, spot::scc_info &si_A, std::vector<bdd> &implications);
 
-        void add_to_minimized_prefix_set(std::set<unsigned>& update, unsigned q);
+        void add_to_minimized_prefix_set(std::set<unsigned> &update, unsigned q);
 
-        bool can_add_to_prefix_set(std::set<prefix_graph>& orig, state_set& update);
+        bool can_add_to_prefix_set(std::set<prefix_graph> &orig, state_set &update);
 
-        bool is_simulated(const state_set& left, const state_set& right);
+        bool is_simulated(const state_set &left, const state_set &right);
 
-        void add_to_prefix_antichain(std::set<prefix_graph>& orig, prefix_graph& update, std::set<prefix_graph>& to_removed);
+        void add_to_prefix_antichain(std::set<prefix_graph> &orig, prefix_graph &update, std::set<prefix_graph> &to_removed);
 
         void compute_prefix_simulation();
 
-        void add_to_minimized_period_set(std::set<arc>& set, arc& triple);
+        void add_to_minimized_period_set(std::set<arc> &set, arc &triple);
 
-        bool is_simulated(const period_graph& left, const period_graph& right);
+        bool is_simulated(const period_graph &left, const period_graph &right);
 
-        void add_to_period_antichain(std::set<period_graph>& orig, period_graph& update, std::set<period_graph>& to_removed);
+        void add_to_period_antichain(std::set<period_graph> &orig, period_graph &update, std::set<period_graph> &to_removed);
 
-        bool can_add_to_period_set(std::set<period_graph>& orig, period_graph& update);
+        bool can_add_to_period_set(std::set<period_graph> &orig, period_graph &update);
 
-        void compute_period_simulation(unsigned s, const prefix_graph&  set);
+        void compute_period_simulation(unsigned s, const prefix_graph &set);
 
-        bool is_empty(const state_set& prefix, const period_graph& period);
+        bool is_empty(const state_set &prefix, const period_graph &period);
 
         void contains();
 
-        void print_counterexample(const std::vector<bdd>& prefix, const std::vector<bdd>& period);
+        void print_counterexample(const std::vector<bdd> &prefix, const std::vector<bdd> &period);
+
+        bool is_valid_period(const period_graph &period);
 
     };
 

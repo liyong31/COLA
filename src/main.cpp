@@ -462,7 +462,8 @@ int main(int argc, char *argv[])
     {
       comp = true;
       complement = NCSB;
-    }else if (arg == "--algo=congr")
+    }
+    else if (arg == "--algo=congr")
     {
       complement = CONGR;
     }
@@ -492,7 +493,8 @@ int main(int argc, char *argv[])
         output_filename = str;
         i++;
       }
-    }else if (arg.find("--contain=") != std::string::npos)
+    }
+    else if (arg.find("--contain=") != std::string::npos)
     {
       contain = true;
       std::size_t idx = arg.find('=');
@@ -638,52 +640,52 @@ int main(int argc, char *argv[])
           }
         }
       }
-      
+
       //1. preprocess
-        clock_t c_start = clock();
-        unsigned aut_type = NONDETERMINISTIC;
-        if (cola::is_weak_automaton(aut))
-        {
-          aut_type |= INHERENTLY_WEAK;
-        }
-        if (spot::is_semi_deterministic(aut))
-        {
-          aut_type |= LIMIT_DETERMINISTIC;
-        }
-        if (cola::is_elevator_automaton(aut))
-        {
-          aut_type |= ELEVATOR;
-        }
-        {
-          // preprocessing for the input.
-          if (preprocess)
-          {
-            spot::postprocessor preprocessor;
-            // only a very low level of preprocessing is allowed
-            if (preprocess == Low)
-              preprocessor.set_level(spot::postprocessor::Low);
-            else if (preprocess == Medium)
-              preprocessor.set_level(spot::postprocessor::Medium);
-            else if (preprocess == High)
-              preprocessor.set_level(spot::postprocessor::High);
-            aut = preprocessor.run(aut);
-          }
-        }
-        if (om.get(VERBOSE_LEVEL) >= 2)
-        {
-          cola::output_file(aut, "sim_aut.hoa");
-          std::cout << "Output processed automaton (" << aut->num_states() << ", " << aut->num_edges() << ") to sim_aut.hoa\n";
-        }
-        clock_t c_end = clock();
-        if (om.get(VERBOSE_LEVEL) > 0)
-        {
-          std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
-        }
+      clock_t c_start = clock();
+      unsigned aut_type = NONDETERMINISTIC;
+      if (cola::is_weak_automaton(aut))
+      {
+        aut_type |= INHERENTLY_WEAK;
+      }
+      if (spot::is_semi_deterministic(aut))
+      {
+        aut_type |= LIMIT_DETERMINISTIC;
+      }
+      if (cola::is_elevator_automaton(aut))
+      {
+        aut_type |= ELEVATOR;
+      }
+
+      // preprocessing for the input.
+      if (preprocess)
+      {
+        spot::postprocessor preprocessor;
+        // only a very low level of preprocessing is allowed
+        if (preprocess == Low)
+          preprocessor.set_level(spot::postprocessor::Low);
+        else if (preprocess == Medium)
+          preprocessor.set_level(spot::postprocessor::Medium);
+        else if (preprocess == High)
+          preprocessor.set_level(spot::postprocessor::High);
+        aut = preprocessor.run(aut);
+      }
+
+      if (om.get(VERBOSE_LEVEL) >= 2)
+      {
+        cola::output_file(aut, "sim_aut.hoa");
+        std::cout << "Output processed automaton (" << aut->num_states() << ", " << aut->num_edges() << ") to sim_aut.hoa\n";
+      }
+      clock_t c_end = clock();
+      if (om.get(VERBOSE_LEVEL) > 0)
+      {
+        std::cout << "Done for preprocessing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+      }
       if (aut->acc().is_all())
-        {
-          // trivial acceptance condition
-          aut = spot::minimize_monitor(aut);
-        }
+      {
+        // trivial acceptance condition
+        aut = spot::minimize_monitor(aut);
+      }
       if (!spot::is_deterministic(aut) && determinize)
       {
         if (decompose && aut->acc().is_buchi() && !spot::is_deterministic(aut))
@@ -716,13 +718,15 @@ int main(int argc, char *argv[])
       {
         if (complement == CONGR && contain)
         {
-          if (! aut_to_contain)
+          if (!aut_to_contain)
             std::cout << "Contained" << std::endl;
           cola::congr_contain(aut, aut_to_contain, om);
-        }else if (complement == COMP) 
+        }
+        else if (complement == COMP)
         {
           aut = cola::complement_tnba(aut, om);
-        }else
+        }
+        else
         {
           // set NCSB algorithm later
           aut = cola::complement_tnba(aut, om);
@@ -838,7 +842,7 @@ int main(int argc, char *argv[])
           std::cout << "Contained" << std::endl;
           break;
         }
-        std::stringstream ss ;
+        std::stringstream ss;
         bool has_counterexample = false;
         if (comp)
         {
@@ -848,7 +852,8 @@ int main(int argc, char *argv[])
             ss << (*word);
             has_counterexample = true;
           }
-        }else 
+        }
+        else
         {
           // not complement, now the automaton should be determinized
           aut = spot::complement(aut);
@@ -862,11 +867,13 @@ int main(int argc, char *argv[])
         if (!has_counterexample)
         {
           std::cout << "Contained" << std::endl;
-        }else 
+        }
+        else
         {
           std::cout << "Not contained: " << ss.str() << std::endl;
         }
-      }else if (output_filename != "")
+      }
+      else if (output_filename != "")
       {
         cola::output_file(aut, output_filename.c_str());
       }
