@@ -602,6 +602,12 @@ int main(int argc, char *argv[])
       if (!aut)
         break;
 
+      // Check if input is TGBA
+      if (aut->acc().is_generalized_buchi())
+      {
+        aut = spot::degeneralize_tba(aut);
+      }
+
       if (!aut->acc().is_buchi())
       {
         std::cerr << "cola requires Buchi condition on input.\n";
@@ -612,12 +618,6 @@ int main(int argc, char *argv[])
       {
         output_input_type(aut);
         break;
-      }
-
-      // Check if input is TGBA
-      if (!aut->acc().is_generalized_buchi())
-      {
-        aut = spot::degeneralize_tba(aut);
       }
 
       if (print_scc)
