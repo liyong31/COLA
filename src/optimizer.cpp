@@ -282,11 +282,17 @@ namespace cola
 
   char state_simulator::can_reach_scc(unsigned scc1, unsigned scc2)
   {
+    if (scc1 < scc2) return 0;
+    if (scc1 == scc2) return 1;
     return is_connected_[scc2 + si_.scc_count() * scc1];
   }
   // check whether state i simulates state j
   bool state_simulator::simulate(unsigned i, unsigned j)
   {
+    if (is_implies_.size() == 0)
+    {
+      return i == j;
+    }
     return is_implies_[i][j];
   }
 
