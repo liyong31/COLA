@@ -163,8 +163,7 @@ namespace cola
     // newly incoming states
     for (unsigned p : next_level_)
     {
-      if (curr_scc_ != si_.scc_of(p))
-        continue;
+      assert (curr_scc_ == si_.scc_of(p));
       // p must not be present previously
       succ_ranks_.emplace_back(p, ++ max_rnk);
     }
@@ -282,8 +281,7 @@ namespace cola
     // Order each entry states since each run can have accepting runs
     for (unsigned dst : next_level_)
     {
-      if (curr_scc_ != si_.scc_of(dst))
-        continue;
+      assert (curr_scc_ == si_.scc_of(dst));
       // put them all in top brace 0
       int newb = succ_braces_.size();
       // Step A1
@@ -1018,7 +1016,7 @@ namespace cola
     std::vector<determinize_dac_succ> dac_succs;
     for (unsigned i = 0; i < dacs_.size(); i ++)
     {
-      determinize_dac_succ dac_succ(si_, dacs_[i], ms.dac_ranks_[i], next_detstates, succ.dac_ranks_[i], dac_trans);
+      determinize_dac_succ dac_succ(si_, dacs_[i], ms.dac_ranks_[i], next_detstates[i], succ.dac_ranks_[i], dac_trans);
       dac_succ.compute_succ();
       dac_succs.emplace_back(dac_succ);
     }
@@ -1028,7 +1026,7 @@ namespace cola
     std::vector<determinize_nac_succ> nac_succs;
     for (unsigned i = 0; i < nacs_.size(); i ++)
     {
-      determinize_nac_succ nac_succ(si_, nacs_[i], ms.nac_ranks_[i], ms.nac_braces_[i], next_nondetstates, succ.nac_ranks_[i], succ.nac_braces_[i], nac_trans, true);
+      determinize_nac_succ nac_succ(si_, nacs_[i], ms.nac_ranks_[i], ms.nac_braces_[i], next_nondetstates[i], succ.nac_ranks_[i], succ.nac_braces_[i], nac_trans, true);
       nac_succ.compute_succ();
       nac_succs.emplace_back(nac_succ);
     }
