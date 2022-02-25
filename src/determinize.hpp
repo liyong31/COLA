@@ -1,3 +1,5 @@
+// Copyright (C) 2017-2019 Laboratoire de Recherche et Développement
+// de l'Epita.
 // Copyright (C) 2022 - present  The COLA Authors
 //
 // COLA is free software: you can redistribute it and/or modify
@@ -12,6 +14,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#pragma once
 
 #include "cola.hpp"
 #include "types.hpp"
@@ -31,6 +35,9 @@ namespace cola
     // The obtained nesting pattern is in reverse order
     bool compare_braces(std::vector<int> &braces, int a, int b);
 
+    // compute the parity color for an edge
+    int compute_parity_color(int min_dcc, int min_acc);
+
     class determinize_dac_succ
     {
     public:
@@ -44,14 +51,13 @@ namespace cola
         // DAC number
         unsigned curr_scc_;
 
-        // the returned succ ranking
-        std::vector<state_rank> succ_ranks_;
+        // the reference to other ranking, more general than passing the tba_mstate
+        std::vector<state_rank>& succ_ranks_;
 
-        determinize_dac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, state_set &next_level, std::unordered_map<unsigned, std::vector<edge_label>> &det_trans)
-            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), det_trans_(det_trans)
+        determinize_dac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, state_set &next_level, std::vector<state_rank>& succ_ranks, std::unordered_map<unsigned, std::vector<edge_label>> &det_trans)
+            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), succ_ranks_(succ_ranks), det_trans_(det_trans)
         {
         }
-
         // compute the successor rankings
         void compute_succ();
 
@@ -69,13 +75,16 @@ namespace cola
 
         state_set &next_level_;
         std::vector<state_rank> &succ_ranks_;
-        std::vector<int> succ_braces_;
+        std::vector<int>& succ_braces_;
 
         bool reassign_ranks_;
 
-        determinize_nac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, const std::vector<int> &curr_braces, state_set &next_level, std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans, bool reassign_ranks)
-            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), nondet_trans_(nondet_trans), reassign_ranks_(reassign_ranks)
+        determinize_nac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, const std::vector<int> &curr_braces, state_set &next_level
+        , std::vector<state_rank>& succ_ranks, std::vector<int>& succ_braces, std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans, bool reassign_ranks)
+            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), succ_ranks_(succ_ranks), succ_braces_(succ_braces), nondet_trans_(nondet_trans), reassign_ranks_(reassign_ranks)
         {
+            assert (succ_ranks_.size() == 0 && succ_braces_.size() == 0);
+
             for (unsigned i = 0; i < curr_braces.size(); i++)
             {
                 succ_braces_.push_back(curr_braces[i]);
@@ -206,11 +215,15 @@ namespace cola
         }
     };
 
+    // by default, the number of colors for each set is even
+    spot::acc_cond::acc_code
+    make_parity_condition(int base, bool odd, int num_colors);
+
     // Divide-and-conquer determinization based on SCC decomposition
     class determinize_tba
     {
     private:
-        // The source automaton.
+        // The source automaton
         const spot::const_twa_graph_ptr aut_;
 
         // SCCs information of the source automaton.
@@ -232,16 +245,11 @@ namespace cola
 
         // use ambiguous
         bool use_unambiguous_;
-
         bool use_scc_;
-
-        // use stutter
         bool use_stutter_;
-
         bool use_simulation_;
 
-        // Association between labelling states and state numbers of the
-        // DPA.
+        // Association between labelling states and state numbers of the DELA
         std::unordered_map<tba_mstate, unsigned, tba_mstate_hash> rank2n_;
 
         // outgoing transition to its colors by each accepting SCCs (weak is the righmost)
@@ -273,6 +281,36 @@ namespace cola
 
         // Show Rank states in state name to help debug
         bool show_names_;
+
+    private:
+        // private functions
+        unsigned new_state(tba_mstate &s);
+
+        std::string get_name(const tba_mstate &ms);
+
+        bool exists(tnba_mstate &s);
+
+        bool has_acc_iwcs();
+
+        spot::twa_graph_ptr postprocess(spot::twa_graph_ptr aut);
+
+        void finalize_acceptance();
+
+        int get_nac_index(unsigned scc);
+
+        int get_dac_index(unsigned scc);
+
+        void remove(std::vector<state_rank>& nodes, state_set& to_remove);
+        
+        void merge_redundant_states(tba_mstate &ms, std::vector<state_rank>& nodes, bool nondet);
+
+        void make_simulation_state(tba_mstate &ms);
+
+        // compute the successor N={nondeterministic states and nonaccepting SCCs} O = {breakpoint for weak SCCs}
+        // and labelling states for each SCC
+        void compute_succ(const tba_mstate &ms, bdd letter, tba_mstate &nxt, std::vector<int> &color);
+
+        void compute_stutter_succ(const tba_mstate &curr, bdd letter, tba_mstate &succ, std::vector<int> &colors);
 
     public:
         determinize_tba(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications);
