@@ -1,11 +1,10 @@
-# COLA: a determinization and complementation library for Büchi automata
-COLA currently a determinization algorithm for nondeterministic Büchi automata.
+# COLA: a determinization, complementation and containment checking library for Büchi automata
+
 COLA has been built on top of [SPOT](https://spot.lrde.epita.fr/) and inspired by [Seminator](https://github.com/mklokocka/seminator).
 
 
 ### List of algorithms
-Complementing UNBA (Under construction): the [slice-based algorithm](https://arxiv.org/abs/2005.09125v2)
-Determinizing nondeterministic BAs: under construction
+TBA
 
 ### Requirements
 * [Spot](https://spot.lrde.epita.fr/)

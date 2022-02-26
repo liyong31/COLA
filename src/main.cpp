@@ -183,9 +183,9 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
 }
 
 spot::twa_graph_ptr
-complement_deterministic(spot::twa_graph_ptr aut)
+to_tba(spot::twa_graph_ptr aut)
 {
-  aut = spot::dualize(aut);
+  // aut = spot::dualize(aut);
   spot::postprocessor p;
   p.set_level(spot::postprocessor::Low);
   p.set_type(spot::postprocessor::Buchi);
@@ -700,6 +700,7 @@ int main(int argc, char *argv[])
       }
       if (complement_algo && determinize == NoDeterminize)
       {
+        throw std::runtime_error("Complementation algorithm under construction and not available yet");
         aut = cola::complement_tnba(aut, om);
         spot::postprocessor p;
         p.set_level(spot::postprocessor::Low);
@@ -707,6 +708,12 @@ int main(int argc, char *argv[])
         aut = p.run(aut);
         comp = false;
         post_process = None;
+      }else if (comp && determinize)
+      {
+        // complement the automaton
+        aut = spot::dualize(aut);
+        // make it
+        use_acd = true;
       }
       const char *opts = nullptr;
       aut->merge_edges();
@@ -797,7 +804,8 @@ int main(int argc, char *argv[])
       }
       if (comp)
       {
-        aut = complement_deterministic(aut);
+        // automaton is already complemented now
+        aut = to_tba(aut);
       }
       if (output_filename != "")
       {
