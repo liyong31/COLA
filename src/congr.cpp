@@ -23,6 +23,8 @@
 #include <map>
 #include <set>
 
+#include <spot/twa/bddprint.hh>
+
 namespace cola
 {
 

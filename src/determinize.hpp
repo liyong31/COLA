@@ -27,12 +27,11 @@ namespace cola
     // Returns true if lhs has a smaller nesting pattern than rhs
     // If lhs and rhs are the same, return false.
     // compare backwards
-    bool nesting_cmp(const std::vector<int> &lhs,
-                     const std::vector<int> &rhs);
+    bool compare_brace(const std::vector<int> &lhs, const std::vector<int> &rhs);
 
     // Backward search for obtaining the nesting pattern
     // The obtained nesting pattern is in reverse order
-    bool compare_braces(std::vector<int> &braces, int a, int b);
+    bool compare_node_rank(const std::vector<int> &braces, int a, int b);
 
     // compute the parity color for an edge
     int compute_parity_color(int min_dcc, int min_acc);
@@ -146,7 +145,7 @@ namespace cola
             this->dac_ranks_.clear();
             for (unsigned i = 0; i < other.dac_ranks_.size(); i++)
             {
-                std::vector<label> copy = other.dac_ranks_[i];
+                std::vector<state_rank> copy = other.dac_ranks_[i];
                 dac_ranks_.emplace_back(copy);
             }
 
@@ -173,7 +172,7 @@ namespace cola
             this->dac_ranks_.clear();
             for (unsigned i = 0; i < other.dac_ranks_.size(); i++)
             {
-                std::vector<label> copy = other.dac_ranks_[i];
+                std::vector<state_rank> copy = other.dac_ranks_[i];
                 dac_ranks_.emplace_back(copy);
             }
 
@@ -202,8 +201,8 @@ namespace cola
         std::vector<safra_node>
         get_safra_nodes(unsigned index) const;
 
-        bool operator<(const tnba_mstate &other) const;
-        bool operator==(const tnba_mstate &other) const;
+        bool operator<(const tba_mstate &other) const;
+        bool operator==(const tba_mstate &other) const;
     };
 
     struct tba_mstate_hash
@@ -288,7 +287,7 @@ namespace cola
 
         std::string get_name(const tba_mstate &ms);
 
-        bool exists(tnba_mstate &s);
+        bool exists(tba_mstate &s);
 
         bool has_acc_iwcs();
 
@@ -315,6 +314,6 @@ namespace cola
     public:
         tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications);
 
-        spot::const_twa_graph_ptr run();
+        spot::twa_graph_ptr run();
     };
 }

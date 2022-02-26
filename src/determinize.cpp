@@ -70,7 +70,7 @@ namespace cola
     return parity;
   }
 
-  bool nesting_cmp(const std::vector<int> &lhs,
+  bool compare_brace(const std::vector<int> &lhs,
                    const std::vector<int> &rhs)
   {
     unsigned m = std::min(lhs.size(), rhs.size());
@@ -87,7 +87,7 @@ namespace cola
   }
 
   bool
-  compare_braces(const std::vector<int> &braces, int a, int b)
+  compare_node_rank(const std::vector<int> &braces, int a, int b)
   {
     std::vector<int> a_pattern;
     std::vector<int> b_pattern;
@@ -112,7 +112,7 @@ namespace cola
         size_b++;
       }
     }
-    return nesting_cmp(a_pattern, b_pattern);
+    return compare_brace(a_pattern, b_pattern);
   }
 
   void dac_determinize_succ::compute_succ()
@@ -133,7 +133,7 @@ namespace cola
       max_rnk = std::max(max_rnk, curr_rnk);
 
       // states and ranking
-      for (const auto &t : det_trans_[curr_state])
+      for (const auto &t : det_trans_.at(curr_state))
       {
         unsigned succ_scc = si_.scc_of(t.second);
         // ignore the states that go to other SCCs
@@ -183,7 +183,7 @@ namespace cola
       unsigned curr_state = curr_ranks_[j].first;
       int curr_rnk = curr_ranks_[j].second;
       assert(curr_rnk == j);
-      for (const auto &t : det_trans_[curr_state])
+      for (const auto &t : det_trans_.at(curr_state))
       {
         // ignore the states that are not existing
         if (succ_nodes.find(t.second) == succ_nodes.end())
@@ -233,7 +233,7 @@ namespace cola
     // labels and then state number
     for (const auto &node : curr_ranks_)
     {
-      for (const auto &t : nondet_trans_[node.first])
+      for (const auto &t : nondet_trans_.at(node.first))
       {
         unsigned dst = t.second;
         unsigned succ_scc = si_.scc_of(dst);
@@ -255,7 +255,7 @@ namespace cola
         if (!i.second) // dst already exists
         {
           // Step A2: Only keep the smallest nesting pattern.
-          if (compare_braces(succ_braces_, newb, i.first->second))
+          if (compare_node_rank(succ_braces_, newb, i.first->second))
           {
             // newb is smaller
             i.first->second = newb;
@@ -825,7 +825,7 @@ namespace cola
           int scc_index = get_nac_index(scc_i);
           std::vector<int> &braces = ms.nac_braces_[scc_index];
           //print_pattern_vec(braces, braces.size());
-          if (compare_braces(braces, brace_j, brace_i))
+          if (compare_node_rank(braces, brace_j, brace_i))
           {
             remove = true;
           }
@@ -920,7 +920,7 @@ namespace cola
 
     std::set<unsigned> acc_weak_coming_states;
     // states at current level
-    const std::set<unsigned> current_states& = ms.get_reach_set();
+    const std::set<unsigned> current_states = ms.get_reach_set();
     // states at next level
     std::vector<std::set<unsigned>> next_nondetstates;
     for (unsigned i = 0; i < nacs_.size(); i++)
@@ -1429,6 +1429,31 @@ namespace cola
     // we assume that the initial state is not in deterministic part
     res_->set_init_state(new_state(new_init_state));
 
+  }
+
+  spot::twa_graph_ptr
+  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+  {
+    if (!aut->acc().is_buchi())
+      throw std::runtime_error("determinize_tba() requires a Buchi input");
+    const int trans_pruning = om.get(NUM_TRANS_PRUNING);
+    // now we compute the simulator
+    spot::const_twa_graph_ptr aut_reduced;
+    std::vector<bdd> implications;
+    spot::twa_graph_ptr aut_tmp = nullptr;
+    if (om.get(USE_SIMULATION) > 0)
+    {
+      aut_tmp = spot::scc_filter(aut);
+      auto aut2 = spot::simulation(aut_tmp, &implications, trans_pruning);
+      aut_tmp = aut2;
+    }
+    if (aut_tmp)
+      aut_reduced = aut_tmp;
+    else
+      aut_reduced = aut;
+    spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
+    auto det = cola::tba_determinize(aut_reduced, scc, om, implications);
+    return det.run();
   }
 
 }

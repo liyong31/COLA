@@ -122,6 +122,10 @@ namespace cola
   spot::twa_graph_ptr
   determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
 
+  // more modular implementation
+  spot::twa_graph_ptr
+  determinize_tba(const spot::const_twa_graph_ptr &aut, spot::option_map &om);
+
 
   /// \brief Determinizing elevator Buchi automaton that has either deterministic or weak SCCs
   ///
