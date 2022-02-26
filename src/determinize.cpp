@@ -27,14 +27,13 @@
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/isunamb.hh>
-
+#include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/degen.hh>
 #include <spot/twaalgos/simulation.hh>
 #include <spot/twaalgos/determinize.hh>
 #include <spot/twaalgos/parity.hh>
 
 #include <spot/twaalgos/postproc.hh>
-
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
@@ -42,6 +41,7 @@
 
 namespace cola
 {
+  const int RANK_TOP_BRACE = -1;
 
   int compute_parity_color(int min_dcc, int min_acc)
   {
@@ -66,13 +66,10 @@ namespace cola
     {
       parity = -1;
     }
-    // std::cout << "Color: " << parity << std::endl;
+
     return parity;
   }
 
-  // Returns true if lhs has a smaller nesting pattern than rhs
-  // If lhs and rhs are the same, return false.
-  // compare backwards, copied from spot
   bool nesting_cmp(const std::vector<int> &lhs,
                    const std::vector<int> &rhs)
   {
@@ -89,11 +86,8 @@ namespace cola
     return lhs.size() > rhs.size();
   }
 
-  // Backward search for obtaining the nesting pattern
-  // The obtained nesting pattern is in reverse order
-  // copied from spot
   bool
-  compare_braces(std::vector<int> &braces, int a, int b)
+  compare_braces(const std::vector<int> &braces, int a, int b)
   {
     std::vector<int> a_pattern;
     std::vector<int> b_pattern;
@@ -121,7 +115,7 @@ namespace cola
     return nesting_cmp(a_pattern, b_pattern);
   }
 
-  void determinize_dac_succ::compute_succ()
+  void dac_determinize_succ::compute_succ()
   {
     succ_ranks_.clear();
 
@@ -154,7 +148,7 @@ namespace cola
           // obtain the state with minimal rank
           succ_ranks_.emplace_back(t.second, curr_rnk);
         }
-        
+
         // has only one successor in the same SCC
         break;
       }
@@ -163,15 +157,15 @@ namespace cola
     // newly incoming states
     for (unsigned p : next_level_)
     {
-      assert (curr_scc_ == si_.scc_of(p));
+      assert(curr_scc_ == si_.scc_of(p));
       // p must not be present previously
-      succ_ranks_.emplace_back(p, ++ max_rnk);
+      succ_ranks_.emplace_back(p, ++max_rnk);
     }
 
     // POST-CONDITION: the ranks in succ_ranks_ is still in ascending order
   }
 
-  int determinize_dac_succ::get_color()
+  int dac_determinize_succ::get_color()
   {
     int min_acc = -1;
     int min_dcc = -1;
@@ -228,13 +222,13 @@ namespace cola
     return compute_parity_color(min_acc, min_dcc);
   }
 
-  void determinize_nac_succ::compute_succ()
+  void nac_determinize_succ::compute_succ()
   {
     // store the minimal new brace
     const int min_new_brace = succ_braces_.size();
 
     std::map<unsigned, int> succ_nodes;
-    
+
     // nodes are pair of states and labelling, ordered according to
     // labels and then state number
     for (const auto &node : curr_ranks_)
@@ -281,7 +275,7 @@ namespace cola
     // Order each entry states since each run can have accepting runs
     for (unsigned dst : next_level_)
     {
-      assert (curr_scc_ == si_.scc_of(dst));
+      assert(curr_scc_ == si_.scc_of(dst));
       // put them all in top brace 0
       int newb = succ_braces_.size();
       // Step A1
@@ -299,7 +293,7 @@ namespace cola
       // so we may have a canonical form for the successor
       state_set states_from_acc_trans;
       std::map<int, int> parent_brace;
-      
+
       for (auto &node : succ_nodes)
       {
         if (node.second >= min_new_brace)
@@ -319,7 +313,7 @@ namespace cola
         succ_nodes[dst] = new_brace;
         // it is guaranteed that the parent is less than min_new_brace
         succ_braces_[new_brace] = parent_brace[old_brace];
-        ++ new_brace; 
+        ++new_brace;
       }
     }
     // now store the results to succ
@@ -331,10 +325,10 @@ namespace cola
   }
 
   // copied from spot
-  int determinize_nac_succ::get_color()
+  int nac_determinize_succ::get_color()
   {
     std::vector<state_rank> &nodes = succ_ranks_;
-    std::vector<int> braces = succ_braces_; // copy the vector
+    std::vector<int> &braces = succ_braces_;
 
     int min_dcc = INT_MAX;
     int min_acc = INT_MAX;
@@ -438,12 +432,13 @@ namespace cola
     {
       if (break_set_ == other.break_set_)
       {
-        for (unsigned i = 0; i < dac_ranks_.size(); i ++)
+        for (unsigned i = 0; i < dac_ranks_.size(); i++)
         {
           if (dac_ranks_[i] == other.dac_ranks_[i])
           {
             continue;
-          }else 
+          }
+          else
           {
             return dac_ranks_[i] < other.dac_ranks_[i];
           }
@@ -462,7 +457,8 @@ namespace cola
           if (nac_ranks_[i] == other.nac_ranks_[i])
           {
             continue;
-          }else 
+          }
+          else
           {
             return nac_ranks_[i] < other.nac_ranks_[i];
           }
@@ -473,7 +469,8 @@ namespace cola
       {
         return break_set_ < other.break_set_;
       }
-    }else 
+    }
+    else
     {
       return weak_set_ < other.weak_set_;
     }
@@ -489,14 +486,14 @@ namespace cola
     {
       return false;
     }
-    for (unsigned i = 0; i < dac_ranks_.size(); i ++)
+    for (unsigned i = 0; i < dac_ranks_.size(); i++)
     {
       if (dac_ranks_[i] != other.dac_ranks_[i])
       {
         return false;
       }
     }
-    for (unsigned i = 0; i < nac_ranks_.size(); i ++)
+    for (unsigned i = 0; i < nac_ranks_.size(); i++)
     {
       if (nac_ranks_[i] != other.nac_ranks_[i])
       {
@@ -509,21 +506,21 @@ namespace cola
     }
     return true;
   }
-  
+
   state_set tba_mstate::get_reach_set() const
   {
     std::set<unsigned> result;
     result.insert(weak_set_.begin(), weak_set_.end());
-    for (auto & vec : dac_ranks_)
+    for (auto &vec : dac_ranks_)
     {
-      for (auto& p : vec)
+      for (auto &p : vec)
       {
         result.insert(p.first);
       }
     }
-    for (auto & vec : nac_ranks_)
+    for (auto &vec : nac_ranks_)
     {
-      for (auto& p : vec)
+      for (auto &p : vec)
       {
         result.insert(p.first);
       }
@@ -532,20 +529,20 @@ namespace cola
   }
   bool tba_mstate::is_empty() const
   {
-    if (! weak_set_.empty())
+    if (!weak_set_.empty())
     {
       return false;
     }
-    for (unsigned i = 0; i < dac_ranks_.size(); i ++)
+    for (unsigned i = 0; i < dac_ranks_.size(); i++)
     {
-      if (! dac_ranks_[i].empty())
+      if (!dac_ranks_[i].empty())
       {
         return false;
       }
     }
-    for (unsigned i = 0; i < nac_ranks_.size(); i ++)
+    for (unsigned i = 0; i < nac_ranks_.size(); i++)
     {
-      if (! nac_ranks_[i].empty())
+      if (!nac_ranks_[i].empty())
       {
         return false;
       }
@@ -563,21 +560,21 @@ namespace cola
   std::vector<safra_node>
   tba_mstate::get_safra_nodes(unsigned index) const
   {
-    assert (index >= 0 && index < nac_ranks_.size());
+    assert(index >= 0 && index < nac_ranks_.size());
     std::vector<safra_node> res;
     for (unsigned i = 0; i < nac_ranks_[index].size(); i++)
     {
-        // last brace
-        int brace = nac_ranks_[index][i].second;
-        std::vector<int> tmp;
-        while (brace >= 0)
-        {
-          // insert in reverse order
-          tmp.insert(tmp.begin(), brace);
-          // obtain the i-th braces
-          brace = nac_braces_[index][brace];
-        }
-        res.emplace_back(i, std::move(tmp));
+      // last brace
+      int brace = nac_ranks_[index][i].second;
+      std::vector<int> tmp;
+      while (brace >= 0)
+      {
+        // insert in reverse order
+        tmp.insert(tmp.begin(), brace);
+        // obtain the i-th braces
+        brace = nac_braces_[index][brace];
+      }
+      res.emplace_back(i, std::move(tmp));
     }
     // compare the node according to its labelling
     std::sort(res.begin(), res.end(), node_compare());
@@ -596,24 +593,24 @@ namespace cola
     {
       res ^= (res << 3) ^ i;
     }
-    for (unsigned i = 0; i < dac_ranks_.size(); i ++)
+    for (unsigned i = 0; i < dac_ranks_.size(); i++)
     {
-      for (auto& p : dac_ranks_[i])
+      for (auto &p : dac_ranks_[i])
       {
         res ^= (res << 3) ^ (p.first);
         res ^= (res << 3) ^ (p.second);
       }
     }
-    for (unsigned i = 0; i < nac_braces_.size(); i ++)
+    for (unsigned i = 0; i < nac_braces_.size(); i++)
     {
-      for (auto& p : nac_ranks_[i])
+      for (auto &p : nac_ranks_[i])
       {
         res ^= (res << 3) ^ (p.first);
         res ^= (res << 3) ^ (p.second);
       }
       for (int k : nac_braces_[i])
       {
-        res ^= (res << 3) ^ ((unsigned) k);
+        res ^= (res << 3) ^ ((unsigned)k);
       }
     }
 
@@ -645,119 +642,118 @@ namespace cola
 
   // ------------- implementation of determinization below -----------------------
   // From a Rank state, looks for a duplicate in the map before
-    // creating a new state if needed.
-    unsigned
-  determinize_tba::new_state(tba_mstate &s)
+  // creating a new state if needed.
+  unsigned
+  tba_determinize::new_state(tba_mstate &s)
+  {
+    tba_mstate dup(s);
+    auto p = rank2n_.emplace(dup, 0);
+    if (p.second) // This is a new state
     {
-      tba_mstate dup(s);
-      auto p = rank2n_.emplace(dup, 0);
-      if (p.second) // This is a new state
+      p.first->second = res_->new_state();
+      if (show_names_)
+        names_->push_back(get_name(p.first->first));
+      todo_.emplace_back(dup, p.first->second);
+    }
+    return p.first->second;
+  }
+
+  std::string
+  tba_determinize::get_name(const tba_mstate &ms)
+  {
+    // nondeterministic states (including weak states)
+    bool first_state = true;
+    std::string res = "P=" + get_set_string(ms.weak_set_);
+    res += ", O=" + get_set_string(ms.break_set_);
+    // now output according SCCs
+    for (unsigned i = 0; i < dacs_.size(); i++)
+    {
+      unsigned scc_id = dacs_[i];
+      std::vector<state_rank> states = ms.dac_ranks_[i];
+      res += ",[";
+      first_state = true;
+      for (unsigned p = 0; p < states.size(); p++)
       {
-        p.first->second = res_->new_state();
-        if (show_names_)
-          names_->push_back(get_name(p.first->first));
-        todo_.emplace_back(dup, p.first->second);
+        if (!first_state)
+          res += "<";
+        first_state = false;
+        res += std::to_string(states[p].first) + ":" + std::to_string(states[p].second);
       }
-      return p.first->second;
+      res += "] = scc " + std::to_string(scc_id);
     }
 
-  
-    std::string
-  determinize_tba::get_name(const tba_mstate &ms)
+    // now output nondeterministic sccs
+    for (unsigned i = 0; i < nacs_.size(); i++)
     {
-      // nondeterministic states (including weak states)
-      bool first_state = true;
-      std::string res = "P=" + get_set_string(ms.weak_set_);
-      res += ", O=" + get_set_string(ms.break_set_);
-      // now output according SCCs
-      for (unsigned i = 0; i < dacs_.size(); i ++)
+      unsigned scc_id = nacs_[i];
+      std::vector<safra_node> states = ms.get_safra_nodes(i);
+      res += ",{";
+      first_state = true;
+      for (unsigned p = 0; p < states.size(); p++)
       {
-        unsigned scc_id = dacs_[i];
-        std::vector<state_rank> states = ms.dac_ranks_[i];
-        res += ",[";
-        first_state = true;
-        for (unsigned p = 0; p < states.size(); p++)
+        if (!first_state)
+          res += " ,";
+        first_state = false;
+        res += std::to_string(states[p].first) + " - [";
+        bool first_brace = true;
+        for (unsigned b = 0; b < states[p].second.size(); b++)
         {
-          if (!first_state)
-            res += "<";
-          first_state = false;
-          res += std::to_string(states[p].first) + ":" + std::to_string(states[p].second);
-        }
-        res += "] = scc " + std::to_string(scc_id);
-      }
-
-      // now output nondeterministic sccs
-      for (unsigned i = 0; i < nacs_.size(); i++)
-      {
-        unsigned scc_id = nacs_[i];
-        std::vector<safra_node> states = ms.get_safra_nodes(i);
-        res += ",{";
-        first_state = true;
-        for (unsigned p = 0; p < states.size(); p++)
-        {
-          if (!first_state)
+          if (!first_brace)
             res += " ,";
-          first_state = false;
-          res += std::to_string(states[p].first) + " - [";
-          bool first_brace = true;
-          for (unsigned b = 0; b < states[p].second.size(); b++)
-          {
-            if (!first_brace)
-              res += " ,";
-            first_brace = false;
-            res += std::to_string(states[p].second[b]);
-          }
-          res += "]";
+          first_brace = false;
+          res += std::to_string(states[p].second[b]);
         }
-        res += "} = scc " + std::to_string(scc_id);
+        res += "]";
       }
-      return res;
+      res += "} = scc " + std::to_string(scc_id);
     }
+    return res;
+  }
 
-    bool determinize_tba::exists(tba_mstate &s)
-    {
-      return rank2n_.end() != rank2n_.find(s);
-    }
+  bool tba_determinize::exists(tba_mstate &s)
+  {
+    return rank2n_.end() != rank2n_.find(s);
+  }
 
-    bool determinize_tba::has_acc_iwcs()
+  bool tba_determinize::has_acc_iwcs()
+  {
+    for (unsigned i = 0; i < scc_types_.size(); i++)
     {
-      for (unsigned i = 0; i < scc_types_.size(); i++)
+      // if there is an accepting weak SCC
+      if ((scc_types_[i] & SCC_WEAK_TYPE) > 0 && (scc_types_[i] & SCC_ACC) > 0)
       {
-        // if there is an accepting weak SCC
-        if ((scc_types_[i] & SCC_WEAK_TYPE) > 0 && (scc_types_[i] & SCC_ACC) > 0)
-        {
-          return true;
-        }
+        return true;
       }
-      return false;
     }
+    return false;
+  }
 
-    int determinize_tba::get_nac_index(unsigned scc)
+  int tba_determinize::get_nac_index(unsigned scc)
+  {
+    for (int idx = 0; idx < nacs_.size(); idx++)
     {
-      for (int idx = 0; idx < nacs_.size(); idx ++)
+      if (nacs_[idx] == scc)
       {
-        if (nacs_[idx] == scc)
-        {
-          return idx;
-        }
+        return idx;
       }
-      throw std::runtime_error("determinize_tba::get_nac_index(unsigned scc): index not found");
     }
+    throw std::runtime_error("tba_determinize::get_nac_index(unsigned scc): index not found");
+  }
 
-    int determinize_tba::get_dac_index(unsigned scc)
+  int tba_determinize::get_dac_index(unsigned scc)
+  {
+    for (int idx = 0; idx < dacs_.size(); idx++)
     {
-      for (int idx = 0; idx < dacs_.size(); idx ++)
+      if (dacs_[idx] == scc)
       {
-        if (dacs_[idx] == scc)
-        {
-          return idx;
-        }
+        return idx;
       }
-      throw std::runtime_error("determinize_tba::get_dac_index(unsigned scc): index not found");
     }
+    throw std::runtime_error("tba_determinize::get_dac_index(unsigned scc): index not found");
+  }
 
-      spot::twa_graph_ptr
-  determinize_tba::postprocess(spot::twa_graph_ptr aut)
+  spot::twa_graph_ptr
+  tba_determinize::postprocess(spot::twa_graph_ptr aut)
   {
     spot::scc_info da(aut, spot::scc_info_options::ALL);
     // set of states -> the forest of reachability in the states.
@@ -790,111 +786,112 @@ namespace cola
     return res;
   }
 
-  void determinize_tba::remove(std::vector<state_rank>& nodes, state_set& to_remove)
-  {
-      auto it1 = nodes.begin();
-      while (it1 != nodes.end())
-      {
-        auto old_it1 = it1++;
-        if (to_remove.find(old_it1->first) != to_remove.end())
-        {
-          it1 = nodes.erase(old_it1);
-        }
-      }
-  }
-
-  void determinize_tba::merge_redundant_states(tba_mstate &ms, std::vector<state_rank>& nodes, bool nondet)
+  void tba_determinize::remove(std::vector<state_rank> &nodes, state_set &to_remove)
   {
     auto it1 = nodes.begin();
     while (it1 != nodes.end())
+    {
+      auto old_it1 = it1++;
+      if (to_remove.find(old_it1->first) != to_remove.end())
       {
-        auto old_it1 = it1++;
-        for (auto it2 = nodes.begin(); it2 != nodes.end(); ++it2)
-          {
-            if (old_it1 == it2)
-              continue;
-            unsigned i = old_it1->first;
-            unsigned j = it2->first;
-            if (!(simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)))
-            {
-              continue;
-            }
-            int brace_i = old_it1->second;
-            int brace_j = it2->second;
-            bool remove = false;
-            if (nondet)
-            {
-              // need to compare there nesting pattern
-              unsigned scc_i = si_.scc_of(i);
-              int scc_index = get_nac_index(scc_i);
-              std::vector<int>& braces = ms.nac_braces_[scc_index];
-              //print_pattern_vec(braces, braces.size());
-              if (compare_braces(braces, brace_j, brace_i))
-              {
-                remove = true;
-              }
-            }else if (brace_j < brace_i)
-            {
-              remove = true;
-            }
-            if (remove)
-              {
-                it1 = nodes.erase(old_it1);
-                break;
-              }
-          }
+        it1 = nodes.erase(old_it1);
       }
+    }
   }
 
-  void determinize_tba::make_simulation_state(tba_mstate &ms)
+  void tba_determinize::merge_redundant_states(tba_mstate &ms, std::vector<state_rank> &nodes, bool nondet)
   {
-    const state_set reached_states = ms.get_reach_set();
-      std::vector<state_set> det_remove(dacs_.size(), std::set<unsigned>());
-      std::vector<state_set> nondet_remove(nacs_.size(), std::set<unsigned>());
-      for (unsigned i : reached_states)
+    auto it1 = nodes.begin();
+    while (it1 != nodes.end())
+    {
+      auto old_it1 = it1++;
+      for (auto it2 = nodes.begin(); it2 != nodes.end(); ++it2)
       {
-        for (unsigned j : reached_states)
+        if (old_it1 == it2)
+          continue;
+        unsigned i = old_it1->first;
+        unsigned j = it2->first;
+        if (!(simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)))
         {
-          if (i == j)
-            continue;
+          continue;
+        }
+        int brace_i = old_it1->second;
+        int brace_j = it2->second;
+        bool remove = false;
+        if (nondet)
+        {
+          // need to compare there nesting pattern
           unsigned scc_i = si_.scc_of(i);
-          // j simulates i and j cannot reach i
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
+          int scc_index = get_nac_index(scc_i);
+          std::vector<int> &braces = ms.nac_braces_[scc_index];
+          //print_pattern_vec(braces, braces.size());
+          if (compare_braces(braces, brace_j, brace_i))
           {
-            if (is_weakscc(scc_types_, scc_i))
-            {
-              ms.weak_set_.erase(i);
-              ms.break_set_.erase(i);
-            }else if (is_acepting_detscc(scc_types_, scc_i))
-            {
-              int index = get_dac_index(scc_i);
-              det_remove[index].insert(i);
-            }else if (is_accepting_nondetscc(scc_types_, scc_i))
-            {
-              int index = get_nac_index(scc_i);
-              nondet_remove[index].insert(i);
-            }
+            remove = true;
+          }
+        }
+        else if (brace_j < brace_i)
+        {
+          remove = true;
+        }
+        if (remove)
+        {
+          it1 = nodes.erase(old_it1);
+          break;
+        }
+      }
+    }
+  }
+
+  void tba_determinize::make_simulation_state(tba_mstate &ms)
+  {
+    const state_set& reached_states = ms.get_reach_set();
+    std::vector<state_set> det_remove(dacs_.size(), state_set());
+    std::vector<state_set> nondet_remove(nacs_.size(), state_set());
+    for (unsigned i : reached_states)
+    {
+      for (unsigned j : reached_states)
+      {
+        if (i == j)
+          continue;
+        unsigned scc_i = si_.scc_of(i);
+        // j simulates i and j cannot reach i
+        if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
+        {
+          if (is_weakscc(scc_types_, scc_i))
+          {
+            ms.weak_set_.erase(i);
+            ms.break_set_.erase(i);
+          }
+          else if (is_acepting_detscc(scc_types_, scc_i))
+          {
+            int index = get_dac_index(scc_i);
+            det_remove[index].insert(i);
+          }
+          else if (is_accepting_nondetscc(scc_types_, scc_i))
+          {
+            int index = get_nac_index(scc_i);
+            nondet_remove[index].insert(i);
           }
         }
       }
-      for (unsigned i = 0; i < det_remove.size(); i ++)
-      {
-        remove(ms.dac_ranks_[i], det_remove[i]);
-        // now remove more
-        merge_redundant_states(ms, ms.dac_ranks_[i], false);
-      }
-      for (unsigned i = 0; i < nondet_remove.size(); i ++)
-      {
-        remove(ms.nac_ranks_[i], nondet_remove[i]);
-        merge_redundant_states(ms, ms.nac_ranks_[i], true);
-      }
+    }
+    for (unsigned i = 0; i < det_remove.size(); i++)
+    {
+      remove(ms.dac_ranks_[i], det_remove[i]);
+      // now remove more
+      merge_redundant_states(ms, ms.dac_ranks_[i], false);
+    }
+    for (unsigned i = 0; i < nondet_remove.size(); i++)
+    {
+      remove(ms.nac_ranks_[i], nondet_remove[i]);
+      merge_redundant_states(ms, ms.nac_ranks_[i], true);
+    }
   }
 
   void
-  determinize_tba::compute_succ(const tba_mstate &ms, bdd letter, tba_mstate &nxt, std::vector<int> &color)
+  tba_determinize::compute_succ(const tba_mstate &ms, bdd letter, tba_mstate &succ, std::vector<int> &color)
   {
-    // std::cout << "current state: " << get_name(ms) << std::endl;
-    tba_mstate succ(si_, dacs_.size(), nacs_.size());
     // used for unambiguous automaton
     std::vector<bool> incoming(nb_states_, false);
     std::vector<bool> ignores(nb_states_, false);
@@ -923,7 +920,7 @@ namespace cola
 
     std::set<unsigned> acc_weak_coming_states;
     // states at current level
-    std::set<unsigned> current_states = ms.get_reach_set();
+    const std::set<unsigned> current_states& = ms.get_reach_set();
     // states at next level
     std::vector<std::set<unsigned>> next_nondetstates;
     for (unsigned i = 0; i < nacs_.size(); i++)
@@ -935,14 +932,11 @@ namespace cola
     {
       next_detstates.emplace_back(state_set());
     }
-
-    int max_rnk = INT_MAX;
-
     std::unordered_map<unsigned, std::vector<edge_label>> dac_trans;
     std::unordered_map<unsigned, std::vector<edge_label>> nac_trans;
 
     //1. first handle inherently weak states
-    for (unsigned s : current_states)
+    for (const unsigned s : current_states)
     {
       // nondeterministic states or states in nonaccepting SCCs
       bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
@@ -965,12 +959,12 @@ namespace cola
         // in unambiguous Buchi automaton
         if (can_ignore(use_unambiguous_, t.dst))
           continue;
-        
+
         unsigned scc_id = si_.scc_of(t.dst);
         // we move the states in accepting det SCC to ordered states
         if (is_acepting_detscc(scc_types_, scc_id))
         {
-          int det_scc_index = get_dac_index(scc_id); 
+          int det_scc_index = get_dac_index(scc_id);
           // incoming states
           next_detstates[det_scc_index].insert(t.dst);
           if (in_acc_det)
@@ -1007,26 +1001,26 @@ namespace cola
         }
         else
         {
-          throw std::runtime_error("determinize_tba::compute_succ(): wrong type of SCC");
+          throw std::runtime_error("tba_determinize::compute_succ(): wrong type of SCC");
         }
       }
     }
 
-    //2. Compute the labelling successors for deterministic SCCs
-    std::vector<determinize_dac_succ> dac_succs;
-    for (unsigned i = 0; i < dacs_.size(); i ++)
+    //2. Compute the labelling successors for DACs
+    std::vector<dac_determinize_succ> dac_succs;
+    for (unsigned i = 0; i < dacs_.size(); i++)
     {
-      determinize_dac_succ dac_succ(si_, dacs_[i], ms.dac_ranks_[i], next_detstates[i], succ.dac_ranks_[i], dac_trans);
+      dac_determinize_succ dac_succ(si_, dacs_[i], ms.dac_ranks_[i], next_detstates[i], succ.dac_ranks_[i], dac_trans);
       dac_succ.compute_succ();
       dac_succs.emplace_back(dac_succ);
     }
 
-    // std::cout << "After deterministic part = " << get_name(succ) << std::endl;
-    //3. Compute the successors for nondeterministic SCCs
-    std::vector<determinize_nac_succ> nac_succs;
-    for (unsigned i = 0; i < nacs_.size(); i ++)
+    //3. Compute the successors for NACs
+    std::vector<nac_determinize_succ> nac_succs;
+    for (unsigned i = 0; i < nacs_.size(); i++)
     {
-      determinize_nac_succ nac_succ(si_, nacs_[i], ms.nac_ranks_[i], ms.nac_braces_[i], next_nondetstates[i], succ.nac_ranks_[i], succ.nac_braces_[i], nac_trans, true);
+      nac_determinize_succ nac_succ(si_, nacs_[i], ms.nac_ranks_[i], ms.nac_braces_[i], next_nondetstates[i]
+          , succ.nac_ranks_[i], succ.nac_braces_[i], nac_trans, om_.get(MSTATE_REARRANGE));
       nac_succ.compute_succ();
       nac_succs.emplace_back(nac_succ);
     }
@@ -1054,13 +1048,13 @@ namespace cola
     for (unsigned i = 0; i < dacs_.size(); i++)
     {
       int parity = dac_succs[i].get_color();
-      colors.push_back(parity);
+      colors.emplace_back(parity);
     }
 
     for (unsigned i = 0; i < nacs_.size(); i++)
     {
       int parity = nac_succs[i].get_color();
-      colors.push_back(parity);
+      colors.emplace_back(parity);
     }
 
     // give color for the weak SCCs
@@ -1077,20 +1071,16 @@ namespace cola
     //4. Reorgnize the indices of each accepting deterministic SCC
     //5. Reorganize the indices for each accepting nondeterministic SCC
     // already done in deciding colors
-    nxt = succ;
     color = colors;
   }
 
-
   // copied and adapted from deterministic.cc in Spot
-  void
-  determinize_tba::compute_stutter_succ(const tba_mstate &curr, bdd letter, tba_mstate &succ, std::vector<int> &colors)
+  void tba_determinize::compute_stutter_succ(const tba_mstate &curr, bdd letter, tba_mstate &succ, std::vector<int> &colors)
   {
-    tba_mstate ms(curr);
-
-    std::vector<tba_mstate> stutter_path;
     if (use_stutter_ && aut_->prop_stutter_invariant())
     {
+      tba_mstate ms(curr);
+      std::vector<tba_mstate> stutter_path;
       // The path is usually quite small (3-4 states), so it's
       // not worth setting up a hash table to detect a cycle.
       stutter_path.clear();
@@ -1159,12 +1149,12 @@ namespace cola
     }
     else
     {
-      compute_succ(ms, letter, succ, colors);
+      compute_succ(curr, letter, succ, colors);
     }
   }
 
   void
-  determinize_tba::finalize_acceptance()
+  tba_determinize::finalize_acceptance()
   {
     std::vector<bool> odds(max_colors_.size(), false);
     for (unsigned i = 0; i < max_colors_.size(); i++)
@@ -1246,35 +1236,33 @@ namespace cola
     res_->set_acceptance(num_sets, acceptance);
   }
 
-
   spot::twa_graph_ptr
-  determinize_tba::run()
+  tba_determinize::run()
   {
-    // todo_ is a queue for handling states
-    while (!todo_.empty())
+    // Main loop for macrostate exploration
+    while (! todo_.empty())
     {
       auto top = todo_.front();
       todo_.pop_front();
-      // pop current state, (N, Rnk)
+      // pop current state
       tba_mstate ms = top.first;
 
       // Compute support of all available states.
-      bdd msupport = bddtrue;
+      bdd support = bddtrue;
       bdd compact = bddfalse;
-      const std::set<unsigned>& reach_set = ms.get_reach_set();
-      // compute the occurred variables in the outgoing transitions of ms, stored in msupport
+      const std::set<unsigned> &reach_set = ms.get_reach_set();
+      // compute the occurred variables in the outgoing transitions of ms, stored in support
       for (unsigned s : reach_set)
-        {
-          msupport &= support_[s];
-          compact |= compat_[s];
-        }
+      {
+        support &= support_[s];
+        compact |= compat_[s];
+      }
 
       while (compact != bddfalse)
       {
-        bdd letter = bdd_satoneset(compact, msupport, bddfalse);
+        bdd letter = bdd_satoneset(compact, support, bddfalse);
         compact -= letter;
 
-        // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
         tba_mstate succ(si_, dacs_.size(), nacs_.size());
         // the number of SCCs we care is the accepting det SCCs and the weak SCCs
         std::vector<int> colors(dacs_.size() + nacs_.size() + 1, -1);
@@ -1284,16 +1272,14 @@ namespace cola
         if (succ.is_empty())
           continue;
 
-        unsigned origin = top.second;
-        // add transitions
-        // Create the automaton states
+        unsigned src = top.second;
         unsigned dst = new_state(succ);
         // first add this transition
-        res_->new_edge(origin, dst, letter);
+        res_->new_edge(src, dst, letter);
         // handle with colors
         for (unsigned i = 0; i < colors.size(); i++)
         {
-          // std::cout << "color: " << colors[i] << std::endl;
+          // ignore -1 color
           if (colors[i] < 0)
             continue;
           int color = colors[i];
@@ -1302,9 +1288,9 @@ namespace cola
             max_colors_[i] = std::max(max_colors_[i], color);
             min_colors_[i] = std::min(min_colors_[i], color);
           }
-          // record this color
         }
-        auto r = trans2colors_.emplace(std::make_pair(origin, letter), colors);
+        // record the color for this outgoing transition
+        auto r = trans2colors_.emplace(std::make_pair(src, letter), colors);
       }
     }
     finalize_acceptance();
@@ -1317,7 +1303,8 @@ namespace cola
     {
       output_file(res_, "dpa.hoa");
       std::cout << "Before simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
-      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2)
+        check_equivalence(aut_, res_);
     }
     if (om_.get(USE_SCC_INFO) > 0)
       res_ = postprocess(res_);
@@ -1325,11 +1312,123 @@ namespace cola
     {
       std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
       output_file(res_, "dpa1.hoa");
-      if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
+      if (om_.get(VERBOSE_LEVEL) >= 2)
+        check_equivalence(aut_, res_);
     }
     simplify_acceptance_here(res_);
 
     return res_;
+  }
+
+  tba_determinize::tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
+      : aut_(aut),
+        om_(om),
+        use_simulation_(om.get(USE_SIMULATION) > 0),
+        use_scc_(om.get(USE_SCC_INFO) > 0),
+        use_stutter_(om.get(USE_STUTTER) > 0),
+        use_unambiguous_(om.get(USE_UNAMBIGUITY) > 0),
+        si_(si),
+        nb_states_(aut->num_states()),
+        support_(nb_states_),
+        compat_(nb_states_),
+        simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
+        delayed_simulator_(aut, om),
+        show_names_(om.get(VERBOSE_LEVEL) >= 1)
+  {
+    if (om.get(VERBOSE_LEVEL) >= 2)
+    {
+      simulator_.output_simulation();
+    }
+    res_ = spot::make_twa_graph(aut->get_dict());
+    res_->copy_ap_of(aut);
+    res_->prop_copy(aut,
+                    {
+                        false,        // state based
+                        false,        // inherently_weak
+                        false, false, // deterministic
+                        true,         // complete
+                        false         // stutter inv
+                    });
+    // Generate bdd supports and compatible options for each state.
+    // Also check if all its transitions are accepting.
+    for (unsigned i = 0; i < nb_states_; ++i)
+    {
+      bdd res_support = bddtrue;
+      bdd res_compat = bddfalse;
+      for (const auto &out : aut->out(i))
+      {
+        res_support &= bdd_support(out.cond);
+        res_compat |= out.cond;
+      }
+      support_[i] = res_support;
+      compat_[i] = res_compat;
+    }
+    // need to add support of reachable states 
+    if (use_stutter_ && aut_->prop_stutter_invariant())
+    {
+      for (unsigned c = 0; c != si_.scc_count(); ++c)
+          {
+            bdd c_supp = si_.scc_ap_support(c);
+            for (const auto& su: si_.succ(c))
+              c_supp &= support_[si_.one_state_of(su)];
+            for (unsigned st: si_.states_of(c))
+              support_[st] = c_supp;
+          }
+    }
+    // obtain the types of each SCC
+    scc_types_ = get_scc_types(si_);
+    // find out the DACs and NACs
+    for (unsigned i = 0; i < scc_types_.size(); i++)
+    {
+      // ignore weak types
+      if ((scc_types_[i] & SCC_WEAK_TYPE))
+        continue;
+      max_colors_.push_back(-1);
+      min_colors_.push_back(INT_MAX);
+      // accepting deterministic scc
+      if (is_acepting_detscc(scc_types_, i))
+      {
+        dacs_.push_back(i);
+      }
+      else if (is_accepting_nondetscc(scc_types_, i))
+      {
+        // accepting nondeterministic scc
+        nacs_.push_back(i);
+      }
+    }
+
+    // optimize with the fact of being unambiguous
+    use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
+    if (show_names_)
+    {
+      names_ = new std::vector<std::string>();
+      res_->set_named_prop("state-names", names_);
+    }
+
+    // we only handle one initial state
+    unsigned init_state = aut->get_init_state_number();
+    tba_mstate new_init_state(si_, dacs_.size(), nacs_.size());
+    unsigned init_scc = si_.scc_of(init_state);
+    if ((scc_types_[init_scc] & SCC_WEAK_TYPE))
+    {
+      new_init_state.weak_set_.insert(init_state);
+    }
+    else if (is_acepting_detscc(scc_types_, init_scc))
+    {
+      int init_scc_index = get_dac_index(init_scc);
+      new_init_state.dac_ranks_[init_scc_index].emplace_back(init_state, 0);
+    }
+    else if (is_accepting_nondetscc(scc_types_, init_scc))
+    {
+      // initialize the safra_node
+      int init_scc_index = get_nac_index(init_scc);
+      assert (init_scc_index != -1);
+      new_init_state.nac_ranks_[init_scc_index].emplace_back(init_state, 0);
+      new_init_state.nac_braces_[init_scc_index].emplace_back(RANK_TOP_BRACE);
+    }
+    // we assume that the initial state is not in deterministic part
+    res_->set_init_state(new_state(new_init_state));
+
   }
 
 }

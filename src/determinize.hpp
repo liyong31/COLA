@@ -19,12 +19,11 @@
 
 #include "cola.hpp"
 #include "types.hpp"
+#include "simulation.hpp"
+#include "optimizer.hpp"
 
 namespace cola
 {
-
-    const int RANK_TOP_BRACE = -1;
-
     // Returns true if lhs has a smaller nesting pattern than rhs
     // If lhs and rhs are the same, return false.
     // compare backwards
@@ -38,7 +37,8 @@ namespace cola
     // compute the parity color for an edge
     int compute_parity_color(int min_dcc, int min_acc);
 
-    class determinize_dac_succ
+    // Compute successor of a DAC macrostate
+    class dac_determinize_succ
     {
     public:
         const spot::scc_info &si_;
@@ -47,14 +47,14 @@ namespace cola
         // the reachable states at this level inside this SCC
         state_set &next_level_;
         // transitions
-        std::unordered_map<unsigned, std::vector<edge_label>> &det_trans_;
+        const std::unordered_map<unsigned, std::vector<edge_label>> &det_trans_;
         // DAC number
         unsigned curr_scc_;
-
         // the reference to other ranking, more general than passing the tba_mstate
         std::vector<state_rank>& succ_ranks_;
 
-        determinize_dac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, state_set &next_level, std::vector<state_rank>& succ_ranks, std::unordered_map<unsigned, std::vector<edge_label>> &det_trans)
+        dac_determinize_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, state_set &next_level
+            , std::vector<state_rank>& succ_ranks, std::unordered_map<unsigned, std::vector<edge_label>> &det_trans)
             : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), succ_ranks_(succ_ranks), det_trans_(det_trans)
         {
         }
@@ -64,27 +64,28 @@ namespace cola
         int get_color();
     };
 
-    class determinize_nac_succ
+    // Compute successor of a NAC macrostate
+    class nac_determinize_succ
     {
     public:
         const spot::scc_info &si_;
         const std::vector<state_rank> &curr_ranks_;
-
-        std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans_;
+        const std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans_;
         unsigned curr_scc_;
 
         state_set &next_level_;
         std::vector<state_rank> &succ_ranks_;
         std::vector<int>& succ_braces_;
-
+        // whether we rearrange the ranks of states from accepting transitions
         bool reassign_ranks_;
 
-        determinize_nac_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, const std::vector<int> &curr_braces, state_set &next_level
-        , std::vector<state_rank>& succ_ranks, std::vector<int>& succ_braces, std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans, bool reassign_ranks)
-            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), succ_ranks_(succ_ranks), succ_braces_(succ_braces), nondet_trans_(nondet_trans), reassign_ranks_(reassign_ranks)
+        nac_determinize_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, const std::vector<int> &curr_braces, state_set &next_level
+            , std::vector<state_rank>& succ_ranks, std::vector<int>& succ_braces, std::unordered_map<unsigned, std::vector<edge_label>> &nondet_trans, bool reassign_ranks)
+            : si_(si), curr_scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), succ_ranks_(succ_ranks)
+            , succ_braces_(succ_braces), nondet_trans_(nondet_trans), reassign_ranks_(reassign_ranks)
         {
             assert (succ_ranks_.size() == 0 && succ_braces_.size() == 0);
-
+            // First copy all the braces from current macrostate
             for (unsigned i = 0; i < curr_braces.size(); i++)
             {
                 succ_braces_.push_back(curr_braces[i]);
@@ -158,7 +159,6 @@ namespace cola
                 std::vector<state_rank> copy = other.nac_ranks_[i];
                 this->nac_ranks_.emplace_back(copy);
             }
-            return *this;
         }
 
         tba_mstate &
@@ -220,7 +220,7 @@ namespace cola
     make_parity_condition(int base, bool odd, int num_colors);
 
     // Divide-and-conquer determinization based on SCC decomposition
-    class determinize_tba
+    class tba_determinize
     {
     private:
         // The source automaton
@@ -313,7 +313,7 @@ namespace cola
         void compute_stutter_succ(const tba_mstate &curr, bdd letter, tba_mstate &succ, std::vector<int> &colors);
 
     public:
-        determinize_tba(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications);
+        tba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications);
 
         spot::const_twa_graph_ptr run();
     };
