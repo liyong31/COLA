@@ -249,7 +249,7 @@ void output_scc_info(spot::twa_graph_ptr aut)
       num_max_acciwcs_states = std::max(num_max_acciwcs_states, num);
     }
 
-    if (cola::is_acepting_detscc(types, sc))
+    if (cola::is_accepting_detscc(types, sc))
     {
       num_dacs_states += num;
       num_dacs++;

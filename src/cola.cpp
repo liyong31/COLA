@@ -359,7 +359,7 @@ namespace cola
   }
 
   bool
-  is_acepting_detscc(std::string& scc_types, unsigned scc)
+  is_accepting_detscc(std::string& scc_types, unsigned scc)
   {
     return (scc_types[scc] & SCC_WEAK_TYPE) == 0 && (scc_types[scc] & SCC_INSIDE_DET_TYPE) > 0 && (scc_types[scc] & SCC_ACC) > 0;
   }
