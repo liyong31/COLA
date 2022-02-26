@@ -709,7 +709,7 @@ namespace cola
             {
               ms.weak_set_.erase(i);
               ms.break_set_.erase(i);
-            }else if (is_acepting_detscc(scc_types_, scc_i))
+            }else if (is_accepting_detscc(scc_types_, scc_i))
             {
               int index = get_detscc_index(scc_i);
               det_remove[index].insert(i);
@@ -872,6 +872,7 @@ namespace cola
       //   std::cout << "State " << acc_nondet_states[k].first << " Label: " << acc_nondet_states[k].second << "\n";
       // }
       std::vector<int> braces = ms.nondetscc_breaces_[i]; //copy
+      const int min_new_brace = braces.size();
       // for (unsigned k = 0; k < braces.size(); k ++)
       // {
       //   std::cout << " " << k << " parent: " << braces[k] << "\n";
@@ -937,6 +938,35 @@ namespace cola
         {
           braces.push_back(RANK_TOP_BRACE);
           i.first->second = newb;
+        }
+      }
+      if (om_.get(MSTATE_REARRANGE) > 0)
+      {
+        // we need to reorganize the states from accepting transitions
+        // so we may have a canonical form for the successor
+        state_set states_from_acc_trans;
+        std::map<int, int> parent_braces;
+
+        for (auto &node : succ_nodes)
+        {
+          if (node.second >= min_new_brace)
+          {
+            // this state must come from accepting transition, use a set for canonical order
+            states_from_acc_trans.insert(node.first);
+            // store the parent
+            parent_braces.emplace(node.second, braces[node.second]);
+          }
+        }
+        // now we need to rearrange the braces in states_from_acc_trans
+        // states outside states_from_acc_trans will have braces less than min_new_brace
+        int new_brace = min_new_brace;
+        for (unsigned dst : states_from_acc_trans)
+        {
+          int old_brace = succ_nodes[dst];
+          succ_nodes[dst] = new_brace;
+          // it is guaranteed that the parent is less than min_new_brace
+          braces[new_brace] = parent_braces[old_brace];
+          ++new_brace;
         }
       }
       // now store the results to succ
@@ -1143,7 +1173,7 @@ namespace cola
     {
       // nondeterministic states or states in nonaccepting SCCs
       bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
-      bool in_acc_det = is_acepting_detscc(scc_types_, si_.scc_of(s));
+      bool in_acc_det = is_accepting_detscc(scc_types_, si_.scc_of(s));
       if (in_acc_det)
       {
         det_cache.emplace(s, std::vector<std::pair<bool, unsigned>>());
@@ -1163,7 +1193,7 @@ namespace cola
           continue;
         unsigned scc_id = si_.scc_of(t.dst);
         // we move the states in accepting det SCC to ordered states
-        if (is_acepting_detscc(scc_types_, scc_id))
+        if (is_accepting_detscc(scc_types_, scc_id))
         {
           int det_scc_index = get_detscc_index(scc_id); 
           assert(det_scc_index != -1);
@@ -1447,7 +1477,7 @@ public:
       max_colors_.push_back(-1);
       min_colors_.push_back(INT_MAX);
       // accepting deterministic scc
-      if (is_acepting_detscc(scc_types_, i))
+      if (is_accepting_detscc(scc_types_, i))
       {
         acc_detsccs_.push_back(i);
       }
@@ -1474,7 +1504,7 @@ public:
     {
       new_init_state.weak_set_.insert(init_state);
     }
-    else if (is_acepting_detscc(scc_types_, init_scc))
+    else if (is_accepting_detscc(scc_types_, init_scc))
     {
       int init_scc_index = get_detscc_index(init_scc);
       new_init_state.detscc_labels_[init_scc_index].emplace_back(init_state, 0);

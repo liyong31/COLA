@@ -89,14 +89,15 @@ Output options:
 
 
 Optimizations:
+    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
+    --delayed-sim         Use delayed simulation for determinization (deprecated)
     --simulation          Use direct simulation for determinization/complementation
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for macrostates merging
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
-    --delayed-sim         Use delayed simulation for determinization (deprecated)
     --trans-pruning=[INT] Number to limit the transition pruning in simulation (default=512) 
-    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
     --unambiguous         Check whether the input is unambiguous and use this fact in determinization
+    --rerank              Rearrange the labelling for NAC-states
 
 Pre- and Post-processing:
     --preprocess=[0|1|2|3]       Level for simplifying the input automaton (default=1)
@@ -289,6 +290,7 @@ int main(int argc, char *argv[])
 
   om.set(SCC_REACH_MEMORY_LIMIT, 0);
   om.set(NUM_SCC_LIMIT_MERGER, 0);
+  om.set(MSTATE_REARRANGE, 0);
 
   determinize_algo determinize = NoDeterminize;
 
@@ -390,6 +392,9 @@ int main(int argc, char *argv[])
     {
       use_simulation = true;
       om.set(USE_SIMULATION, 1);
+    }else if (arg == "--rerank")
+    {
+      om.set(MSTATE_REARRANGE, 1);
     }
     else if (arg.find("--trans-pruning=") != std::string::npos)
     {
