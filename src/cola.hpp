@@ -40,6 +40,7 @@ static const char *NUM_SCC_LIMIT_MERGER = "num-scc-limit-merger";
 static const char *SCC_REACH_MEMORY_LIMIT = "scc-reach-memory-limit";
 static const char *REQUIRE_PARITY = "require-parity";
 static const char *NUM_TRANS_PRUNING = "num-trans-pruning"; 
+static const char *MSTATE_REARRANGE = "rank-rearrange";
 
 
 static const char SCC_WEAK_TYPE = 1;
@@ -189,7 +190,7 @@ namespace cola
   check_equivalence(spot::const_twa_graph_ptr nba, spot::twa_graph_ptr dpa);
 
   bool
-  is_acepting_detscc(std::string& scc_types, unsigned scc);
+  is_accepting_detscc(std::string& scc_types, unsigned scc);
 
   bool 
   is_accepting_weakscc(std::string& scc_types, unsigned scc);

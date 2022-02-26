@@ -16,6 +16,7 @@
 // #include "optimizer.hpp"
 #include "cola.hpp"
 #include "simulation.hpp"
+#include "types.hpp"
 //#include "struct.hpp"
 
 #include <deque>
@@ -41,7 +42,6 @@
 #include <spot/misc/version.hh>
 #include <spot/twa/acc.hh>
 
-#include <types.hpp>
 
 // Determinization of TwBAs via breakpoint construction
 namespace cola
@@ -213,7 +213,6 @@ namespace cola
     void
     make_simulation_state(wmstate &ms)
     {
-      state_set removed_states;
       state_set reach_states;
 
       for (auto s : ms.reach_set_)
@@ -231,22 +230,11 @@ namespace cola
           // j simulates i and j cannot reach i
           if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
           {
-            removed_states.insert(i);
+            ms.reach_set_.erase(i);
+            ms.break_set_.erase(i);
           }
         }
       }
-      ms.reach_set_.clear();
-      // now remove all states in removed_states
-      std::set_difference(reach_states.begin(), reach_states.end()
-                        , removed_states.begin(), removed_states.end()
-                        , std::inserter(ms.reach_set_, ms.reach_set_.begin()));
-
-      state_set break_set;
-      std::set_difference(ms.break_set_.begin(), ms.break_set_.end()
-                , removed_states.begin(), removed_states.end()
-                , std::inserter(break_set, break_set.begin()));
-      ms.break_set_ = break_set;
-
     }
 
     void

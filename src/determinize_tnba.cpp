@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//#include "optimizer.hpp"
+// #include "optimizer.hpp"
 #include "cola.hpp"
 #include "simulation.hpp"
 #include "types.hpp"
-//#include "struct.hpp"
+// #include "struct.hpp"
 
 #include <deque>
 #include <map>
@@ -36,7 +36,7 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
-#include <spot/misc/bddlt.hh>
+// #include <spot/misc/bddlt.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
@@ -664,8 +664,6 @@ namespace cola
               unsigned scc_i = si_.scc_of(i);
               int scc_index = get_nondetscc_index(scc_i);
               std::vector<int>& braces = ms.nondetscc_breaces_[scc_index];
-              // std::cout << "State " << i << " brace: " << brace_i << std::endl;
-              // std::cout << "State " << j << " brace: " << brace_j << std::endl;
               //print_pattern_vec(braces, braces.size());
               if (compare_braces(braces, brace_j, brace_i))
               {
@@ -703,13 +701,11 @@ namespace cola
           // j simulates i and j cannot reach i
           if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
           {
-            // std::cout << j << " simulated " << i << std::endl;
-            // std::cout << "can_reach = " << simulator_.can_reach(j, i) << std::endl;
             if (is_weakscc(scc_types_, scc_i))
             {
               ms.weak_set_.erase(i);
               ms.break_set_.erase(i);
-            }else if (is_acepting_detscc(scc_types_, scc_i))
+            }else if (is_accepting_detscc(scc_types_, scc_i))
             {
               int index = get_detscc_index(scc_i);
               det_remove[index].insert(i);
@@ -802,8 +798,7 @@ namespace cola
         {
           succ_nodes[p.first] = p.second;
         }
-        // std::cout << "Computing scc " << curr_scc << "\n";
-        // print_label_vec(acc_det_states);
+
         std::vector<unsigned> decr_by;
         decr_by.assign(acc_det_states.size(), 0);
         unsigned decr = 0;
@@ -867,16 +862,8 @@ namespace cola
       unsigned curr_scc = acc_nondetsccs_[i];
       // list of nondeterministic states, already ordered by its labelling (not necessary)
       const std::vector<label> &acc_nondet_states = ms.nondetscc_labels_[i];
-      // for (unsigned k = 0; k < acc_nondet_states.size(); k ++)
-      // {
-      //   std::cout << "State " << acc_nondet_states[k].first << " Label: " << acc_nondet_states[k].second << "\n";
-      // }
       std::vector<int> braces = ms.nondetscc_breaces_[i]; //copy
-      // for (unsigned k = 0; k < braces.size(); k ++)
-      // {
-      //   std::cout << " " << k << " parent: " << braces[k] << "\n";
-      // }
-      // std::cout << " reach_states: " << get_set_string(next_nondetstates[i]) << std::endl;
+      const int min_new_brace = braces.size();
       // unsigned topbrace = braces.size();
       std::map<unsigned, int> succ_nodes;
       // nodes are pair of states and labelling, ordered according to
@@ -891,7 +878,6 @@ namespace cola
           // Only care about the states in the current SCC
           if (curr_scc == succ_scc)
           {
-            // std::cout << " " << node.first << " -> " << t.dst << " : " << letter << " " << t.acc << std::endl;
             // Delete a newincoming state who is already a successor from the same SCC
             next_nondetstates[i].erase(dst);
             if (t.first)
@@ -900,7 +886,6 @@ namespace cola
               newb = braces.size();
               // put current brace node.second as the parent of newb
               braces.emplace_back(node.second);
-              // std::cout << " " << newb << " parent: " << node.second << std::endl;
             }
             auto i = succ_nodes.emplace(dst, newb);
             if (!i.second) // dst already exists
@@ -922,7 +907,6 @@ namespace cola
         }
       }
       
-      // std::cout << "After computation of nondet inside " << i << " size = " << next_nondetstates.size() << "\n";
       // New incoming states
       // Top level is 0, if we enter the SCC, we need more braces
       // Order each entry states since each run can have accepting runs
@@ -937,6 +921,36 @@ namespace cola
         {
           braces.push_back(RANK_TOP_BRACE);
           i.first->second = newb;
+        }
+      }
+      // rearrange the labelling of states
+      if (om_.get(MSTATE_REARRANGE))
+      {
+        // we need to reorganize the states from accepting transitions
+        // so we may have a canonical form for the successor
+        state_set states_from_acc_trans;
+        std::map<int, int> parent_braces;
+
+        for (auto &node : succ_nodes)
+        {
+          if (node.second >= min_new_brace)
+          {
+            // this state must come from accepting transition, use a set for canonical order
+            states_from_acc_trans.insert(node.first);
+            // store the parent
+            parent_braces.emplace(node.second, braces[node.second]);
+          }
+        }
+        // now we need to rearrange the braces in states_from_acc_trans
+        // states outside states_from_acc_trans will have braces less than min_new_brace
+        int new_brace = min_new_brace;
+        for (unsigned dst : states_from_acc_trans)
+        {
+          int old_brace = succ_nodes[dst];
+          succ_nodes[dst] = new_brace;
+          // it is guaranteed that the parent is less than min_new_brace
+          braces[new_brace] = parent_braces[old_brace];
+          ++ new_brace;
         }
       }
       // now store the results to succ
@@ -1143,7 +1157,7 @@ namespace cola
     {
       // nondeterministic states or states in nonaccepting SCCs
       bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
-      bool in_acc_det = is_acepting_detscc(scc_types_, si_.scc_of(s));
+      bool in_acc_det = is_accepting_detscc(scc_types_, si_.scc_of(s));
       if (in_acc_det)
       {
         det_cache.emplace(s, std::vector<std::pair<bool, unsigned>>());
@@ -1163,7 +1177,7 @@ namespace cola
           continue;
         unsigned scc_id = si_.scc_of(t.dst);
         // we move the states in accepting det SCC to ordered states
-        if (is_acepting_detscc(scc_types_, scc_id))
+        if (is_accepting_detscc(scc_types_, scc_id))
         {
           int det_scc_index = get_detscc_index(scc_id); 
           assert(det_scc_index != -1);
@@ -1173,7 +1187,6 @@ namespace cola
           {
             det_cache[s].emplace_back(t.acc.has(0), t.dst);
           }
-          // succ.ordered_states_[t.dst] = max_rnk; //Sharing labels
         }
         else if (is_weakscc(scc_types_, scc_id))
         {
@@ -1437,7 +1450,6 @@ public:
     }
     // obtain the types of each SCC
     scc_types_ = get_scc_types(si_);
-    // std::cout << "scc types : " << scc_types_ << " " << scc_types_.size() << std::endl;
     // find out the DACs and NACs
     for (unsigned i = 0; i < scc_types_.size(); i++)
     {
@@ -1447,7 +1459,7 @@ public:
       max_colors_.push_back(-1);
       min_colors_.push_back(INT_MAX);
       // accepting deterministic scc
-      if (is_acepting_detscc(scc_types_, i))
+      if (is_accepting_detscc(scc_types_, i))
       {
         acc_detsccs_.push_back(i);
       }
@@ -1474,7 +1486,7 @@ public:
     {
       new_init_state.weak_set_.insert(init_state);
     }
-    else if (is_acepting_detscc(scc_types_, init_scc))
+    else if (is_accepting_detscc(scc_types_, init_scc))
     {
       int init_scc_index = get_detscc_index(init_scc);
       new_init_state.detscc_labels_[init_scc_index].emplace_back(init_state, 0);
@@ -1537,12 +1549,9 @@ public:
     {
       if (max_colors_[i] < 0)
         continue;
-      // std::cout << i << "-th SCC "<< " max_color = " << max_colors_[i] << " min_color = " << min_colors_[i] << std::endl;
       // now we make all maximal colors an odd color (the color that cannot be visited infinitely often)
       max_colors_[i] = (max_colors_[i] & 1) ? max_colors_[i] : (max_colors_[i] + 1);
       // make minimal color an even color (no zero by construction, will shift to zero later)
-      // min_colors_[i] = (min_colors_[i] & 1) ? min_colors_[i] - 1 : min_colors_[i];
-      // std::cout << "SCC " << acc_detsccs_[i] << " max_color = " << max_colors_[i] << " min_color = " << min_colors_[i] << std::endl;
       odds[i] = (min_colors_[i] & 1) > 0;
     }
     // now max_colors_ has the maximal color for each accepting deterministic SCC
@@ -1619,7 +1628,6 @@ public:
   run()
   {
     // Main stuff happens here
-    // std::unordered_map<bdd, std::vector<bdd>, spot::bdd_hash> cache;
     // todo_ is a queue for handling states
     while (!todo_.empty())
     {
@@ -1639,22 +1647,12 @@ public:
           n_s_compat |= compat_[s];
         }
 
-      // auto i = cache.emplace(msupport, std::vector<bdd>());
-      // if (i.second)
-      // {
-      //   std::vector<bdd>& rs = i.first->second;
-      //   for (auto one : minterms_of(bddtrue, msupport))
-      //   {
-      //     rs.emplace_back(one);
-      //   }
-      // }
       bdd all = n_s_compat;
       while (all != bddfalse)
       {
         bdd letter = bdd_satoneset(all, msupport, bddfalse);
         all -= letter;
-      // for (auto letter : i.first->second)
-      // {
+
         // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
         tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
         // the number of SCCs we care is the accepting det SCCs and the weak SCCs

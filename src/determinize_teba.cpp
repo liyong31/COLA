@@ -16,6 +16,7 @@
 //#include "optimizer.hpp"
 #include "cola.hpp"
 #include "simulation.hpp"
+#include "types.hpp"
 //#include "struct.hpp"
 
 #include <deque>
@@ -38,8 +39,6 @@
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
 #include <spot/twa/acc.hh>
-
-#include <types.hpp>
 
 
 // specific determinization construction for elevator automata

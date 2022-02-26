@@ -80,6 +80,7 @@ Output options:
     --parity        Output the automaton with Pairty acceptance condition
     --acd           Use alternating cylcle decomposition to obtain parity automaton (Default)
     --complement    Output the complement Buchi automaton of the input after determinization
+    --rerank        Rearrange the labelling of NAC-states
 
 
 Optimizations:
@@ -210,6 +211,7 @@ int main(int argc, char *argv[])
   om.set(USE_DELAYED_SIMULATION, 0);
   om.set(MORE_ACC_EDGES, 0);
   om.set(NUM_TRANS_PRUNING, 512);
+  om.set(MSTATE_REARRANGE, 0);
 
   // Will be deleted
   //  --scc-mem-limit=[INT] 
@@ -324,8 +326,10 @@ int main(int argc, char *argv[])
     else if (arg == "--more-acc-edges")
     {
       om.set(MORE_ACC_EDGES, 1);
-    }
-    else if (arg == "--decompose")
+    }else if (arg == "--rerank")
+    { 
+      om.set(MSTATE_REARRANGE, 1);
+    }else if (arg == "--decompose")
     {
       decompose = true;
       om.set(NUM_NBA_DECOMPOSED, -1);
@@ -578,7 +582,7 @@ int main(int argc, char *argv[])
             num_max_acciwcs_states = std::max(num_max_acciwcs_states, num);
           }
           
-          if (cola::is_acepting_detscc(types, sc))
+          if (cola::is_accepting_detscc(types, sc))
           {
             num_dacs_states += num;
             num_dacs ++;

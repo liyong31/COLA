@@ -519,7 +519,7 @@ namespace cola
               ms.weak_set_.erase(i);
               ms.break_set_.erase(i);
             }
-            else if (is_acepting_detscc(scc_types_, scc_i))
+            else if (is_accepting_detscc(scc_types_, scc_i))
             {
               det_remove.insert(i);
             }
@@ -854,7 +854,7 @@ namespace cola
       {
         // nondeterministic states or states in nonaccepting SCCs
         bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
-        bool in_acc_det = is_acepting_detscc(scc_types_, si_.scc_of(s));
+        bool in_acc_det = is_accepting_detscc(scc_types_, si_.scc_of(s));
         if (in_acc_det)
         {
           det_cache.emplace(s, std::vector<std::pair<bool, unsigned>>());
@@ -875,7 +875,7 @@ namespace cola
           level_states.insert(t.dst);
           unsigned scc_id = si_.scc_of(t.dst);
           // we move the states in accepting det SCC to ordered states
-          if (is_acepting_detscc(scc_types_, scc_id))
+          if (is_accepting_detscc(scc_types_, scc_id))
           {
             next_detstates.insert(t.dst);
             if (in_acc_det)
@@ -1094,7 +1094,7 @@ namespace cola
         // max_colors_.push_back(-1);
         // min_colors_.push_back(INT_MAX);
         // accepting deterministic scc
-        if (is_acepting_detscc(scc_types_, i))
+        if (is_accepting_detscc(scc_types_, i))
         {
           acc_detsccs_.push_back(i);
         }
@@ -1122,7 +1122,7 @@ namespace cola
       {
         new_init_state.weak_set_.insert(init_state);
       }
-      else if (is_acepting_detscc(scc_types_, init_scc))
+      else if (is_accepting_detscc(scc_types_, init_scc))
       {
         // now it is in DAC
         int init_scc_index = get_detscc_index(init_scc);
