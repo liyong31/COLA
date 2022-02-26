@@ -89,8 +89,6 @@ Output options:
 
 
 Optimizations:
-    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
-    --delayed-sim         Use delayed simulation for determinization (deprecated)
     --simulation          Use direct simulation for determinization/complementation
     --stutter             Use stutter invariance for determinization
     --use-scc             Use SCC information for macrostates merging
@@ -150,6 +148,23 @@ enum complement_algo
   CONGR
 };
 
+enum postprocess_level
+{
+  None = 0,
+  Low,
+  Medium,
+  High
+};
+
+//transition-based automata
+enum output_aut_type
+{
+  Generic = 0,
+  Parity,
+  Rabin,
+  Buchi
+};
+
 // We may provide multiple algorithms for comparison
 spot::twa_graph_ptr
 to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_type, determinize_algo algo)
@@ -172,17 +187,6 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
     res = cola::determinize_tnba(aut, om);
   }
   return res;
-}
-
-spot::twa_graph_ptr
-complement_deterministic(spot::twa_graph_ptr aut)
-{
-  aut = spot::dualize(aut);
-  spot::postprocessor p;
-  p.set_level(spot::postprocessor::Low);
-  p.set_type(spot::postprocessor::Buchi);
-  aut = p.run(aut);
-  return aut;
 }
 
 void output_input_type(spot::twa_graph_ptr aut)
@@ -311,25 +315,10 @@ int main(int argc, char *argv[])
   bool congr = false;
   std::string file_to_contain;
 
-  enum postprocess_level
-  {
-    None = 0,
-    Low,
-    Medium,
-    High
-  };
   postprocess_level preprocess = Low;
   postprocess_level post_process = Low;
   bool use_scc = false;
   unsigned num_post = 30000;
-
-  enum output_aut_type
-  {
-    Generic = 0,
-    Parity,
-    Rabin,
-    Buchi
-  };
 
   output_aut_type output_type = Generic;
 
@@ -385,8 +374,7 @@ int main(int argc, char *argv[])
     else if (arg == "--complement")
     {
       comp = true;
-      use_acd = true;
-      output_type = Parity;
+      output_type = Buchi;
     }
     else if (arg == "--simulation")
     {
@@ -736,12 +724,9 @@ int main(int argc, char *argv[])
           // set NCSB algorithm later
           aut = cola::complement_tnba(aut, om);
         }
-        spot::postprocessor p;
-        p.set_level(spot::postprocessor::Low);
-        p.set_type(spot::postprocessor::Buchi);
-        aut = p.run(aut);
-        comp = false;
-        post_process = None;
+      }else if (comp && determinize)
+      {
+        aut = spot::dualize(aut);
       }
       const char *opts = nullptr;
       aut->merge_edges();
@@ -757,7 +742,7 @@ int main(int argc, char *argv[])
         {
           aut = spot::minimize_monitor(aut);
         }
-        else if (aut->num_states() < num_post)
+        else if (output_type != Buchi)//if (aut->num_states() < num_post)
         {
           spot::postprocessor p;
           if (output_type == Parity)
@@ -816,7 +801,7 @@ int main(int argc, char *argv[])
           {
             p.set_level(spot::postprocessor::High);
           }
-          p.set_pref(spot::postprocessor::Deterministic);
+          if (output_type != Buchi) p.set_pref(spot::postprocessor::Deterministic);
           if (output_type == Generic)
           {
             p.set_type(spot::postprocessor::Generic);
@@ -824,6 +809,9 @@ int main(int argc, char *argv[])
           else if (output_type == Parity)
           {
             p.set_type(spot::postprocessor::Parity);
+          }else if (output_type == Buchi)
+          {
+            p.set_type(spot::postprocessor::Buchi);
           }
           aut = p.run(aut);
         }
@@ -831,14 +819,7 @@ int main(int argc, char *argv[])
         if (om.get(VERBOSE_LEVEL) > 0)
           std::cout << "Done for postprocessing the result automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
       }
-      else if (output_type == Parity)
-      {
-        aut = spot::acd_transform(aut);
-      }
-      if (comp)
-      {
-        aut = complement_deterministic(aut);
-      }
+
       if (contain)
       {
         //now check whether the output is complementation
