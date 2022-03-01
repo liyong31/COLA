@@ -74,15 +74,12 @@ namespace cola
         // by construction, an SCC with smaller index cannot reach an SCC with larger index
         min_scc = std::min(scc_s_idx, min_scc);
         bottom_set.insert(scc_s_idx);
-        auto val_state = scc2repr.find(scc_s_idx);
-        if (val_state == scc2repr.end())
+        auto val_state = scc2repr.emplace(scc_s_idx, s);
+        if (! val_state.second) // insertion did not happen
         {
-          scc2repr[scc_s_idx] = s;
-        }
-        else
-        {
+          unsigned prev = val_state.first->second;
           // keep the smallest one
-          scc2repr[scc_s_idx] = std::min(s, scc2repr[scc_s_idx]);
+          val_state.first->second = std::min(s, prev);
         }
       }
       // if all mstates are in the same SCC, no need to replace states

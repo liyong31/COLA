@@ -1723,19 +1723,22 @@ public:
     {
       const std::set<unsigned> set = p->first.get_reach_set();
       // first the set of reached states
-      auto val = set2scc.find(set);
-      if (val == set2scc.end())
-      {
-        // the set of macrostates in DPA
-        std::set<unsigned> v;
-        v.insert(p->second);
-        set2scc[set] = v;
-      }
-      else
-      {
-        val->second.insert(p->second);
-        set2scc[set] = val->second;
-      }
+      auto val = set2scc.emplace(set, state_set());
+      // no matter whether the insertion has happened
+      val.first->second.insert(p->second);
+      // auto val = set2scc.find(set);
+      // if (val == set2scc.end())
+      // {
+      //   // the set of macrostates in DPA
+      //   std::set<unsigned> v;
+      //   v.insert(p->second);
+      //   set2scc[set] = v;
+      // }
+      // else
+      // {
+      //   val->second.insert(p->second);
+      //   set2scc[set] = val->second;
+      // }
     }
     mstate_merger merger(aut, set2scc, scc_dpa, om_);
     spot::twa_graph_ptr res = merger.run();
