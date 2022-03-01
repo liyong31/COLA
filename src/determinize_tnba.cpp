@@ -645,6 +645,8 @@ namespace cola
     while (it1 != nodes.end())
       {
         auto old_it1 = it1++;
+        // for deterministic ones, the labelling is already ordered 
+        // so we can ignore all the values after old_it1 ?
         for (auto it2 = nodes.begin(); it2 != nodes.end(); ++it2)
           {
             if (old_it1 == it2)
@@ -926,6 +928,15 @@ namespace cola
       // rearrange the labelling of states
       if (om_.get(MSTATE_REARRANGE))
       {
+        if (om_.get(VERBOSE_LEVEL) >= 1)
+        {
+          std::cout << "previous: ";
+          for (auto &node : succ_nodes)
+          {
+            std::cout << " " << node.first << ": " << node.second;
+          }
+          std::cout << "\n";
+        }
         // we need to reorganize the states from accepting transitions
         // so we may have a canonical form for the successor
         state_set states_from_acc_trans;
@@ -951,6 +962,15 @@ namespace cola
           // it is guaranteed that the parent is less than min_new_brace
           braces[new_brace] = parent_braces[old_brace];
           ++ new_brace;
+        }
+        if (om_.get(VERBOSE_LEVEL) >= 1)
+        {
+          std::cout << "after: ";
+          for (auto &node : succ_nodes)
+          {
+            std::cout << " " << node.first << ": " << node.second;
+          }
+          std::cout << "\n";
         }
       }
       // now store the results to succ
@@ -1726,19 +1746,6 @@ public:
       auto val = set2scc.emplace(set, state_set());
       // no matter whether the insertion has happened
       val.first->second.insert(p->second);
-      // auto val = set2scc.find(set);
-      // if (val == set2scc.end())
-      // {
-      //   // the set of macrostates in DPA
-      //   std::set<unsigned> v;
-      //   v.insert(p->second);
-      //   set2scc[set] = v;
-      // }
-      // else
-      // {
-      //   val->second.insert(p->second);
-      //   set2scc[set] = val->second;
-      // }
     }
     mstate_merger merger(aut, set2scc, scc_dpa, om_);
     spot::twa_graph_ptr res = merger.run();

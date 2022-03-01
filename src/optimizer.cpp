@@ -66,20 +66,20 @@ namespace cola
 
       std::set<unsigned> bottom_set;
       // traverse the number of states in p->second
-      std::unordered_map<unsigned, unsigned> scc2repr;
+      // these macrostates share the same set of A-states
+      // std::unordered_map<unsigned, unsigned> scc2repr;
       unsigned min_scc = scc.scc_count();
+      unsigned min_state = dpa_->num_states();
       for (auto s : p->second)
       {
         unsigned scc_s_idx = scc.scc_of(s);
         // by construction, an SCC with smaller index cannot reach an SCC with larger index
         min_scc = std::min(scc_s_idx, min_scc);
         bottom_set.insert(scc_s_idx);
-        auto val_state = scc2repr.emplace(scc_s_idx, s);
-        if (! val_state.second) // insertion did not happen
+        if (min_scc == scc_s_idx)
         {
-          unsigned prev = val_state.first->second;
-          // keep the smallest one
-          val_state.first->second = std::min(s, prev);
+          // we see a smaller SCC, replace the represent state
+          min_state = std::min(min_state, s);
         }
       }
       // if all mstates are in the same SCC, no need to replace states
@@ -93,11 +93,11 @@ namespace cola
         unsigned scc_idx = scc.scc_of(t);
         if (min_scc != scc_idx)
         {
-          replace_states[t] = scc2repr[min_scc];
+          replace_states[t] = min_state; //scc2repr[min_scc];
           ++ num_replaced_states;
-          if (om_.get(VERBOSE_LEVEL) >= 2)
+          if (om_.get(VERBOSE_LEVEL) >= 1)
           {
-            std::cout << "State " << t << " replaced by State " << scc2repr[min_scc] << "\n";
+            std::cout << "State " << t << " replaced by State " << min_state << "\n";
           }
         }
       }
@@ -157,7 +157,7 @@ namespace cola
     // remove unreachable macrostates
     res->purge_unreachable_states();
     clock_t c_end = clock();
-        if (om_.get(VERBOSE_LEVEL) > 0)
+    if (om_.get(VERBOSE_LEVEL) > 0)
           std::cout << "Done for state-merger in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
       
     return res;
