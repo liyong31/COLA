@@ -74,12 +74,18 @@ namespace cola
       {
         unsigned scc_s_idx = scc.scc_of(s);
         // by construction, an SCC with smaller index cannot reach an SCC with larger index
+        unsigned prev_scc = min_scc;
         min_scc = std::min(scc_s_idx, min_scc);
         bottom_set.insert(scc_s_idx);
-        if (min_scc == scc_s_idx)
+        if (min_scc == prev_scc)
         {
-          // we see a smaller SCC, replace the represent state
-          min_state = std::min(min_state, s);
+          // we see the same SCC, replace with smaller representative state
+          if (min_scc == scc_s_idx) 
+            min_state = std::min(min_state, s);
+        }else 
+        {
+          // min_scc has been changed to a smaller SCC scc_s_idx and it is different from prev_scc
+          min_state = s;
         }
       }
       // if all mstates are in the same SCC, no need to replace states
