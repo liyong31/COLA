@@ -641,22 +641,6 @@ namespace cola
   }
 
   // ------------- implementation of determinization below -----------------------
-  // From a Rank state, looks for a duplicate in the map before
-  // creating a new state if needed.
-  unsigned
-  tba_determinize::new_state(tba_mstate &s)
-  {
-    tba_mstate dup(s);
-    auto p = rank2n_.emplace(dup, 0);
-    if (p.second) // This is a new state
-    {
-      p.first->second = res_->new_state();
-      if (show_names_)
-        names_->push_back(get_name(p.first->first));
-      todo_.emplace_back(dup, p.first->second);
-    }
-    return p.first->second;
-  }
 
   std::string
   tba_determinize::get_name(const tba_mstate &ms)
@@ -707,82 +691,6 @@ namespace cola
       }
       res += "} = scc " + std::to_string(scc_id);
     }
-    return res;
-  }
-
-  bool tba_determinize::exists(tba_mstate &s)
-  {
-    return rank2n_.end() != rank2n_.find(s);
-  }
-
-  bool tba_determinize::has_acc_iwcs()
-  {
-    for (unsigned i = 0; i < scc_types_.size(); i++)
-    {
-      // if there is an accepting weak SCC
-      if ((scc_types_[i] & SCC_WEAK_TYPE) > 0 && (scc_types_[i] & SCC_ACC) > 0)
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  int tba_determinize::get_nac_index(unsigned scc)
-  {
-    for (int idx = 0; idx < nacs_.size(); idx++)
-    {
-      if (nacs_[idx] == scc)
-      {
-        return idx;
-      }
-    }
-    throw std::runtime_error("tba_determinize::get_nac_index(unsigned scc): index not found");
-  }
-
-  int tba_determinize::get_dac_index(unsigned scc)
-  {
-    for (int idx = 0; idx < dacs_.size(); idx++)
-    {
-      if (dacs_[idx] == scc)
-      {
-        return idx;
-      }
-    }
-    throw std::runtime_error("tba_determinize::get_dac_index(unsigned scc): index not found");
-  }
-
-  spot::twa_graph_ptr
-  tba_determinize::postprocess(spot::twa_graph_ptr aut)
-  {
-    spot::scc_info da(aut, spot::scc_info_options::ALL);
-    // set of states -> the forest of reachability in the states.
-    mstate_equiv_map set2scc;
-    // record the representative of every SCC
-    for (auto p = rank2n_.begin(); p != rank2n_.end(); p++)
-    {
-      const state_set set = p->first.get_reach_set();
-      // first the set of reached states
-      auto val = set2scc.find(set);
-      if (val == set2scc.end())
-      {
-        // the set of macrostates in DPA
-        state_set v;
-        v.insert(p->second);
-        set2scc[set] = v;
-      }
-      else
-      {
-        val->second.insert(p->second);
-        set2scc[set] = val->second;
-      }
-    }
-    mstate_merger merger(aut, set2scc, da, om_);
-    spot::twa_graph_ptr res = merger.run();
-    if (om_.get(VERBOSE_LEVEL) >= 1)
-      std::cout << "The number of states reduced by mstate_merger: "
-                << (aut->num_states() - res->num_states()) << " {out of "
-                << aut->num_states() << "}" << std::endl;
     return res;
   }
 

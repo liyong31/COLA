@@ -66,23 +66,32 @@ namespace cola
 
       std::set<unsigned> bottom_set;
       // traverse the number of states in p->second
-      std::unordered_map<unsigned, unsigned> scc2repr;
+      // std::unordered_map<unsigned, unsigned> scc2repr;
       unsigned min_scc = scc.scc_count();
+      unsigned min_state = dpa_->num_states();
       for (auto s : p->second)
       {
         unsigned scc_s_idx = scc.scc_of(s);
         // by construction, an SCC with smaller index cannot reach an SCC with larger index
+        unsigned prev_scc = min_scc;
         min_scc = std::min(scc_s_idx, min_scc);
         bottom_set.insert(scc_s_idx);
-        auto val_state = scc2repr.find(scc_s_idx);
-        if (val_state == scc2repr.end())
+        // auto val_state = scc2repr.emplace(scc_s_idx, s);
+        // // insertion failed
+        // if (! val_state.second)
+        // {
+        //   unsigned tmp = val_state.first->second;
+        //   val_state.first->second = std::min(s, tmp);
+        // }
+        if(min_scc == prev_scc)
         {
-          scc2repr[scc_s_idx] = s;
-        }
-        else
+          // still the same SCC
+          if (min_scc == scc_s_idx)
+            min_state = std::min(min_state, s);
+        }else 
         {
-          // keep the smallest one
-          scc2repr[scc_s_idx] = std::min(s, scc2repr[scc_s_idx]);
+          // first time for this SCC
+          min_state = s;
         }
       }
       // if all mstates are in the same SCC, no need to replace states
@@ -96,11 +105,11 @@ namespace cola
         unsigned scc_idx = scc.scc_of(t);
         if (min_scc != scc_idx)
         {
-          replace_states[t] = scc2repr[min_scc];
+          replace_states[t] = min_state; //scc2repr[min_scc];
           ++ num_replaced_states;
-          if (om_.get(VERBOSE_LEVEL) >= 2)
+          if (om_.get(VERBOSE_LEVEL) >= 1)
           {
-            std::cout << "State " << t << " replaced by State " << scc2repr[min_scc] << "\n";
+            std::cout << "State " << t << " replaced by State " << min_state << "\n";
           }
         }
       }

@@ -51,20 +51,6 @@
 
 namespace cola
 {
-
-  // The ranks for each state
-  typedef std::pair<unsigned, int> rank;
-  struct 
-  {
-    bool operator()(const rank &lhs,
-                    const rank &rhs) const
-    {
-      if (lhs.second == rhs.second)
-        return lhs.first < rhs.first;
-      else
-        return lhs.second < rhs.second;
-    }
-  } rank_compare;
   // (C, S, B) for complementing DACs
   const int NCSB_C = 2;
   const int NCSB_S = 4;
@@ -87,7 +73,7 @@ namespace cola
     {
       for (unsigned i = 0; i < num_det_sccs; i++)
       {
-        detscc_ranks_.emplace_back(std::vector<rank>());
+        detscc_ranks_.emplace_back(std::vector<state_rank>());
       }
     }
 
@@ -102,7 +88,7 @@ namespace cola
       this->detscc_ranks_.clear();
       for (unsigned i = 0; i < other.detscc_ranks_.size(); i++)
       {
-        std::vector<rank> copy = other.detscc_ranks_[i];
+        std::vector<state_rank> copy = other.detscc_ranks_[i];
         this->detscc_ranks_.emplace_back(copy);
       }
 
@@ -141,7 +127,7 @@ namespace cola
       this->detscc_ranks_.clear();
       for (unsigned i = 0; i < other.detscc_ranks_.size(); i++)
       {
-        std::vector<rank> copy = other.detscc_ranks_[i];
+        std::vector<state_rank> copy = other.detscc_ranks_[i];
         this->detscc_ranks_.emplace_back(copy);
       }
 
@@ -163,10 +149,10 @@ namespace cola
     spot::scc_info &si_;
     // 1. NAC by slice-based complementation
     std::vector<std::set<unsigned>> nondetscc_ranks_;
-    std::vector<slice_mark> nondetscc_marks_;
+    std::vector<slice_mark> nondetscc_marks_; // marks for in O or not?
 
-    // 2. DAC by determinization
-    std::vector<std::vector<rank>> detscc_ranks_;
+    // 2. DAC by determinization or NCSB
+    std::vector<std::vector<state_rank>> detscc_ranks_;
 
     // 3. IWC states point to RANK_WEAK
     // breakpoint construction for weak accepting SCCs
@@ -351,7 +337,7 @@ namespace cola
     public:
     spot::scc_info &si_;
     // current ranking values of the DAC states
-    const std::vector<rank> &curr_ranks_;
+    const std::vector<state_rank> &curr_ranks_;
     // the reachable states at this level inside this SCC
     std::set<unsigned> &next_level_;
     // transitions
@@ -359,12 +345,12 @@ namespace cola
     // DAC number
     unsigned scc_;
 
-    compute_det_succ(spot::scc_info &si, unsigned scc, const std::vector<rank> &curr_ranks, std::set<unsigned> &next_level, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_trans)
+    compute_det_succ(spot::scc_info &si, unsigned scc, const std::vector<state_rank> &curr_ranks, std::set<unsigned> &next_level, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_trans)
         : si_(si), scc_(scc), curr_ranks_(curr_ranks), next_level_(next_level), det_trans_(det_trans)
     {
     }
 
-    std::vector<rank> next_ranks_;
+    std::vector<state_rank> next_ranks_;
 
     void
     compute()
@@ -832,7 +818,7 @@ namespace cola
     // maximal ranking in a labelling
 
     std::string
-    get_det_string(const std::vector<rank> &states)
+    get_det_string(const std::vector<state_rank> &states)
     {
       std::string res = "[";
       bool first_state = true;
@@ -857,7 +843,7 @@ namespace cola
       // now output according SCCs
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
-        std::vector<rank> states = ms.detscc_ranks_[i];
+        std::vector<state_rank> states = ms.detscc_ranks_[i];
         res += ", " + get_det_string(states);
         res += ", scc = " + std::to_string(acc_detsccs_[i]) + ", ";
       }
@@ -897,9 +883,9 @@ namespace cola
       return rank2n_.end() != rank2n_.find(s);
     }
 
-    void remove_rank(std::vector<rank> &nodes, std::set<unsigned> &to_remove)
+    void remove_rank(std::vector<state_rank> &nodes, std::set<unsigned> &to_remove)
     {
-      std::vector<rank> tmp;
+      std::vector<state_rank> tmp;
       auto it1 = nodes.begin();
       while (it1 != nodes.end())
       {
@@ -911,7 +897,7 @@ namespace cola
       }
     }
 
-    void merge_redundant_states(complement_mstate &ms, std::vector<rank> &nodes, bool nondet)
+    void merge_redundant_states(complement_mstate &ms, std::vector<state_rank> &nodes, bool nondet)
     {
       // auto it1 = nodes.begin();
       // while (it1 != nodes.end())
@@ -959,7 +945,7 @@ namespace cola
 
     // remove a state i if it is simulated by a state j
     void
-    make_simulation_state(complement_mstate &ms, std::set<unsigned> &level_states, std::vector<std::vector<rank>> &det_succs, std::vector<std::vector<rank>> &nondet_succs)
+    make_simulation_state(complement_mstate &ms, std::set<unsigned> &level_states, std::vector<std::vector<state_rank>> &det_succs, std::vector<std::vector<state_rank>> &nondet_succs)
     {
       std::set<unsigned> det_remove;
       std::set<unsigned> nondet_remove;
@@ -991,7 +977,7 @@ namespace cola
           }
         }
       }
-      for (std::vector<rank> &succ : det_succs)
+      for (std::vector<state_rank> &succ : det_succs)
       {
         remove_rank(succ, det_remove);
       }
@@ -1009,7 +995,7 @@ namespace cola
     }
 
     void
-    csb_successors(const std::vector<rank> &curr_det_states, int scc_index, std::vector<int> &next_scc_indices, std::vector<std::map<unsigned, int>> &succ_maps, std::vector<bool> &acc_succs, std::set<unsigned> &next_detstates, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_cache)
+    csb_successors(const std::vector<state_rank> &curr_det_states, int scc_index, std::vector<int> &next_scc_indices, std::vector<std::map<unsigned, int>> &succ_maps, std::vector<bool> &acc_succs, std::set<unsigned> &next_detstates, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_cache)
     {
       // std::cout << "csb_successor scc " << scc_index << " rank: " << get_rank_string(curr_det_states) << std::endl;
       //1. Handle S states.
@@ -1246,14 +1232,14 @@ namespace cola
     }
 
     // adapted CSB complementation, every part may have at most two successors
-    void det_succ(const complement_mstate &ms, std::vector<std::vector<rank>> &succs, std::vector<bool> &acc_succs, std::vector<int> &next_scc_index, std::set<unsigned> &next_detstates, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_cache)
+    void det_succ(const complement_mstate &ms, std::vector<std::vector<state_rank>> &succs, std::vector<bool> &acc_succs, std::vector<int> &next_scc_index, std::set<unsigned> &next_detstates, std::unordered_map<unsigned, std::vector<std::pair<bool, unsigned>>> &det_cache)
     {
       std::vector<std::map<unsigned, int>> succ_maps;
       //csb_successors(ms.detscc_ranks_, ms.detscc_index_, next_scc_index, succ_maps, acc_succs, next_detstates, det_cache);
       // std::cout << "map size: " << succ_maps.size() << std::endl;
       for (unsigned i = 0; i < succ_maps.size(); i++)
       {
-        std::vector<rank> succ;
+        std::vector<state_rank> succ;
         for (auto &p : succ_maps[i])
         {
           succ.emplace_back(p.first, p.second);
