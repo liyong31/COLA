@@ -1,15 +1,15 @@
 // Copyright (C) 2019-2020  The Seminator Authors
-// Copyright (C) 2022  The COLA Authors
+// Copyright (C) 2022-present  The COLA Authors
 //
-// This file is a part of cola, a tool for complementation and determinization
+// This file is a part of COLA, a tool for complementation and determinization
 // of omega automata.
 //
-// cola is free software: you can redistribute it and/or modify
+// COLA is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// cola is distributed in the hope that it will be useful,
+// COLA is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -63,10 +63,8 @@ and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[spot|ba|cola]
-            Use Spot or our algorithm for TBA or let cola decide which one to obtain deterministic automata
-    --algo=[det|comp]
-            Use determinization or complementation algorithms to obtain the output
+    --determinize=[ba|cola]
+            Use our algorithm for TBA or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
@@ -135,7 +133,7 @@ enum determinize_t
   COLA,
   LDBA,
   EBA, // elevator Buchi automata
-  Spot
+  Spot // 
 };
 
 // determinization
@@ -144,6 +142,14 @@ enum complement_t
   NoComplement = 0,
   NCSB,
   SCC,
+};
+
+enum output_aut_type
+{
+  Generic = 0,
+  Buchi,
+  Rabin,
+  Parity
 };
 
 spot::twa_graph_ptr
@@ -165,20 +171,20 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   {
     res = cola::determinize_televator(aut, om);
   }
-  else if (algo == NBA)
+  else //if (algo == NBA)
   {
     res = cola::determinize_tnba(aut, om);
   }
-  else if (algo == Spot)
-  {
-    // pretty_print, use_scc, use_simulation, use_stutter, aborter
-    res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0
-    , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr, om.get(NUM_TRANS_PRUNING));
-    if (om.get(VERBOSE_LEVEL) >= 2)
-    {
-      cola::output_file(res, "dpa_spot.hoa");
-    }
-  }
+  // else if (algo == Spot)
+  // {
+  //   // pretty_print, use_scc, use_simulation, use_stutter, aborter
+  //   res = spot::tgba_determinize(aut, om.get(VERBOSE_LEVEL) >= 2, om.get(USE_SCC_INFO) > 0
+  //   , om.get(USE_SIMULATION) > 0, om.get(USE_STUTTER), nullptr, om.get(NUM_TRANS_PRUNING));
+  //   if (om.get(VERBOSE_LEVEL) >= 2)
+  //   {
+  //     cola::output_file(res, "dpa_spot.hoa");
+  //   }
+  // }
   return res;
 }
 
@@ -197,8 +203,6 @@ int main(int argc, char *argv[])
 {
   // Declaration for input options. The rest is in cola.hpp
   // as they need to be included in other files.
-  bool cd_check = false;
-  bool high = false;
   std::vector<std::string> path_to_files;
 
   spot::option_map om;
@@ -212,6 +216,7 @@ int main(int argc, char *argv[])
   om.set(MORE_ACC_EDGES, 0);
   om.set(NUM_TRANS_PRUNING, 512);
   om.set(MSTATE_REARRANGE, 0);
+  om.set(OUTPUT_AUT_TYPE, Parity);
 
   // Will be deleted
   //  --scc-mem-limit=[INT] 
@@ -222,13 +227,10 @@ int main(int argc, char *argv[])
   om.set(NUM_SCC_LIMIT_MERGER, 0);
 
   determinize_t determinize = NoDeterminize;
-
   complement_t complement_algo = NoComplement;
 
   // options
-  bool use_simulation = false;
   //bool merge_transitions = false;
-  bool debug = false;
   bool aut_type = false;
   bool use_unambiguous = false;
   bool use_stutter = false;
@@ -248,13 +250,6 @@ int main(int argc, char *argv[])
   postprocess_level post_process = Low;
   bool use_scc = false;
   unsigned num_post = 30000;
-
-  enum output_aut_type
-  {
-    Generic = 0,
-    Rabin,
-    Parity
-  };
 
   output_aut_type output_type = Generic; 
 
@@ -307,7 +302,6 @@ int main(int argc, char *argv[])
     }
     else if (arg == "--simulation")
     {
-      use_simulation = true;
       om.set(USE_SIMULATION, 1);
     }else if (arg.find("--trans-pruning=") != std::string::npos)
     {
@@ -344,8 +338,8 @@ int main(int argc, char *argv[])
       use_acd = true;
     }
     // Prefered output
-    else if (arg == "--d")
-      debug = true;
+    // else if (arg == "--d")
+    //   debug = true;
     // else if (arg == "--merge-transitions")
     //   merge_transitions = true;
     else if (arg == "--type")
