@@ -45,6 +45,7 @@
 #include <spot/twaalgos/determinize.hh>
 #include <spot/twaalgos/zlktree.hh>
 #include <spot/twaalgos/dualize.hh>
+#include <spot/twaalgos/word.hh>
 #include <spot/misc/version.hh>
 
 void print_usage(std::ostream &os)
