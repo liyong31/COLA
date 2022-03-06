@@ -409,6 +409,7 @@ int main(int argc, char *argv[])
       contain = true;
       std::size_t idx = arg.find('=');
       file_to_contain = arg.substr(idx + 1, arg.length());
+      comp = true; // contain implies comp
     }
     else if (arg.find("--num-states=") != std::string::npos)
     {
@@ -833,10 +834,6 @@ int main(int argc, char *argv[])
         }
         std::stringstream ss;
         bool has_counterexample = false;
-        if (! comp)
-        {
-          aut = spot::complement(aut);
-        }
         
         spot::twa_word_ptr word = aut->intersecting_word(aut_to_contain);
         if (word != nullptr)
