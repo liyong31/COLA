@@ -125,7 +125,7 @@ namespace cola
                        false,        // inherently_weak
                        false, false, // deterministic
                        true,         // complete
-                       false         // stutter inv
+                       dpa_->prop_stutter_invariant().is_true()         // stutter inv
                    });
     for (unsigned s = 0; s < num_states; s++)
     {

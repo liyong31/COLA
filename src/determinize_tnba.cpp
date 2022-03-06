@@ -1440,7 +1440,7 @@ public:
                         false,        // inherently_weak
                         false, false, // deterministic
                         true,         // complete
-                        false         // stutter inv
+                        aut_->prop_stutter_invariant().is_true()         // stutter inv
                     });
     // Generate bdd supports and compatible options for each state.
     // Also check if all its transitions are accepting.

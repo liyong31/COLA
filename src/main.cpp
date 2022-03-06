@@ -58,8 +58,7 @@ void print_help()
   std::cout <<
       R"(The tool transforms TLDBA/TBA into equivalent deterministic automata.
 
-By default, it reads a Büchi automaton from standard input
-and converts it into deterministic automata.
+By default, it reads a Büchi automaton from standard input and converts it into deterministic automata.
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
@@ -76,10 +75,7 @@ Output options:
     --generic       Output the automaton with Emenson-Lei acceptance condition (Default)
     --rabin         Output the automaton with Rabin acceptance condition
     --parity        Output the automaton with Pairty acceptance condition
-    --acd           Use alternating cylcle decomposition to obtain parity automaton (Default)
     --complement    Output the complement Buchi automaton of the input after determinization
-    --rerank        Rearrange the labelling of NAC-states
-
 
 Optimizations:
     --simulation          Use direct simulation for determinization
@@ -133,7 +129,7 @@ enum determinize_t
   COLA,
   LDBA,
   EBA, // elevator Buchi automata
-  Spot // 
+  // Spot // 
 };
 
 // determinization
@@ -235,7 +231,7 @@ int main(int argc, char *argv[])
   bool use_unambiguous = false;
   bool use_stutter = false;
   bool decompose = false;
-  bool use_acd = false;
+  bool use_acd = true;
   bool print_scc = false;
   bool comp = false;
 
@@ -360,8 +356,8 @@ int main(int argc, char *argv[])
       determinize = LDBA;
     else if (arg == "--determinize=eba")
       determinize = EBA;
-    else if (arg == "--determinize=spot")
-      determinize = Spot;
+    // else if (arg == "--determinize=spot")
+    //   determinize = Spot;
     else if (arg == "--determinize=cola")
     {
       determinize = COLA;
