@@ -68,6 +68,8 @@ Input options:
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
             Output the information about the SCCs in the input NBA
+    --contain=[FILENAME]
+            Test whether the language of the input contains the language of [FILENAME] 
 
 Output options:
     --verbose=[INT] Output verbose level (0 = minimal level, 1 = meduim level, 2 = debug level)
@@ -235,6 +237,9 @@ int main(int argc, char *argv[])
   bool print_scc = false;
   bool comp = false;
 
+  bool contain = false;
+  std::string file_to_contain;
+
   enum postprocess_level
   {
     None = 0,
@@ -398,6 +403,12 @@ int main(int argc, char *argv[])
         i++;
       }
     }
+    else if (arg.find("--contain=") != std::string::npos)
+    {
+      contain = true;
+      std::size_t idx = arg.find('=');
+      file_to_contain = arg.substr(idx + 1, arg.length());
+    }
     else if (arg.find("--num-states=") != std::string::npos)
     {
       // obtain the substring after '='
@@ -474,6 +485,20 @@ int main(int argc, char *argv[])
   //path_to_files.push_back("formula_52_nba.hoa");
 
   auto dict = spot::make_bdd_dict();
+  spot::twa_graph_ptr aut_to_contain = nullptr;
+  // contain
+  if (contain)
+  {
+    spot::automaton_stream_parser parser(file_to_contain);
+    spot::parsed_aut_ptr parsed_aut = parser.parse(dict);
+
+    if (parsed_aut->format_errors(std::cerr))
+    {
+      std::runtime_error("File " + file_to_contain + " is not in valid HOA format");
+      return 1;
+    }
+    aut_to_contain = parsed_aut->aut;
+  }
 
   for (std::string &path_to_file : path_to_files)
   {
@@ -797,7 +822,37 @@ int main(int argc, char *argv[])
         // automaton is already complemented now
         aut = to_tba(aut);
       }
-      if (output_filename != "")
+      
+      if (contain)
+      {
+        //now check whether the output is complementation
+        if (!aut_to_contain)
+        {
+          throw std::runtime_error("--contain=[] automaton is invalid");
+        }
+        std::stringstream ss;
+        bool has_counterexample = false;
+        if (! comp)
+        {
+          aut = spot::complement(aut);
+        }
+        
+        spot::twa_word_ptr word = aut->intersecting_word(aut_to_contain);
+        if (word != nullptr)
+        {
+          ss << (*word);
+          has_counterexample = true;
+        }
+
+        if (!has_counterexample)
+        {
+          std::cout << "Contained" << std::endl;
+        }
+        else
+        {
+          std::cout << "Not contained: " << ss.str() << std::endl;
+        }
+      }else if (output_filename != "")
       {
         cola::output_file(aut, output_filename.c_str());
       }
