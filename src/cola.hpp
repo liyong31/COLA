@@ -28,6 +28,7 @@
 #include <spot/twaalgos/sccinfo.hh>
 
 // options for the determinization constructions
+static const char *OUTPUT_AUT_TYPE = "output-aut-type";
 static const char *USE_SIMULATION = "use-simulation";
 static const char *USE_DELAYED_SIMULATION = "use-delayed-simulation";
 static const char *USE_STUTTER = "use-stutter";
