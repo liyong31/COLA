@@ -101,7 +101,7 @@ namespace cola
         {
           replace_states[t] = min_state; //scc2repr[min_scc];
           ++ num_replaced_states;
-          if (om_.get(VERBOSE_LEVEL) >= 1)
+          if (om_.get(VERBOSE_LEVEL) > 1)
           {
             std::cout << "State " << t << " replaced by State " << min_state << "\n";
           }

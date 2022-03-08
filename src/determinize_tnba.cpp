@@ -1661,18 +1661,71 @@ public:
       bdd n_s_compat = bddfalse;
       const std::set<unsigned>& reach_set = ms.get_reach_set();
       // compute the occurred variables in the outgoing transitions of ms, stored in msupport
-      for (unsigned s : reach_set)
+      // for (unsigned s : reach_set)
+      //   {
+      //     msupport &= support_[s];
+      //     n_s_compat |= compat_[s];
+      //   }
+      std::vector<bdd> all_letters;
+      const unsigned threshold_num_aps = 8;//|| aut_->ap().size() < threshold_num_aps
+      if (use_stutter_ && aut_->prop_stutter_invariant()) 
+      {
+        // TODO also improve the computation of letters
+        for (unsigned s : reach_set)
         {
           msupport &= support_[s];
           n_s_compat |= compat_[s];
         }
-
-      bdd all = n_s_compat;
-      while (all != bddfalse)
+        bdd all = n_s_compat;
+        while (all != bddfalse)
+        {
+          bdd letter = bdd_satoneset(all, msupport, bddfalse);
+          all -= letter;
+          all_letters.emplace_back(letter);
+        }
+      }else
       {
-        bdd letter = bdd_satoneset(all, msupport, bddfalse);
-        all -= letter;
-
+        // only compute the partitions
+        for (unsigned s : reach_set)
+        {
+          for (auto &t : aut_->out(s))
+          {
+            // add letters in t.cond
+            if (all_letters.empty())
+            {
+              all_letters.emplace_back(t.cond);
+            }else
+            {
+              std::vector<bdd> tmp;
+              bdd left = t.cond;
+              for (bdd b : all_letters)
+              {
+                bdd inter = left & b;
+                if (inter != bddfalse)
+                {
+                  tmp.emplace_back(inter);
+                  if (inter != b) // inter not equal to b
+                    tmp.emplace_back(b & !inter);
+                  // consists of original b
+                  left &= !inter; // remove the intersection
+                }else 
+                {
+                  tmp.emplace_back(b);
+                }
+              }
+              // we have processed all letters
+              if (left != bddfalse)
+              {
+                tmp.emplace_back(left);
+              }
+              all_letters = tmp;
+            }
+          }
+        }
+      }
+      
+      for (const auto& letter : all_letters)
+      {
         // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
         tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
         // the number of SCCs we care is the accepting det SCCs and the weak SCCs
