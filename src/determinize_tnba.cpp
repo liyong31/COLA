@@ -926,7 +926,7 @@ namespace cola
         }
       }
       // rearrange the labelling of states
-      if (om_.get(MSTATE_REARRANGE))
+      if (false) // delete this code since it does not benefict from the experiments
       {
         if (om_.get(VERBOSE_LEVEL) >= 1)
         {

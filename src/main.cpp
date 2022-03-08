@@ -322,10 +322,12 @@ int main(int argc, char *argv[])
     else if (arg == "--more-acc-edges")
     {
       om.set(MORE_ACC_EDGES, 1);
-    }else if (arg == "--rerank")
-    { 
-      om.set(MSTATE_REARRANGE, 1);
-    }else if (arg == "--decompose")
+    }
+    // else if (arg == "--rerank")
+    // { 
+    //   om.set(MSTATE_REARRANGE, 1);
+    // }
+    else if (arg == "--decompose")
     {
       decompose = true;
       om.set(NUM_NBA_DECOMPOSED, -1);
