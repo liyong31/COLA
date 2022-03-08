@@ -1442,23 +1442,24 @@ public:
                         true,         // complete
                         aut_->prop_stutter_invariant().is_true()         // stutter inv
                     });
-    // Generate bdd supports and compatible options for each state.
-    // Also check if all its transitions are accepting.
-    for (unsigned i = 0; i < nb_states_; ++i)
-    {
-      bdd res_support = bddtrue;
-      bdd res_compat = bddfalse;
-      for (const auto &out : aut->out(i))
-      {
-        res_support &= bdd_support(out.cond);
-        res_compat |= out.cond;
-      }
-      support_[i] = res_support;
-      compat_[i] = res_compat;
-    }
+    
     // need to add support of reachable states 
     if (use_stutter_ && aut_->prop_stutter_invariant())
     {
+      // Generate bdd supports and compatible options for each state.
+      // Also check if all its transitions are accepting.
+      for (unsigned i = 0; i < nb_states_; ++i)
+      {
+        bdd res_support = bddtrue;
+        bdd res_compat = bddfalse;
+        for (const auto &out : aut->out(i))
+        {
+          res_support &= bdd_support(out.cond);
+          res_compat |= out.cond;
+        }
+        support_[i] = res_support;
+        compat_[i] = res_compat;
+      }
       for (unsigned c = 0; c != si_.scc_count(); ++c)
           {
             bdd c_supp = si_.scc_ap_support(c);
