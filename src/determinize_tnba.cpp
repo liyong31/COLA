@@ -1694,6 +1694,7 @@ public:
   {
     // Main stuff happens here
     // todo_ is a queue for handling states
+    std::unordered_map<state_set, std::vector<bdd>, state_set_hash> cache;
     while (!todo_.empty())
     {
       auto top = todo_.front();
@@ -1747,14 +1748,32 @@ public:
               reachable_states.insert(st);
             }
           }
-          // now get the partition
-          compute_letters(reachable_states, all_letters);
+          auto i = cache.emplace(reachable_states, std::vector<bdd>());
+          if (i.second)
+          {
+            // now get the partition
+            compute_letters(reachable_states, all_letters);
+            i.first->second = all_letters;
+          }else 
+          {
+            all_letters = i.first->second;
+          }
+          
         }
         
       }else
       {
         // only compute the partitions
-        compute_letters(reach_set, all_letters);
+        auto i = cache.emplace(reachable_states, std::vector<bdd>());
+          if (i.second)
+          {
+            // now get the partition
+            compute_letters(reachable_states, all_letters);
+            i.first->second = all_letters;
+          }else 
+          {
+            all_letters = i.first->second;
+          }
       }
       
       for (bdd letter : all_letters)
