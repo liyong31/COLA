@@ -47,6 +47,8 @@ AC_PROG_CXX
 AM_SILENT_RULES([no])
 AC_LANG(C++)
 
+AC_CONFIG_MACRO_DIRS([m4])
+
 # Turn on C++17 support
 m4_define([_AX_CXX_COMPILE_STDCXX_17_testbody],
 [AC_LANG_SOURCE([#include <memory>
