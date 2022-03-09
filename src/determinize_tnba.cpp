@@ -519,7 +519,8 @@ namespace cola
     std::unordered_map<tnba_mstate, unsigned, tnba_mstate_hash> rank2n_;
 
     // outgoing transition to its colors by each accepting SCCs (weak is the righmost)
-    std::unordered_map<outgoing_trans, std::vector<int>, outgoing_trans_hash> trans2colors_;
+    // std::unordered_map<outgoing_trans, std::vector<int>, outgoing_trans_hash> trans2colors_;
+    std::unordered_map<unsigned, std::vector<int>> trans2colors_;
 
     // maximal colors for each accepting SCCs, including DACs and NACs
     std::vector<int> max_colors_;
@@ -1597,7 +1598,9 @@ public:
     bool has_weak_acc = has_weak_acc_sccs();
     for (auto &t : res_->edges())
     {
-      auto p = trans2colors_.find(std::make_pair(t.src, t.cond));
+      unsigned edge_id = res_->get_graph().index_of_edge(t);
+      // auto p = trans2colors_.find(std::make_pair(t.src, t.cond));
+      auto p = trans2colors_.find(edge_id);
       if (p == trans2colors_.end())
       {
         throw std::runtime_error("No outgoing transition found in finalize_acceptance()");
@@ -1654,13 +1657,13 @@ public:
           for (auto &t : aut_->out(s))
           {
             // add letters in t.cond
+            bdd left = t.cond;
             if (all_letters.empty())
             {
-              all_letters.emplace_back(t.cond);
+              all_letters.emplace_back(left);
             }else
             {
               std::vector<bdd> tmp;
-              bdd left = t.cond;
               for (bdd b : all_letters)
               {
                 bdd inter = left & b;
@@ -1673,7 +1676,7 @@ public:
                   left &= !inter; // remove the intersection
                 }else 
                 {
-                  tmp.emplace_back(b);
+                  tmp.push_back(b);
                 }
               }
               // we have processed all letters
@@ -1709,11 +1712,11 @@ public:
       //     n_s_compat |= compat_[s];
       //   }
       std::vector<bdd> all_letters;
-      const unsigned threshold_num_aps = 9;//|| aut_->ap().size() < threshold_num_aps
+      const unsigned threshold_num_aps = 7;//|| aut_->ap().size() < threshold_num_aps
       if (use_stutter_ && aut_->prop_stutter_invariant()) 
       {
         // when we have small number of APs
-        if (aut_->ap().size() < threshold_num_aps)
+        if (aut_->ap().size() <= threshold_num_aps)
         {
           for (unsigned s : reach_set)
           {
@@ -1754,7 +1757,7 @@ public:
         compute_letters(reach_set, all_letters);
       }
       
-      for (const auto& letter : all_letters)
+      for (bdd letter : all_letters)
       {
         // std::cout << "Current state = " << get_name(ms) << " letter = "<< letter << std::endl;
         tnba_mstate succ(si_, acc_detsccs_.size(), acc_nondetsccs_.size());
@@ -1771,7 +1774,7 @@ public:
         // Create the automaton states
         unsigned dst = new_state(succ);
         // first add this transition
-        res_->new_edge(origin, dst, letter);
+        unsigned edge_id = res_->new_edge(origin, dst, letter, {});
         // handle with colors
         // std::cout << "max_color_size = " << max_colors_.size() << " colors_size = " << colors.size() << "\n";  
         for (unsigned i = 0; i < colors.size(); i++)
@@ -1787,7 +1790,9 @@ public:
           }
           // record this color
         }
-        auto r = trans2colors_.emplace(std::make_pair(origin, letter), colors);
+        // auto r = trans2colors_.emplace(std::make_pair(origin, letter), colors);
+        auto r = trans2colors_.emplace(edge_id, colors);
+        assert (r.second);
       }
     }
     finalize_acceptance();
