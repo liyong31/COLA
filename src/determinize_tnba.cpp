@@ -1764,11 +1764,11 @@ public:
       }else
       {
         // only compute the partitions
-        auto i = cache.emplace(reachable_states, std::vector<bdd>());
+        auto i = cache.emplace(reach_set, std::vector<bdd>());
           if (i.second)
           {
             // now get the partition
-            compute_letters(reachable_states, all_letters);
+            compute_letters(reach_set, all_letters);
             i.first->second = all_letters;
           }else 
           {
