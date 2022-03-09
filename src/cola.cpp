@@ -271,6 +271,30 @@ namespace cola
     return true;
   }
 
+  // collect all reachable SCC numbers
+  void
+  get_reachable_sccs(const spot::scc_info &si, std::set<unsigned>& reachable_sccs)
+  {
+    std::set<unsigned> prev(reachable_sccs);
+    std::set<unsigned> new_sccs;
+    do
+    {
+      for (unsigned scc : prev)
+      {
+        for (unsigned succ: si.succ(scc))
+        {
+          if (reachable_sccs.find(succ) == reachable_sccs.end())
+          {
+            new_sccs.insert(succ); //newly occurred SCC
+            reachable_sccs.insert(succ);
+          }
+        }
+      }
+      prev = new_sccs;
+      new_sccs.clear();
+    } while (! prev.empty());
+  }
+
   std::string
   get_scc_types(spot::scc_info &si)
   {

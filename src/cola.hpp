@@ -169,6 +169,9 @@ namespace cola
   std::vector<bool>
   find_scc_paths_(const spot::scc_info &scc);
 
+  void
+  get_reachable_sccs(const spot::scc_info &scc, std::set<unsigned>& init);
+
   /// \brief Output an automaton to a file
   void output_file(spot::const_twa_graph_ptr aut, const char *file);
 

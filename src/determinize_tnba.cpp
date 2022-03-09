@@ -1645,49 +1645,11 @@ public:
     res_->set_acceptance(num_sets, acceptance);
   }
 
-  spot::twa_graph_ptr
-  run()
+  void
+  compute_letters(const std::set<unsigned>& set, std::vector<bdd>& all_letters)
   {
-    // Main stuff happens here
-    // todo_ is a queue for handling states
-    while (!todo_.empty())
-    {
-      auto top = todo_.front();
-      todo_.pop_front();
-      // pop current state, (N, Rnk)
-      tnba_mstate ms = top.first;
-
-      // Compute support of all available states.
-      bdd msupport = bddtrue;
-      bdd n_s_compat = bddfalse;
-      const std::set<unsigned>& reach_set = ms.get_reach_set();
-      // compute the occurred variables in the outgoing transitions of ms, stored in msupport
-      // for (unsigned s : reach_set)
-      //   {
-      //     msupport &= support_[s];
-      //     n_s_compat |= compat_[s];
-      //   }
-      std::vector<bdd> all_letters;
-      const unsigned threshold_num_aps = 8;//|| aut_->ap().size() < threshold_num_aps
-      if (use_stutter_ && aut_->prop_stutter_invariant()) 
-      {
-        // TODO also improve the computation of letters
-        for (unsigned s : reach_set)
-        {
-          msupport &= support_[s];
-          n_s_compat |= compat_[s];
-        }
-        bdd all = n_s_compat;
-        while (all != bddfalse)
-        {
-          bdd letter = bdd_satoneset(all, msupport, bddfalse);
-          all -= letter;
-          all_letters.emplace_back(letter);
-        }
-      }else
-      {
         // only compute the partitions
-        for (unsigned s : reach_set)
+        for (const unsigned& s : set)
         {
           for (auto &t : aut_->out(s))
           {
@@ -1723,6 +1685,73 @@ public:
             }
           }
         }
+  }
+  spot::twa_graph_ptr
+  run()
+  {
+    // Main stuff happens here
+    // todo_ is a queue for handling states
+    while (!todo_.empty())
+    {
+      auto top = todo_.front();
+      todo_.pop_front();
+      // pop current state, (N, Rnk)
+      tnba_mstate ms = top.first;
+
+      // Compute support of all available states.
+      bdd msupport = bddtrue;
+      bdd n_s_compat = bddfalse;
+      const std::set<unsigned>& reach_set = ms.get_reach_set();
+      // compute the occurred variables in the outgoing transitions of ms, stored in msupport
+      // for (unsigned s : reach_set)
+      //   {
+      //     msupport &= support_[s];
+      //     n_s_compat |= compat_[s];
+      //   }
+      std::vector<bdd> all_letters;
+      const unsigned threshold_num_aps = 9;//|| aut_->ap().size() < threshold_num_aps
+      if (use_stutter_ && aut_->prop_stutter_invariant()) 
+      {
+        // when we have small number of APs
+        if (aut_->ap().size() < threshold_num_aps)
+        {
+          for (unsigned s : reach_set)
+          {
+            msupport &= support_[s];
+            n_s_compat |= compat_[s];
+          }
+          bdd all = n_s_compat;
+          while (all != bddfalse)
+          {
+            bdd letter = bdd_satoneset(all, msupport, bddfalse);
+            all -= letter;
+            all_letters.emplace_back(letter);
+          }
+        }else 
+        {
+          // when number of letters is large
+          std::set<unsigned> reachable_sccs;
+          for (unsigned s : reach_set)
+          {
+            reachable_sccs.insert(si_.scc_of(s));
+          }
+          get_reachable_sccs(si_, reachable_sccs); // all SCCs
+          std::set<unsigned> reachable_states;
+          for (unsigned scc : reachable_sccs)
+          {
+            for (unsigned st: si_.states_of(scc))
+            {
+              reachable_states.insert(st);
+            }
+          }
+          // now get the partition
+          compute_letters(reachable_states, all_letters);
+        }
+        
+      }else
+      {
+        // only compute the partitions
+        compute_letters(reach_set, all_letters);
       }
       
       for (const auto& letter : all_letters)
