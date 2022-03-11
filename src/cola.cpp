@@ -167,15 +167,15 @@ namespace cola
   }
 
   // compute (i + 1) * i / 2
-  unsigned
-  compute_median(unsigned num)
+  size_t
+  compute_median(size_t num)
   {
     if (num & 1) // odd number, compute (scc1 + 1) * scc1 / 2
     {
-      return ((num + 1) / 2) * num; 
+      return ((num + 1) >> 1) * num; 
     }else 
     {
-      return (num / 2 ) * (num + 1);
+      return (num >> 1) * (num + 1);
     }
   }
   /// Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC j

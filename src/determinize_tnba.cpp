@@ -926,54 +926,6 @@ namespace cola
           i.first->second = newb;
         }
       }
-      // rearrange the labelling of states
-      if (false) // delete this code since it does not benefict from the experiments
-      {
-        if (om_.get(VERBOSE_LEVEL) >= 1)
-        {
-          std::cout << "previous: ";
-          for (auto &node : succ_nodes)
-          {
-            std::cout << " " << node.first << ": " << node.second;
-          }
-          std::cout << "\n";
-        }
-        // we need to reorganize the states from accepting transitions
-        // so we may have a canonical form for the successor
-        state_set states_from_acc_trans;
-        std::map<int, int> parent_braces;
-
-        for (auto &node : succ_nodes)
-        {
-          if (node.second >= min_new_brace)
-          {
-            // this state must come from accepting transition, use a set for canonical order
-            states_from_acc_trans.insert(node.first);
-            // store the parent
-            parent_braces.emplace(node.second, braces[node.second]);
-          }
-        }
-        // now we need to rearrange the braces in states_from_acc_trans
-        // states outside states_from_acc_trans will have braces less than min_new_brace
-        int new_brace = min_new_brace;
-        for (unsigned dst : states_from_acc_trans)
-        {
-          int old_brace = succ_nodes[dst];
-          succ_nodes[dst] = new_brace;
-          // it is guaranteed that the parent is less than min_new_brace
-          braces[new_brace] = parent_braces[old_brace];
-          ++ new_brace;
-        }
-        if (om_.get(VERBOSE_LEVEL) >= 1)
-        {
-          std::cout << "after: ";
-          for (auto &node : succ_nodes)
-          {
-            std::cout << " " << node.first << ": " << node.second;
-          }
-          std::cout << "\n";
-        }
-      }
       // now store the results to succ
       succ.nondetscc_labels_[i].clear();
       for (auto &node : succ_nodes)
@@ -1317,7 +1269,7 @@ namespace cola
     tnba_mstate ms(curr);
     //  std::cout << "copied successors" << std::endl;
     std::vector<tnba_mstate> stutter_path;
-    if (use_stutter_ && aut_->prop_stutter_invariant())
+    if (use_stutter_ )
     {
       // The path is usually quite small (3-4 states), so it's
       // not worth setting up a hash table to detect a cycle.
@@ -1411,7 +1363,7 @@ namespace cola
     }
     return -1;
   }
- const int NUM_APS_FOR_ENUMERATION_ = 7;
+ const int NUM_APS_FOR_ENUMERATION_ = 6;
 
 public:
   tnba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
@@ -1445,6 +1397,7 @@ public:
                         aut_->prop_stutter_invariant().is_true()         // stutter inv
                     });
     
+    use_stutter_ = use_stutter_ && aut_->prop_stutter_invariant().is_true();
     // need to add support of reachable states 
     if (aut_->ap().size() <= NUM_APS_FOR_ENUMERATION_)
     {
@@ -1462,16 +1415,16 @@ public:
         support_[i] = res_support;
         compat_[i] = res_compat;
       }
-      if (use_stutter_ && aut_->prop_stutter_invariant())
+      if (use_stutter_)
       {
-          for (unsigned c = 0; c != si_.scc_count(); ++c)
-          {
-            bdd c_supp = si_.scc_ap_support(c);
-            for (const auto& su: si_.succ(c))
-              c_supp &= support_[si_.one_state_of(su)];
-            for (unsigned st: si_.states_of(c))
-              support_[st] = c_supp;
-          }
+        for (unsigned c = 0; c != si_.scc_count(); ++c)
+        {
+          bdd c_supp = si_.scc_ap_support(c);
+          for (const auto& su: si_.succ(c))
+            c_supp &= support_[si_.one_state_of(su)];
+          for (unsigned st: si_.states_of(c))
+            support_[st] = c_supp;
+        }
       }
     }
     // obtain the types of each SCC
@@ -1706,10 +1659,7 @@ public:
       // pop current state, (N, Rnk)
       tnba_mstate ms = top.first;
 
-      // Compute support of all available states.
-      bdd msupport = bddtrue;
-      bdd n_s_compat = bddfalse;
-      const std::set<unsigned>& reach_set = ms.get_reach_set();
+      std::set<unsigned> reach_set = ms.get_reach_set();
       // compute the occurred variables in the outgoing transitions of ms, stored in msupport
       // for (unsigned s : reach_set)
       //   {
@@ -1717,12 +1667,13 @@ public:
       //     n_s_compat |= compat_[s];
       //   }
       std::vector<bdd> all_letters;
-      const unsigned threshold_num_aps = 7;//|| aut_->ap().size() < threshold_num_aps
-      if (use_stutter_ && aut_->prop_stutter_invariant()) 
-      {
+     
         // when we have small number of APs
         if (aut_->ap().size() <= NUM_APS_FOR_ENUMERATION_)
         {
+          // Compute support of all available states.
+          bdd msupport = bddtrue;
+          bdd n_s_compat = bddfalse;
           for (unsigned s : reach_set)
           {
             msupport &= support_[s];
@@ -1735,40 +1686,28 @@ public:
             all -= letter;
             all_letters.emplace_back(letter);
           }
-        }else 
+        }else
         {
           // when number of letters is large
-          std::set<unsigned> reachable_sccs;
-          for (unsigned s : reach_set)
+          if (use_stutter_)
           {
-            reachable_sccs.insert(si_.scc_of(s));
-          }
-          get_reachable_sccs(si_, reachable_sccs); // all SCCs
-          std::set<unsigned> reachable_states;
-          for (unsigned scc : reachable_sccs)
-          {
-            for (unsigned st: si_.states_of(scc))
+            // when we use stutter-invariance
+            std::set<unsigned> reachable_sccs;
+            for (unsigned s : reach_set)
             {
-              reachable_states.insert(st);
+              reachable_sccs.insert(si_.scc_of(s));
+            }
+            get_reachable_sccs(si_, reachable_sccs); // all SCCs
+            for (unsigned scc : reachable_sccs)
+            {
+              for (unsigned st: si_.states_of(scc))
+              {
+                reach_set.insert(st);
+              }
             }
           }
-          auto i = cache.emplace(reachable_states, std::vector<bdd>());
-          if (i.second)
-          {
-            // now get the partition
-            compute_letters(reachable_states, all_letters);
-            i.first->second = all_letters;
-          }else 
-          {
-            all_letters = i.first->second;
-          }
           
-        }
-        
-      }else
-      {
-        // only compute the partitions
-        auto i = cache.emplace(reach_set, std::vector<bdd>());
+          auto i = cache.emplace(reach_set, std::vector<bdd>());
           if (i.second)
           {
             // now get the partition
@@ -1778,7 +1717,8 @@ public:
           {
             all_letters = i.first->second;
           }
-      }
+          
+        }
       
       for (bdd letter : all_letters)
       {

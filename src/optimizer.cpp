@@ -294,6 +294,7 @@ namespace cola
       std::set<unsigned> visited;
       std::set<unsigned> new_sccs;
       new_sccs.insert(scc1);
+      // CONDITION: scc1 > scc2
       visited.insert(scc1);
       while (! new_sccs.empty())
       {
@@ -303,6 +304,7 @@ namespace cola
           for (unsigned d : si_.succ(i))
           {
             if (scc2 == d) return 1;
+            // visit for the first time
             if (visited.find(d) == visited.end())
             {
               visited.insert(d);
