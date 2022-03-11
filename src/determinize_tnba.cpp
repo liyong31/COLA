@@ -1411,6 +1411,7 @@ namespace cola
     }
     return -1;
   }
+ const int NUM_APS_FOR_ENUMERATION_ = 7;
 
 public:
   tnba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
@@ -1445,7 +1446,7 @@ public:
                     });
     
     // need to add support of reachable states 
-    if (use_stutter_ && aut_->prop_stutter_invariant())
+    if (aut_->ap().size() <= NUM_APS_FOR_ENUMERATION_)
     {
       // Generate bdd supports and compatible options for each state.
       // Also check if all its transitions are accepting.
@@ -1461,7 +1462,9 @@ public:
         support_[i] = res_support;
         compat_[i] = res_compat;
       }
-      for (unsigned c = 0; c != si_.scc_count(); ++c)
+      if (use_stutter_ && aut_->prop_stutter_invariant())
+      {
+          for (unsigned c = 0; c != si_.scc_count(); ++c)
           {
             bdd c_supp = si_.scc_ap_support(c);
             for (const auto& su: si_.succ(c))
@@ -1469,6 +1472,7 @@ public:
             for (unsigned st: si_.states_of(c))
               support_[st] = c_supp;
           }
+      }
     }
     // obtain the types of each SCC
     scc_types_ = get_scc_types(si_);
@@ -1717,7 +1721,7 @@ public:
       if (use_stutter_ && aut_->prop_stutter_invariant()) 
       {
         // when we have small number of APs
-        if (aut_->ap().size() <= threshold_num_aps)
+        if (aut_->ap().size() <= NUM_APS_FOR_ENUMERATION_)
         {
           for (unsigned s : reach_set)
           {
@@ -1870,10 +1874,15 @@ determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   if (!aut->acc().is_buchi())
     throw std::runtime_error("determinize_tnba() requires a Buchi input");
   const int trans_pruning = om.get(NUM_TRANS_PRUNING);
+  bool verbose = om.get(VERBOSE_LEVEL) > 0;
   // now we compute the simulator
   spot::const_twa_graph_ptr aut_reduced;
   std::vector<bdd> implications;
   spot::twa_graph_ptr aut_tmp = nullptr;
+  if (verbose)
+  {
+    std::cout << "Computing simulation relation...\n";
+  }
   if (om.get(USE_SIMULATION) > 0)
   {
     aut_tmp = spot::scc_filter(aut);
@@ -1885,6 +1894,10 @@ determinize_tnba(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
   else
     aut_reduced = aut;
   spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
+  if (verbose)
+  {
+    std::cout << "Entering determinization procedure...\n";
+  }
   auto det = cola::tnba_determinize(aut_reduced, scc, om, implications);
   return det.run();
 }

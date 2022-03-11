@@ -139,8 +139,10 @@ namespace cola
   {
     unsigned scccount = scc.scc_count();
     std::vector<bool> res(scccount * scccount, 0);
+    std::cout << "SCCcount = " << scccount << std::endl;
     for (unsigned i = 0; i < scccount; ++i)
       {
+        std::cout << "i = " << i << " count = " << scccount << " index = " << (i + scccount * i) << std::endl;
         // reach itself
         res[i + scccount * i] = true;
       }
@@ -164,6 +166,18 @@ namespace cola
     return res;
   }
 
+  // compute (i + 1) * i / 2
+  unsigned
+  compute_median(unsigned num)
+  {
+    if (num & 1) // odd number, compute (scc1 + 1) * scc1 / 2
+    {
+      return ((num + 1) / 2) * num; 
+    }else 
+    {
+      return (num / 2 ) * (num + 1);
+    }
+  }
   /// Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC j
   std::vector<bool>
   find_scc_paths_(const spot::scc_info &scc)
@@ -173,17 +187,17 @@ namespace cola
     for (unsigned i = 0; i < scccount; ++i)
       {
         // reach itself
-        res[i + i * (i + 1) / 2] = true;
+        res[i + compute_median(i)] = true;
       }
     for (unsigned i = 0; i < scccount; ++i)
     {
-      unsigned ibase = (i * ( i + 1)) / 2;
+      unsigned ibase = compute_median(i);
       for (unsigned d : scc.succ(i))
       {
         // we necessarily have d < i because of the way SCCs are
         // numbered, so we can build the transitive closure by
         // just ORing any SCC reachable from d.
-        unsigned dbase = d * (d + 1) / 2;
+        unsigned dbase = compute_median(d);
         // j reach d (i can reach d, so res[d + i * scccount] = 1)
         for (unsigned j = 0; j <= d; ++j)
         {

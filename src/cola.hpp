@@ -209,4 +209,8 @@ namespace cola
   is_deterministic_scc(unsigned scc, spot::scc_info& si,
                      bool inside_only = true);
 
+  // compute (i + 1) * i / 2
+  unsigned
+  compute_median(unsigned i);
+
 }

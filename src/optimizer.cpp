@@ -173,11 +173,11 @@ namespace cola
   state_simulator::state_simulator(const spot::const_twa_graph_ptr &nba, spot::scc_info &si, std::vector<bdd> &implications, bool use_simulation)
       : nba_(nba), si_(si)
   {
-    is_connected_ = find_scc_paths(si);
     if (!use_simulation)
     {
       return;
     }
+    is_connected_ = find_scc_paths_(si);
     for (unsigned i = 0; i < nba_->num_states(); i++)
     {
       std::vector<bool> elem;
@@ -280,14 +280,44 @@ namespace cola
     if (scc_of_i < scc_of_j) return 0;
     if (scc_of_i == scc_of_j) return 1;
     // test whether j is reachable from i
-    return is_connected_[scc_of_j + si_.scc_count() * scc_of_i];
+    return can_reach_scc(scc_of_i, scc_of_j);
+    // return is_connected_[scc_of_j + si_.scc_count() * scc_of_i];
   }
 
   char state_simulator::can_reach_scc(unsigned scc1, unsigned scc2)
   {
     if (scc1 < scc2) return 0;
     if (scc1 == scc2) return 1;
-    return is_connected_[scc2 + si_.scc_count() * scc1];
+    // we do not have this information
+    if (is_connected_.empty())
+    {
+      std::set<unsigned> visited;
+      std::set<unsigned> new_sccs;
+      new_sccs.insert(scc1);
+      visited.insert(scc1);
+      while (! new_sccs.empty())
+      {
+        std::set<unsigned> tmp;
+        for (unsigned i : new_sccs)
+        {
+          for (unsigned d : si_.succ(i))
+          {
+            if (scc2 == d) return 1;
+            if (visited.find(d) == visited.end())
+            {
+              visited.insert(d);
+              tmp.insert(d);
+            }
+          }
+        }
+        new_sccs = tmp;
+      }
+      return 0;
+    }
+    // scc2 is reachable from scc1
+    // Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC j
+    return is_connected_[scc2 + compute_median(scc1)];
+    //return is_connected_[scc2 + si_.scc_count() * scc1];
   }
   // check whether state i simulates state j
   bool state_simulator::simulate(unsigned i, unsigned j)
