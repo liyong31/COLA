@@ -183,7 +183,7 @@ namespace cola
   find_scc_paths_(const spot::scc_info &scc)
   {
     unsigned scccount = scc.scc_count();
-    std::vector<bool> res(scccount * (scccount + 1) / 2 , false);
+    std::vector<bool> res(compute_median(scccount) , false);
     for (unsigned i = 0; i < scccount; ++i)
       {
         // reach itself
