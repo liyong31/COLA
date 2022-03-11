@@ -89,6 +89,7 @@ Optimizations:
     --trans-pruning=[INT] Number to limit the transition pruning in simulation (default=512) 
     --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
     --unambiguous         Check whether the input is unambiguous and use this fact in determinization
+    --max-sim=[INT]       Maximal number of states in the input to enable simulation (default=INT_MAX)
 
 Pre- and Post-processing:
     --preprocess=[0|1|2|3]       Level for simplifying the input automaton (default=1)
@@ -226,6 +227,7 @@ int main(int argc, char *argv[])
   //          The largest number of SCCs in the deterministic automaton for merging macrostates (default = 0, no limit)
   om.set(SCC_REACH_MEMORY_LIMIT, 0);
   om.set(NUM_SCC_LIMIT_MERGER, 0);
+  om.set(MAX_NUM_SIMULATION, INT_MAX);
 
   determinize_t determinize = NoDeterminize;
   complement_t complement_algo = NoComplement;
@@ -311,6 +313,10 @@ int main(int argc, char *argv[])
     {
       int trans_pruning = parse_int(arg);
       om.set(NUM_TRANS_PRUNING, trans_pruning);
+    }else if (arg.find("--max-sim=") != std::string::npos)
+    {
+      int max_num = parse_int(arg);
+      om.set(MAX_NUM_SIMULATION, max_num);
     }
     else if (arg == "--delayed-sim")
     {
@@ -703,6 +709,11 @@ int main(int argc, char *argv[])
         }
         else if (determinize != NoDeterminize && aut->acc().is_buchi())
         {
+          if (om.get(USE_SIMULATION) > 0)
+          {
+            unsigned max_num = (unsigned)om.get(MAX_NUM_SIMULATION);
+            om.set(USE_SIMULATION, max_num >= aut->num_states());
+          }
           spot::twa_graph_ptr res = nullptr;
           c_start = clock();
           res = to_deterministic(aut, om, aut_type, determinize);

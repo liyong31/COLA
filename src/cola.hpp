@@ -42,6 +42,7 @@ static const char *SCC_REACH_MEMORY_LIMIT = "scc-reach-memory-limit";
 static const char *REQUIRE_PARITY = "require-parity";
 static const char *NUM_TRANS_PRUNING = "num-trans-pruning"; 
 static const char *MSTATE_REARRANGE = "rank-rearrange";
+static const char *MAX_NUM_SIMULATION = "max-num-simulation";
 
 
 static const char SCC_WEAK_TYPE = 1;
