@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//#include "config.h"
+#include "config.h"
 
 #include "cola.hpp"
 #include "composer.hpp"
@@ -712,6 +712,11 @@ int main(int argc, char *argv[])
           if (om.get(USE_SIMULATION) > 0)
           {
             unsigned max_num = (unsigned)om.get(MAX_NUM_SIMULATION);
+            if (contain && max_num == (unsigned)INT_MAX)
+            {
+              // containment checking, only cocern about runtime
+              om.set(MAX_NUM_SIMULATION, 4096); // spot optimization
+            }
             om.set(USE_SIMULATION, max_num >= aut->num_states());
           }
           spot::twa_graph_ptr res = nullptr;
