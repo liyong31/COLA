@@ -699,8 +699,10 @@ int main(int argc, char *argv[])
           cola::decomposer nba_decomposer(aut, om);
           std::vector<spot::twa_graph_ptr> subnbas = nba_decomposer.run();
           std::vector<spot::twa_graph_ptr> dpas;
+          bool verbose = om.get(VERBOSE_LEVEL) > 0;
           for (unsigned i = 0; i < subnbas.size(); i++)
           {
+            std::cout << "Trying to determinize an NBA with " << subnbas[i]->num_states() << " states\n";
             spot::twa_graph_ptr dpa = to_deterministic(subnbas[i], om, aut_type, determinize);
             dpas.push_back(dpa);
           }

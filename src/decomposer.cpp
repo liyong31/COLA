@@ -47,9 +47,15 @@ decomposer::run()
             return scc_i.second <= scc_j.second;
         }
     };
+    if (om_.get(VERBOSE_LEVEL) > 0)
+    {
+        std::cout << "Start to decompose the NBA\n";
+    }
+    // TODO: classify weak SCC into one?
     // first deal with SCCs with large numbers
     // SCC with more states gets priority to decompose
     std::priority_queue<std::pair<unsigned, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
+    //std::priority_queue<std::pair<std::set<unsigned>, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
     for (unsigned sc = 0; sc < si.scc_count(); sc ++)
     {
         // only care about accepting scc
@@ -85,6 +91,10 @@ decomposer::run()
     {
         spot::twa_graph_ptr aut = make_twa_with_scc(si, remaining_sccs, reach_sccs);
         result.push_back(aut);
+    }
+    if (om_.get(VERBOSE_LEVEL) > 0)
+    {
+        std::cout << "The original NBA has been decomposed into " << result.size() << " small NBAs\n";
     }
     return result;
 }

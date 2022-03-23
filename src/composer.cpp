@@ -27,6 +27,7 @@
 #include <spot/twaalgos/dualize.hh>
 #include <spot/twaalgos/zlktree.hh>
 #include <spot/twaalgos/isdet.hh>
+#include <spot/twaalgos/cleanacc.hh>
 
 namespace cola
 {
@@ -61,6 +62,10 @@ namespace cola
 
             autlist.push(tmp);
         }
+        if (om_.get(VERBOSE_LEVEL) > 0)
+        {
+            std::cout << "Start to compose the results.\n";
+        }
         while(autlist.size() > 1)
         {
             auto aut1 = autlist.top();
@@ -69,6 +74,7 @@ namespace cola
             autlist.pop();
 
             spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
+            spot::simplify_acceptance_here(res);
             // only make it smaller when it is not the final result
                     // postprocessing
             spot::postprocessor p;
