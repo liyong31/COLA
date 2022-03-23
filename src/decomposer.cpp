@@ -37,12 +37,13 @@ decomposer::run()
         num_nbas_ = si.scc_count();
     }
 
+    std::string scc_types = get_scc_types(si);
     std::vector<bool> reach_sccs = find_scc_paths_(si);
 
     struct pair_compare
     {
         // reverse order
-        bool operator()(std::pair<unsigned, unsigned> scc_i, std::pair<unsigned, unsigned> scc_j) const
+        bool operator()(std::pair<std::set<unsigned>, unsigned> scc_i, std::pair<std::set<unsigned>, unsigned> scc_j) const
         {
             return scc_i.second <= scc_j.second;
         }
@@ -54,22 +55,44 @@ decomposer::run()
     // TODO: classify weak SCC into one?
     // first deal with SCCs with large numbers
     // SCC with more states gets priority to decompose
-    std::priority_queue<std::pair<unsigned, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
-    //std::priority_queue<std::pair<std::set<unsigned>, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
+    //std::priority_queue<std::pair<unsigned, unsigned>, std::vector<std::pair<unsigned, unsigned>>, pair_compare> scclist;
+    std::set<unsigned> weak_sccs;
+    unsigned num_weak_states = 0;
+    std::map<unsigned, unsigned> non_weak_sccs;
+    std::priority_queue<std::pair<std::set<unsigned>, unsigned>, std::vector<std::pair<std::set<unsigned>, unsigned>>, pair_compare> scclist;
+
     for (unsigned sc = 0; sc < si.scc_count(); sc ++)
     {
         // only care about accepting scc
         if (! si.is_accepting_scc(sc)) continue;
-        scclist.push(std::make_pair(sc, si.states_of(sc).size()));
+        if ( is_weakscc(scc_types, sc))
+        {
+            weak_sccs.insert(sc);
+            num_weak_states +=  si.states_of(sc).size();
+        }else 
+        {
+            non_weak_sccs.emplace(sc, si.states_of(sc).size());
+        }
     }
-    
+    // first weak
+    if (num_weak_states > 0)
+    {
+        scclist.push(std::make_pair(weak_sccs, num_weak_states));
+    }
+
+    for (auto& sc : non_weak_sccs)
+    {
+        std::set<unsigned> set;
+        set.insert(sc.first);
+        scclist.push(std::make_pair(set, sc.second));
+    }
+
     while(scclist.size() > 0)
     {
-        unsigned scc_i = scclist.top().first;
-        scclist.pop();
         
-        std::set<unsigned> sccs;
-        sccs.insert(scc_i);
+        std::set<unsigned> sccs = scclist.top().first;
+        scclist.pop();
+        // sccs.insert(scc_i);
         spot::twa_graph_ptr aut = make_twa_with_scc(si, sccs, reach_sccs);
         result.push_back(aut);
 
@@ -83,9 +106,9 @@ decomposer::run()
     std::set<unsigned> remaining_sccs;
     while(scclist.size() > 0)
     {
-        unsigned scc_i = scclist.top().first;
+        std::set<unsigned> scc_set = scclist.top().first;
         scclist.pop();
-        remaining_sccs.insert(scc_i);
+        remaining_sccs.insert(scc_set.begin(), scc_set.end());
     }
     if (! remaining_sccs.empty())
     {

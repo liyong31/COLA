@@ -46,10 +46,11 @@ namespace cola
         std::priority_queue<spot::twa_graph_ptr, std::vector<spot::twa_graph_ptr>, aut_compare> autlist;
         for (auto& aut : dpas_)
         {
+            aut = spot::acd_transform(aut);
             // spot::twa_graph_ptr tmp = spot::dualize(aut);
             spot::postprocessor p;
             // p.set_pref(spot::postprocessor::Rabin);
-            p.set_type(spot::postprocessor::Generic);
+            p.set_type(spot::postprocessor::Parity);
             p.set_pref(spot::postprocessor::Deterministic);
             // p.set_pref(spot::postprocessor::Parity);
             spot::twa_graph_ptr tmp = p.run(aut);

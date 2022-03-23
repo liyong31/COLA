@@ -165,7 +165,7 @@ namespace cola
   /// Output a vector res such that res[i + scccount*j] = 1 iff SCC i is reachable from SCC j
   std::vector<bool>
   find_scc_paths(const spot::scc_info &scc);
-  /// Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC 
+  /// Output a vector res such that res[i + (j+1)*j/2] = 1 iff SCC i is reachable from SCC j
   /// Must ensure that j >= i
   std::vector<bool>
   find_scc_paths_(const spot::scc_info &scc);
