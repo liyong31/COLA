@@ -52,7 +52,7 @@ namespace cola
             p.set_pref(spot::postprocessor::Deterministic);
             // p.set_pref(spot::postprocessor::Parity);
             spot::twa_graph_ptr tmp = p.run(aut);
-            std::cout << "input is_deterministic: " << spot::is_deterministic(tmp) << std::endl;
+            // std::cout << "input is_deterministic: " << spot::is_deterministic(tmp) << std::endl;
 
             if (tmp->num_states() >= aut->num_states())
             {
