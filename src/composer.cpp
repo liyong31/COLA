@@ -26,6 +26,7 @@
 #include <spot/twaalgos/product.hh>
 #include <spot/twaalgos/dualize.hh>
 #include <spot/twaalgos/zlktree.hh>
+#include <spot/twaalgos/isdet.hh>
 
 namespace cola
 {
@@ -47,9 +48,11 @@ namespace cola
             // spot::twa_graph_ptr tmp = spot::dualize(aut);
             spot::postprocessor p;
             // p.set_pref(spot::postprocessor::Rabin);
+            p.set_type(spot::postprocessor::Generic);
             p.set_pref(spot::postprocessor::Deterministic);
-            p.set_pref(spot::postprocessor::Parity);
+            // p.set_pref(spot::postprocessor::Parity);
             spot::twa_graph_ptr tmp = p.run(aut);
+            std::cout << "input is_deterministic: " << spot::is_deterministic(tmp) << std::endl;
 
             if (tmp->num_states() >= aut->num_states())
             {
@@ -66,18 +69,16 @@ namespace cola
             autlist.pop();
 
             spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
-
             // only make it smaller when it is not the final result
-            // if (autlist.size() > 0)
-            // {
                     // postprocessing
             spot::postprocessor p;
                 // p.set_pref(spot::postprocessor::Rabin);
                 // p.set_pref(spot::postprocessor::Parity);
+            p.set_type(spot::postprocessor::Generic);
             p.set_pref(spot::postprocessor::Deterministic);
-            p.set_pref(spot::postprocessor::Small);
+            p.set_level(spot::postprocessor::Low);
+            // p.set_pref(spot::postprocessor::Small);
             res = p.run(res);
-            // }
             
             autlist.push(res);
         }

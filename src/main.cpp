@@ -87,7 +87,7 @@ Optimizations:
     --more-acc-egdes      Enumerate elementary cycles for obtaining more accepting egdes 
     --delayed-sim         Use delayed simulation for determinization
     --trans-pruning=[INT] Number to limit the transition pruning in simulation (default=512) 
-    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs (deprecated)
+    --decompose=[NUM-SCC] Use SCC decomposition to determinizing small BAs
     --unambiguous         Check whether the input is unambiguous and use this fact in determinization
     --max-sim=[INT]       Maximal number of states in the input to enable simulation (default=INT_MAX)
 

@@ -32,7 +32,12 @@ decomposer::run()
     std::vector<spot::twa_graph_ptr> result;
     spot::scc_info si(nba_, spot::scc_info_options::ALL);
 
-    std::vector<bool> reach_sccs = find_scc_paths(si);
+    if (num_nbas_ == -1)
+    {
+        num_nbas_ = si.scc_count();
+    }
+
+    std::vector<bool> reach_sccs = find_scc_paths_(si);
 
     struct pair_compare
     {
@@ -91,7 +96,8 @@ decomposer::make_twa_with_scc(spot::scc_info& si, std::set<unsigned> sccs, std::
 
     auto scc_reach = [&si, &reach_sccs](unsigned s, unsigned t) -> bool
     {
-      return s == t || (reach_sccs[t + si.scc_count() * s]);
+      // compute the reachability 
+      return s == t || (s > t) && (reach_sccs[t + compute_median(s)]);
     };
     
     // now construct new DPAs
