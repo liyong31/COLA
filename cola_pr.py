@@ -7,6 +7,7 @@ import os
 import subprocess
 import getopt, sys
 import queue # import PriorityQueue
+import time
 # import heapq
 
 arg_list = [] ## the 
@@ -18,6 +19,8 @@ output_name = "dpa"
 suffix = ".hoa"
 cola_exe = "./cola" # please use exact path
 verbose = 0
+
+setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
 # check whether an SCC is inner deterministic
 def is_deterministic_scc(si, scc):
@@ -50,16 +53,54 @@ def get_all_files(path, file = ""):
 def run_command(arg, file_name):
     command = [cola_exe, '--determinize=ba', arg, '-o', output_bas + file_name, '--acd', '--parity', '--simulation', '--stutter', '--use-scc']
     subprocess.call(command)
+    return file_name
+    
+def compose_dpas2(p_queue):
+    while p_queue.qsize() > 1:
+        fst_num_states, fst_aut = p_queue.get() #heapq.heappop(hq)#
+        if verbose > 0: print ("get num = " + str(fst_num_states))
+        snd_num_states, snd_aut = p_queue.get() # heapq.heappop(hq)#
+        if verbose > 0: print ("get num = " + str(snd_num_states))
+        res_aut = spot.product_or(fst_aut, snd_aut)
+        if verbose > 0: print ("get res = " + str(res_aut.num_states()))
+        spot.simplify_acceptance_here(res_aut)
+        res_aut = res_aut.postprocess('generic', 'deterministic', 'low')
+        p_queue.put((res_aut.num_states(), res_aut))
 
 # given the list of automaton names
 def run_command_all(aut_names):
     pool = multiprocessing.Pool(processes = len(aut_names))
+    pool_results = []
     for aut_name in aut_names:
         filepath, filename = os.path.split(aut_name)
-        pool.apply_async(run_command, args=(aut_name, filename))
+        pool_results.append(pool.apply_async(run_command, args=(aut_name, filename)))
     pool.close()
+    res_aut = None
+    p_queue = queue.PriorityQueue()
+    
+    while len(pool_results) > 0:
+        to_remove = [] #avoid removing objects during for_loop
+        for r in pool_results:
+            # check if process is finished
+            if r.ready(): 
+                # print result (or do any operation with result)
+                filename = r.get()
+                # print(filename)
+                to_remove.append(r)
+                aut = spot.automaton(output_bas + filename)
+                aut = aut.postprocess('parity', 'deterministic', 'low')
+                #print ('current aut: ' + str(aut.num_states()))
+                p_queue.put((aut.num_states(), aut))
+        # compose
+        compose_dpas2(p_queue)
+        for remove in to_remove:
+            pool_results.remove(remove)
+    
+        #time.sleep(1) # ensures that this thread doesn't consume too much memory
     # waiting for all sub-processes finishing
     pool.join()
+    num_states, res_aut = p_queue.get() #heapq.heappop(hq)#
+    return res_aut
 
 # write decomposed automaton to files
 def write_aut_to_file(small_auts, file_name):
@@ -182,8 +223,8 @@ def main():
     #print(arg_list)
     small_auts = decompose_nba(file_name)
     aut_names = write_aut_to_file(small_auts, file_name)
-    run_command_all(aut_names)
-    res_aut = compose_dpas(aut_names)
+    res_aut = run_command_all(aut_names)
+    # res_aut = compose_dpas(aut_names)
     print(res_aut.to_str('hoa'))
     
 if __name__ == "__main__":
