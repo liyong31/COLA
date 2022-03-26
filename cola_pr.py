@@ -224,6 +224,9 @@ def main():
     small_auts = decompose_nba(file_name)
     aut_names = write_aut_to_file(small_auts, file_name)
     res_aut = run_command_all(aut_names)
+    # obtain parity output
+    res_aut = spot.acd_transform(res_aut)
+    res_aut = res_aut.postprocess('parity', 'deterministic', 'low')
     # res_aut = compose_dpas(aut_names)
     print(res_aut.to_str('hoa'))
     
