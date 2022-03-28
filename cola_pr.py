@@ -9,6 +9,8 @@ import getopt, sys
 import queue # import PriorityQueue
 import time
 import argparse
+import shutil
+
 # import heapq
 
 
@@ -26,8 +28,8 @@ verbose = 0
 parity = False
 
 arg_list = [] ## the 
-output_bas = "outputs/"
-input_bas = "inputs/"
+output_bas = "cola-outputs/"
+input_bas = "cola-inputs/"
 suffix = ".hoa"
 cola_exe = "./cola" # please use exact path
 input_file = ""
@@ -282,6 +284,12 @@ def compose_dpas2(aut_names):
     num_states, res_aut = p_queue.get() #heapq.heappop(hq)#
     return res_aut
     # only one left
+    
+def clean():
+    if os.path.exists(input_bas) and os.path.isdir(input_bas):
+        shutil.rmtree(input_bas)
+    if os.path.exists(output_bas) and os.path.isdir(output_bas):
+        shutil.rmtree(output_bas)    
 
 def main():
     setup()
@@ -311,6 +319,9 @@ def main():
         res_aut = res_aut.postprocess('parity', 'deterministic', 'low')
     # res_aut = compose_dpas(aut_names)
     print(res_aut.to_str('hoa'))
+    
+    if not verbose:
+        clean()
     
 if __name__ == "__main__":
     main()
