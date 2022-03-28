@@ -55,7 +55,7 @@ def run_command(arg, file_name):
     subprocess.call(command)
     return file_name
     
-def compose_dpas2(p_queue):
+def compose_dpas(p_queue):
     while p_queue.qsize() > 1:
         fst_num_states, fst_aut = p_queue.get() #heapq.heappop(hq)#
         if verbose > 0: print ("get num = " + str(fst_num_states))
@@ -92,7 +92,7 @@ def run_command_all(aut_names):
                 #print ('current aut: ' + str(aut.num_states()))
                 p_queue.put((aut.num_states(), aut))
         # compose
-        compose_dpas2(p_queue)
+        compose_dpas(p_queue)
         for remove in to_remove:
             pool_results.remove(remove)
     
@@ -154,17 +154,18 @@ def decompose_nba(file_name):
     # in case the language is empty
     if len(small_auts) == 0:
         small_auts.append(make_empty_nba(aut.get_dict()))
-        
-    # now do postprocessing on each of them
-    res_auts = []
-    for sub_aut in small_auts:
-        sub_aut = sub_aut.postprocess('low', 'buchi')
-        res_auts.append(sub_aut)
     
-    return res_auts
+    return small_auts
+    # now do postprocessing on each of them, this will be done in CPP code in cola
+#    res_auts = []
+#    for sub_aut in small_auts:
+#        sub_aut = sub_aut.postprocess('low', 'buchi')
+#        res_auts.append(sub_aut)
+    
+#    return res_auts
     
 
-def compose_dpas(aut_names):
+def compose_dpas2(aut_names):
     global verbose
     p_queue = queue.PriorityQueue()
     setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
