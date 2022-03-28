@@ -26,6 +26,7 @@ sim_str = ""
 stu_str = ""
 verbose = 0
 parity = False
+compl = False
 
 arg_list = [] ## the 
 output_bas = "cola-outputs/"
@@ -37,9 +38,9 @@ input_file = ""
 
 
 header="""
------------------
+---------------------------------------------------------------
 COLA -- A determinization library for Büchi automata
------------------
+---------------------------------------------------------------
   
   Reads a nondeterministic Büchi automaton and transforms it to 
   deterministic Emerson-Lei automaton
@@ -48,7 +49,7 @@ COLA -- A determinization library for Büchi automata
   
   Please report bugs via email (liyong@ios.ac.cn) or on 
   github (https://github.com/liyong31/COLA)	
----------------------------------
+---------------------------------------------------------------
 """
 
 short_header="""COLA -- A determinization library for nondeterministic Büchi automata
@@ -58,11 +59,12 @@ def getopts(header):
     p = argparse.ArgumentParser(description=str(header), formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
 #    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
-    p.add_argument('--merge',             help='Use state-merging after determinization construction', action="count", default=0)
-    p.add_argument('--stutter',             help='Use stutter-invarince in determinization construction', action="count", default=0)
-    p.add_argument('--sim',             help='Use simulation relation in determinization construction', action="count", default=0)
+    p.add_argument('--comp',            help='Output complement automaton after determinization', action="count", default=0)
+    p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
+    p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
+    p.add_argument('--sim',             help='Use simulation relation in determinization', action="count", default=0)
     p.add_argument('--parity',          help='Output deterministic Parity automaton', action="count", default=0)
-    p.add_argument('--verbose',            help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
+    p.add_argument('--verbose',         help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
     args, leftovers = p.parse_known_args()
     return args, p.parse_args()
     
@@ -74,6 +76,7 @@ def setup():
     global sim_str
     global stu_str
     global mgr_str
+    global compl
     
     
     known, opts = getopts(header)
@@ -100,9 +103,12 @@ def setup():
     
     if (opts.parity > 0):
         parity = True
+    
+    if (opts.comp > 0):
+        compl = True
         
     if verbose > 0:
-        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity))
+        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity) + ", " + str(compl))
 
 setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
@@ -317,6 +323,10 @@ def main():
     if parity:
         res_aut = spot.acd_transform(res_aut)
         res_aut = res_aut.postprocess('parity', 'deterministic', 'low')
+    # output complement automaton    
+    if compl:
+        res_aut = spot.dualize(res_aut)
+        res_aut = res_aut.postprocess('buchi', 'low')
     # res_aut = compose_dpas(aut_names)
     print(res_aut.to_str('hoa'))
     
