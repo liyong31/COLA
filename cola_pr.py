@@ -8,17 +8,99 @@ import subprocess
 import getopt, sys
 import queue # import PriorityQueue
 import time
+import argparse
 # import heapq
 
-arg_list = [] ## the 
 
+ARG_MGR_STR = "--use-scc"
+ARG_SIM_STR = "--simulation"
+# ARG_ACD_STR = "--acd"
+ARG_STU_STR = "--stutter"
+ARG_VERB_LEVEL = 0
+
+mgr_str = ""
+sim_str = ""
+# acd_str = ""
+stu_str = ""
+verbose = 0
+parity = False
+
+arg_list = [] ## the 
 output_bas = "outputs/"
 input_bas = "inputs/"
-input_name = "nba"
-output_name = "dpa"
 suffix = ".hoa"
 cola_exe = "./cola" # please use exact path
-verbose = 0
+input_file = ""
+
+
+
+header="""
+-----------------
+COLA -- A determinization library for Büchi automata
+-----------------
+  
+  Reads a nondeterministic Büchi automaton and transforms it to 
+  deterministic Emerson-Lei automaton
+  
+  Copyright (c) 2022 - Present  COLA authors
+  
+  Please report bugs via email (liyong@ios.ac.cn) or on 
+  github (https://github.com/liyong31/COLA)	
+---------------------------------
+"""
+
+short_header="""COLA -- A determinization library for nondeterministic Büchi automata
+Copyright (c) 2022 - Present  COLA authors"""
+
+def getopts(header):
+    p = argparse.ArgumentParser(description=str(header), formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
+#    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
+    p.add_argument('--merge',             help='Use state-merging after determinization construction', action="count", default=0)
+    p.add_argument('--stutter',             help='Use stutter-invarince in determinization construction', action="count", default=0)
+    p.add_argument('--sim',             help='Use simulation relation in determinization construction', action="count", default=0)
+    p.add_argument('--parity',          help='Output deterministic Parity automaton', action="count", default=0)
+    p.add_argument('--verbose',            help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
+    args, leftovers = p.parse_known_args()
+    return args, p.parse_args()
+    
+def setup():
+    global opts
+    global input_file
+    global verbose
+    global parity
+    global sim_str
+    global stu_str
+    global mgr_str
+    
+    
+    known, opts = getopts(header)
+    
+    if not os.path.isfile(opts.file):
+        raise Exception("Unable to find file: %s" % opts.file)
+    input_file = opts.file
+
+    #print(opts.acd)
+    #if (opts.acd > 0):
+    #    acd_str = ARG_ACD_STR
+    
+    if (opts.sim > 0):
+        sim_str = ARG_SIM_STR
+    
+    if (opts.merge > 0):
+        mgr_str = ARG_MGR_STR
+        
+    if (opts.stutter > 0):
+        stu_str = ARG_STU_STR
+        
+    if (opts.verbose > 0):
+        verbose = opts.verbose
+    
+    if (opts.parity > 0):
+        parity = True
+        
+    if verbose > 0:
+        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity))
 
 setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
@@ -51,7 +133,17 @@ def get_all_files(path, file = ""):
         arg_list.append(path + tmp)
 
 def run_command(arg, file_name):
-    command = [cola_exe, '--determinize=ba', arg, '-o', output_bas + file_name, '--acd', '--parity', '--simulation', '--stutter', '--use-scc']
+    command = [cola_exe, '--determinize=ba', arg, '-o', output_bas + file_name, '--acd', '--parity']
+    
+    if sim_str:
+        command.append(sim_str)
+    if stu_str:
+        command.append(stu_str)
+    if mgr_str:
+        command.append(mgr_str)
+
+    if verbose > 0:
+        print(command)
     subprocess.call(command)
     return file_name
     
@@ -85,7 +177,7 @@ def run_command_all(aut_names):
             if r.ready(): 
                 # print result (or do any operation with result)
                 filename = r.get()
-                # print(filename)
+                #print(filename)
                 to_remove.append(r)
                 aut = spot.automaton(output_bas + filename)
                 aut = aut.postprocess('parity', 'deterministic', 'low')
@@ -104,7 +196,6 @@ def run_command_all(aut_names):
 
 # write decomposed automaton to files
 def write_aut_to_file(small_auts, file_name):
-    global verbose
     # get file name
     filepath, aut_name = os.path.split(file_name)
 
@@ -122,7 +213,6 @@ def write_aut_to_file(small_auts, file_name):
     return aut_names
     
 def decompose_nba(file_name):
-    global verbose
     aut = spot.automaton(file_name)
     # now prepare to decompose this NBA
     if verbose > 0:
@@ -166,7 +256,7 @@ def decompose_nba(file_name):
     
 
 def compose_dpas2(aut_names):
-    global verbose
+
     p_queue = queue.PriorityQueue()
     setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
     
@@ -194,28 +284,18 @@ def compose_dpas2(aut_names):
     # only one left
 
 def main():
-    opts, args = getopt.getopt(sys.argv[1:], 'f:v:', )
-    #print(opts)
-    #print(args)
-    global verbose
+    setup()
+    
     if not os.path.isdir(input_bas):
         os.mkdir(input_bas)
     if not os.path.isdir(output_bas):
         os.mkdir(output_bas)
     
-    file_name = None
-    for prefix, arg in opts:
-        if prefix == '-f':
-            file_name = arg
-        if prefix == '-v':
-            verbose = int(arg)
-            
-
-    if file_name is None:
-        print("File may not exist")
-        exit(1)
+    file_name = input_file
     
-    if verbose > 0: print(file_name)
+    if verbose > 0:
+        print("Input file name: " + file_name)
+    
     if not os.path.exists(file_name):
         print(file_name + " not exists")
         exit(1)
@@ -226,8 +306,9 @@ def main():
     aut_names = write_aut_to_file(small_auts, file_name)
     res_aut = run_command_all(aut_names)
     # obtain parity output
-    res_aut = spot.acd_transform(res_aut)
-    res_aut = res_aut.postprocess('parity', 'deterministic', 'low')
+    if parity:
+        res_aut = spot.acd_transform(res_aut)
+        res_aut = res_aut.postprocess('parity', 'deterministic', 'low')
     # res_aut = compose_dpas(aut_names)
     print(res_aut.to_str('hoa'))
     
