@@ -173,7 +173,8 @@ def main():
     p_queue = queue.PriorityQueue()
     for child in f:
         if verbose > 0: print(child)        
-        aut = child.translate('deterministic', 'parity')
+        aut = child.translate('deterministic', 'generic')
+        aut = spot.acd_transform(aut)
         #print(aut.to_str('HOA'))
         p_queue.put((aut.num_states(), aut))
         
