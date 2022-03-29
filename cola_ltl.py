@@ -167,19 +167,21 @@ def translate_ltl_to_dela(f_str):
         return make_empty_nba()
     if verbose > 0:
         print('Input formula: ' + f.to_str('spot'))
+    
     ap_set = spot.atomic_prop_collect(f)
     ap_map = {}
     count = 0
-    f_str = spot.str_psl(f, True)
+    new_f_str = spot.str_psl(f, True)
     for ap in ap_set:
         to_str = '_a_' + str(count)
         ap_map[ap] = to_str
         if verbose > 0: print(str(ap) + ' -> ' + to_str)
-        f_str = f_str.replace(str(ap), to_str)
+        new_f_str = new_f_str.replace(str(ap), to_str)
         count += 1
     
-    #print("replaced: " + f_str)
-    command = [owl_exe, 'ltl2delta2', '-f', f_str]
+    if verbose > 0: print("replaced: " + new_f_str)
+    
+    command = [owl_exe, 'ltl2delta2', '-f', new_f_str]
     if verbose > 0: print(command)
     
     ret_formula = None
@@ -192,12 +194,14 @@ def translate_ltl_to_dela(f_str):
         print(ret_formula)
     if not ret_formula:
         print('error')
+        
+    if len(ret_formula) < 10 * len(f_str):
+        #return make_empty_nba()
+        # change atomic propositions back
+        for ap in ap_set:
+            ret_formula = ret_formula.replace(ap_map[ap], str(ap))
+        f = spot.formula(ret_formula)
     
-    # change atomic propositions back
-    for ap in ap_set:
-        ret_formula = ret_formula.replace(ap_map[ap], str(ap))
-    
-    f = spot.formula(ret_formula)
     if verbose > 0 : print(f)
     if f == spot.formula.ff():
         return make_empty_nba()
@@ -208,11 +212,12 @@ def translate_ltl_to_dela(f_str):
     p_queue = queue.PriorityQueue()
     
     f_list = []
-    if f.size() <= 1:
-        f_list.append(f)
-    else:
+    if f.kind() == spot.op_Or:
         for child in f:
             f_list.append(f)
+    else:
+        f_list.append(f)
+
     for child in f_list:
         if verbose > 0: print(child)        
         aut = child.translate('deterministic', 'generic')
