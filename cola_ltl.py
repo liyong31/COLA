@@ -74,6 +74,16 @@ def getopts(header):
     args, leftovers = p.parse_known_args()
     return args, p.parse_args()
     
+    
+def make_empty_nba():
+    bdict = spot.make_bdd_dict();
+    aut = spot.make_twa_graph(bdict)
+    aut.set_acceptance(1, "Inf(0)");
+    aut.new_states(1)
+    aut.set_init_state(0)
+    aut.new_edge(0, 0, buddy.bddtrue)
+    return aut
+    
 def setup():
     global opts
     global input_file
@@ -127,7 +137,8 @@ def setup():
 setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
 # make an NBA with empty language
-def make_empty_nba(bdict):
+def make_empty_nba():
+    bdict = spot.make_bdd_dict();
     aut = spot.make_twa_graph(bdict)
     aut.set_acceptance(1, "Inf(0)");
     aut.new_states(1)
@@ -151,6 +162,9 @@ def translate_ltl_to_dela(f_str):
 
     f_str = f_str.replace('!', '! ')
     f = spot.formula(f_str)
+    
+    if f == spot.formula.ff():
+        return make_empty_nba()
     if verbose > 0:
         print('Input formula: ' + f.to_str('spot'))
     ap_set = spot.atomic_prop_collect(f)
@@ -167,6 +181,7 @@ def translate_ltl_to_dela(f_str):
     #print("replaced: " + f_str)
     command = [owl_exe, 'ltl2delta2', '-f', f_str]
     if verbose > 0: print(command)
+    
     ret_formula = None
     try:
         ret_formula = subprocess.check_output(command)
@@ -184,11 +199,14 @@ def translate_ltl_to_dela(f_str):
     
     f = spot.formula(ret_formula)
     if verbose > 0 : print(f)
+    if f == spot.formula.ff():
+        return make_empty_nba()
     ## the formula should be big disjunction
     #if (f.kind() == spot.op_Or):
     #    print >> sys.stderr, "Execution failed:", e
     ## obtain the children
     p_queue = queue.PriorityQueue()
+    
     for child in f:
         if verbose > 0: print(child)        
         aut = child.translate('deterministic', 'generic')
