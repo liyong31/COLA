@@ -43,7 +43,7 @@ owl_exe = "../../CAV/COLA/owl"
 
 header="""
 ---------------------------------------------------------------
-COLA -- A library for Büchi automata and for LTL
+COLA -- A library for Büchi automata and LTL
 ---------------------------------------------------------------
   
   Reads a file with linear temporal logic and transforms it to 
@@ -56,21 +56,21 @@ COLA -- A library for Büchi automata and for LTL
 ---------------------------------------------------------------
 """
 
-short_header="""COLA -- A determinization library for nondeterministic Büchi automata
+short_header="""COLA -- A library for Büchi automata and LTL
 Copyright (c) 2022 - Present  COLA authors"""
 
 def getopts(header):
     p = argparse.ArgumentParser(description=str(header), formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
+    p.add_argument('input',    help='file name or the formula string', type=str)
 #    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
-    p.add_argument('--comp',            help='Compare with complement and output', action="count", default=0)
-    p.add_argument('--owlexe',         help='Specify where the OWL executable is', type=str, default=0)
+    p.add_argument('--comp',             help='compare with complement and output', action="count", default=0)
+    p.add_argument('--owlexe',           help='cpecify where the OWL executable is', type=str, default=0)
 #    p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
 #    p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
 #    p.add_argument('--sim',             help='Use simulation relation in determinization', action="count", default=0)
 #    p.add_argument('--pariwc',          help='Handle IWC separately in determinization', action="count", default=0)
-    p.add_argument('--parity',          help='Output deterministic Parity automaton', action="count", default=0)
-    p.add_argument('--verbose',         help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
+    p.add_argument('--parity',          help='output deterministic Parity automaton', action="count", default=0)
+    p.add_argument('--verbose',         help='verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
     args, leftovers = p.parse_known_args()
     return args, p.parse_args()
     
@@ -89,9 +89,9 @@ def setup():
     
     known, opts = getopts(header)
     
-    if not os.path.isfile(opts.file):
-        raise Exception("Unable to find file: %s" % opts.file)
-    input_file = opts.file
+    #if not os.path.isfile(opts.input):
+    #    raise Exception("Unable to find file: %s" % opts.file)
+    input_file = opts.input
 
     #print(opts.acd)
     #if (opts.acd > 0):
@@ -147,12 +147,25 @@ def compose_dpas(p_queue):
         res_aut = res_aut.postprocess('generic', 'deterministic', 'low')
         p_queue.put((res_aut.num_states(), res_aut))
 
+def translate_ltl_to_dela(f_str):
 
-
-def main():
-    setup()
-    # relies on owl to obtain the delta2 form
-    command = [owl_exe, 'ltl2delta2', '-i', input_file]
+    f_str = f_str.replace('!', '! ')
+    f = spot.formula(f_str)
+    if verbose > 0:
+        print('Input formula: ' + f.to_str('spot'))
+    ap_set = spot.atomic_prop_collect(f)
+    ap_map = {}
+    count = 0
+    f_str = spot.str_psl(f, True)
+    for ap in ap_set:
+        to_str = '_a_' + str(count)
+        ap_map[ap] = to_str
+        if verbose > 0: print(str(ap) + ' -> ' + to_str)
+        f_str = f_str.replace(str(ap), to_str)
+        count += 1
+    
+    #print("replaced: " + f_str)
+    command = [owl_exe, 'ltl2delta2', '-f', f_str]
     if verbose > 0: print(command)
     ret_formula = None
     try:
@@ -164,6 +177,11 @@ def main():
         print(ret_formula)
     if not ret_formula:
         print('error')
+    
+    # change atomic propositions back
+    for ap in ap_set:
+        ret_formula = ret_formula.replace(ap_map[ap], str(ap))
+    
     f = spot.formula(ret_formula)
     if verbose > 0 : print(f)
     ## the formula should be big disjunction
@@ -174,16 +192,31 @@ def main():
     for child in f:
         if verbose > 0: print(child)        
         aut = child.translate('deterministic', 'generic')
-        aut = spot.acd_transform(aut)
+        aut = aut.postprocess('deterministic', 'generic', 'low')
+        #aut = spot.acd_transform(aut).postprocess('deterministic', 'parity')
         #print(aut.to_str('HOA'))
         p_queue.put((aut.num_states(), aut))
         
     ## now we compose into one
     compose_dpas(p_queue)
     num_states, res_aut = p_queue.get() #heapq.heappop(hq)#
-    if parity:
-        res_aut = spot.acd_transform(res_aut)
-    print(res_aut.to_str('HOA'))
+    
+    return res_aut
+
+def main():
+    setup()
+    # relies on owl to obtain the delta2 form
+    f_list = []
+    if not os.path.exists(input_file):
+        f_list.append(input_file)
+    else:
+        f_file = open(input_file, 'r')
+        f_list = f_file.readlines()
+    for line in f_list:
+        res_aut = translate_ltl_to_dela(line)
+        if parity:
+            res_aut = spot.acd_transform(res_aut)
+        print(res_aut.to_str('HOA'))
     
 if __name__ == "__main__":
     main()
