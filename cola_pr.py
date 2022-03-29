@@ -19,6 +19,7 @@ ARG_SIM_STR = "--simulation"
 # ARG_ACD_STR = "--acd"
 ARG_STU_STR = "--stutter"
 ARG_VERB_LEVEL = 0
+ARG_IWC_PAR = 0
 
 mgr_str = ""
 sim_str = ""
@@ -27,6 +28,7 @@ stu_str = ""
 verbose = 0
 parity = False
 compl = False
+pariwc = False
 
 arg_list = [] ## the 
 output_bas = "cola-outputs/"
@@ -63,6 +65,7 @@ def getopts(header):
     p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
     p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
     p.add_argument('--sim',             help='Use simulation relation in determinization', action="count", default=0)
+    p.add_argument('--pariwc',         help='Handle IWC separately in determinization', action="count", default=0)
     p.add_argument('--parity',          help='Output deterministic Parity automaton', action="count", default=0)
     p.add_argument('--verbose',         help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
     args, leftovers = p.parse_known_args()
@@ -77,6 +80,7 @@ def setup():
     global stu_str
     global mgr_str
     global compl
+    global pariwc
     
     
     known, opts = getopts(header)
@@ -107,8 +111,11 @@ def setup():
     if (opts.comp > 0):
         compl = True
         
+    if (opts.pariwc > 0):
+        pariwc = True
+        
     if verbose > 0:
-        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity) + ", " + str(compl))
+        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity) + ", " + str(compl) + ", " + str(pariwc))
 
 setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
@@ -227,6 +234,9 @@ def decompose_nba(file_name):
         print("Number of states in the input: " + str(aut.num_states()))
     si = spot.scc_info(aut)
     
+    num_iwcs = 0
+    num_others = 0
+
     # now decompose for DACs and NACs
     small_auts = []
     weak_count = "" # accepting weak SCC counts
@@ -235,14 +245,24 @@ def decompose_nba(file_name):
             # only keep those SCCs as accepting
             other_aut =  spot.decompose_scc(si, str(scc))
             small_auts.append(other_aut)
+            num_others += 1
         elif spot.is_inherently_weak_scc(si, scc) and si.is_accepting_scc(scc):
-            if len(weak_count) == 0:
-                weak_count = str(scc)
+            if pariwc:
+                other_aut =  spot.decompose_scc(si, str(scc))
+                small_auts.append(other_aut)
+                num_iwcs += 1
             else:
-                weak_count += "," + str(scc)
-    if len(weak_count) > 0:
+                if len(weak_count) == 0:
+                    weak_count = str(scc)
+                else:
+                    weak_count += "," + str(scc)
+    if weak_count:
         weak_aut = spot.decompose_scc(si, weak_count)
         small_auts.append(weak_aut)
+        num_iwcs += 1
+    
+    if verbose > 0:
+        print("#IWCS, #OTHERS: " + str(num_iwcs) + ", " + str(num_others))
         
     if verbose > 1:
         for other_aut in small_auts:
