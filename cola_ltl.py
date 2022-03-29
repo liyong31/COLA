@@ -37,6 +37,8 @@ suffix = ".hoa"
 cola_exe = "./cola" # please use exact path
 input_file = ""
 
+owl_exe = "../../CAV/COLA/owl"
+
 
 
 header="""
@@ -62,6 +64,7 @@ def getopts(header):
     p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
 #    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
     p.add_argument('--comp',            help='Compare with complement and output', action="count", default=0)
+    p.add_argument('--owlexe',         help='Specify where the OWL executable is', type=str, default=0)
 #    p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
 #    p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
 #    p.add_argument('--sim',             help='Use simulation relation in determinization', action="count", default=0)
@@ -81,6 +84,7 @@ def setup():
     global mgr_str
     global compl
     global pariwc
+    global owl_exe
     
     
     known, opts = getopts(header)
@@ -110,6 +114,9 @@ def setup():
     
     if (opts.comp > 0):
         compl = True
+        
+    if (opts.owlexe):
+        owl_exe = opts.owlexe
         
     #if (opts.pariwc > 0):
     #    pariwc = True
@@ -141,7 +148,6 @@ def compose_dpas(p_queue):
         p_queue.put((res_aut.num_states(), res_aut))
 
 
-owl_exe = "../../CAV/COLA/owl"
 
 def main():
     setup()
