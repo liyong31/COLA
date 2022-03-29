@@ -207,7 +207,13 @@ def translate_ltl_to_dela(f_str):
     ## obtain the children
     p_queue = queue.PriorityQueue()
     
-    for child in f:
+    f_list = []
+    if f.size() <= 1:
+        f_list.append(f)
+    else:
+        for child in f:
+            f_list.append(f)
+    for child in f_list:
         if verbose > 0: print(child)        
         aut = child.translate('deterministic', 'generic')
         aut = aut.postprocess('deterministic', 'generic', 'low')
