@@ -10,6 +10,8 @@ import queue # import PriorityQueue
 import time
 import argparse
 import shutil
+# replace all ap in f_str with ap_map[ap]
+import re
 
 # import heapq
 
@@ -157,6 +159,56 @@ def compose_dpas(p_queue):
         spot.simplify_acceptance_here(res_aut)
         res_aut = res_aut.postprocess('generic', 'deterministic', 'low')
         p_queue.put((res_aut.num_states(), res_aut))
+        
+def construct_from_ltl(f, filename):
+    #command = [cola_exe, '--determinize=ba', arg, '-o', output_bas + file_name, '--acd', '--parity']
+    aut = child.translate('deterministic', 'generic')
+    aut = aut.postprocess('deterministic', 'generic', 'low')
+    return aut
+    
+# given the list of automaton names
+def run_translation(f_list):
+    pool = multiprocessing.Pool(processes = len(f_list))
+    pool_results = []
+    for child in f_list:
+        pool_results.append(pool.apply_async(construct_from_ltl, args=(child)))
+    pool.close()
+    
+    res_aut = None
+    p_queue = queue.PriorityQueue()
+    
+    while len(pool_results) > 0:
+        to_remove = [] #avoid removing objects during for_loop
+        for r in pool_results:
+            # check if process is finished
+            if r.ready(): 
+                # print result (or do any operation with result)
+                aut = r.get()
+                #print(filename)
+                to_remove.append(r)
+                #print ('current aut: ' + str(aut.num_states()))
+                p_queue.put((aut.num_states(), aut))
+        # compose
+        compose_dpas(p_queue)
+        for remove in to_remove:
+            pool_results.remove(remove)
+    
+        #time.sleep(1) # ensures that this thread doesn't consume too much memory
+    # waiting for all sub-processes finishing
+    pool.join()
+    num_states, res_aut = p_queue.get() #heapq.heappop(hq)#
+    return res_aut
+
+
+
+
+#lambda-based implementation
+def multiple_replace(adict, text):
+  # Create a regular expression from all of the dictionary keys
+  regex = re.compile("|".join(map(re.escape, adict.keys(  ))))
+  # For each match, look up the corresponding value in the dictionary
+  return regex.sub(lambda match: adict[match.group(0)], text)
+
 
 def translate_ltl_to_dela(f_str):
 
@@ -169,16 +221,25 @@ def translate_ltl_to_dela(f_str):
         print('Input formula: ' + f.to_str('spot'))
     
     ap_set = spot.atomic_prop_collect(f)
+    ap_str_list = []
+    for ap in ap_set:
+        ap_str_list.append(str(ap))
+    ap_str_list.sort()
     ap_map = {}
+    ap_rmap = {}
     count = 0
     new_f_str = spot.str_psl(f, True)
-    for ap in ap_set:
-        to_str = '_a_' + str(count)
-        ap_map[ap] = to_str
-        if verbose > 0: print(str(ap) + ' -> ' + to_str)
-        new_f_str = new_f_str.replace(str(ap), to_str)
+    prefix = '_xxx_a_XXX_Y'
+    for ap in ap_str_list:
+        to_str = '(' + prefix + str(count) + ')'
+        from_str = '(' + ap + ')'
+        ap_map[from_str] = to_str
+        ap_rmap[to_str] = from_str
+        if verbose > 0: print(from_str + ' -> ' + to_str)
+        #new_f_str = new_f_str.replace(str(ap), to_str)
         count += 1
     
+    new_f_str = multiple_replace(ap_map, new_f_str)
     if verbose > 0: print("replaced: " + new_f_str)
     
     command = [owl_exe, 'ltl2delta2', '-f', new_f_str]
@@ -190,16 +251,18 @@ def translate_ltl_to_dela(f_str):
     except OSError as e:
         print >> sys.stderr, "Execution failed:", e
     ret_formula = str(ret_formula.decode("utf-8")).strip().replace('!', '! ')
-    if verbose > 0 and ret_formula:
-        print(ret_formula)
+    #if verbose > 0 and ret_formula:
+    #    print(ret_formula)
     if not ret_formula:
-        print('error')
+        print('error output from owl')
+        exit(1)
         
     if len(ret_formula) < 10 * len(f_str):
         #return make_empty_nba()
         # change atomic propositions back
-        for ap in ap_set:
-            ret_formula = ret_formula.replace(ap_map[ap], str(ap))
+        new_f = spot.formula(ret_formula)
+        new_f_str = spot.str_psl(new_f, True)
+        ret_formula = multiple_replace(ap_rmap, new_f_str)
         f = spot.formula(ret_formula)
     
     if verbose > 0 : print(f)
@@ -209,7 +272,7 @@ def translate_ltl_to_dela(f_str):
     #if (f.kind() == spot.op_Or):
     #    print >> sys.stderr, "Execution failed:", e
     ## obtain the children
-    p_queue = queue.PriorityQueue()
+    
     
     f_list = []
     if f.kind() == spot.op_Or:
@@ -217,7 +280,10 @@ def translate_ltl_to_dela(f_str):
             f_list.append(f)
     else:
         f_list.append(f)
-
+    
+    #return run_translation(f_list)
+    
+    p_queue = queue.PriorityQueue()
     for child in f_list:
         if verbose > 0: print(child)        
         aut = child.translate('deterministic', 'generic')
