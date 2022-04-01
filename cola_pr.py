@@ -28,7 +28,9 @@ stu_str = ""
 verbose = 0
 parity = False
 compl = False
-pariwc = False
+pariwc = False 
+num_workers = 0
+
 
 arg_list = [] ## the 
 output_bas = "cola-outputs/"
@@ -58,6 +60,7 @@ short_header="""COLA -- A determinization library for nondeterministic Büchi au
 Copyright (c) 2022 - Present  COLA authors"""
 
 def getopts(header):
+    num_cores = multiprocessing.cpu_count()
     p = argparse.ArgumentParser(description=str(header), formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
 #    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
@@ -65,8 +68,9 @@ def getopts(header):
     p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
     p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
     p.add_argument('--sim',             help='Use simulation relation in determinization', action="count", default=0)
-    p.add_argument('--pariwc',         help='Handle IWC separately in determinization', action="count", default=0)
+    p.add_argument('--pariwc',          help='Handle IWC separately in determinization', action="count", default=0)
     p.add_argument('--parity',          help='Output deterministic Parity automaton', action="count", default=0)
+    p.add_argument('--workers',         help='Number of workers (default: %s)' % num_cores, type=int, default=num_cores)
     p.add_argument('--verbose',         help='Verbose level (default: %s)' % ARG_VERB_LEVEL, type=int, default=ARG_VERB_LEVEL)
     args, leftovers = p.parse_known_args()
     return args, p.parse_args()
@@ -81,7 +85,9 @@ def setup():
     global mgr_str
     global compl
     global pariwc
+    global num_workers
     
+    num_workers = multiprocessing.cpu_count()
     
     known, opts = getopts(header)
     
@@ -114,8 +120,11 @@ def setup():
     if (opts.pariwc > 0):
         pariwc = True
         
+    if not (opts.workers == num_workers):
+        num_workers = opts.workers
+        
     if verbose > 0:
-        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity) + ", " + str(compl) + ", " + str(pariwc))
+        print("setting: " + sim_str + ", " + mgr_str + ", " + stu_str + ", " + str(parity) + ", " + str(compl) + ", " + str(pariwc) + ", " + str(num_workers))
 
 setattr(spot.twa_graph, "__lt__", lambda self, other: self.num_states() <= other.num_states())
 
@@ -176,7 +185,7 @@ def compose_dpas(p_queue):
 
 # given the list of automaton names
 def run_command_all(aut_names):
-    pool = multiprocessing.Pool(processes = len(aut_names))
+    pool = multiprocessing.Pool(processes = num_workers)
     pool_results = []
     for aut_name in aut_names:
         filepath, filename = os.path.split(aut_name)
