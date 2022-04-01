@@ -185,6 +185,11 @@ def compose_dpas(p_queue):
 
 # given the list of automaton names
 def run_command_all(aut_names):
+    global num_workers
+    
+    if num_workers == 0:
+        num_workers = len(aut_names)
+    
     pool = multiprocessing.Pool(processes = num_workers)
     pool_results = []
     for aut_name in aut_names:
