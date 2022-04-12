@@ -24,6 +24,7 @@
 #include <deque>
 #include <map>
 #include <set>
+#include <unordered_set>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -36,7 +37,7 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
-// #include <spot/misc/bddlt.hh>
+#include <spot/misc/bddlt.hh>
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
@@ -1608,6 +1609,8 @@ public:
   void
   compute_letters(const std::set<unsigned>& set, std::vector<bdd>& all_letters)
   {
+        //std::unordered_set<bdd, spot::bdd_hash> parts;
+        //std::set<bdd, spot::bdd_less_than> parts;
         // only compute the partitions
         for (const unsigned& s : set)
         {
@@ -1617,7 +1620,7 @@ public:
             bdd left = t.cond;
             if (all_letters.empty())
             {
-              all_letters.emplace_back(left);
+              all_letters.push_back(left);
             }else
             {
               std::vector<bdd> tmp;
@@ -1641,7 +1644,16 @@ public:
               {
                 tmp.emplace_back(left);
               }
-              all_letters = tmp;
+              all_letters.clear();
+              std::unordered_set<bdd, spot::bdd_hash> visited;
+              for (auto p: tmp)
+              {
+                auto rt = visited.insert(p);
+                if (rt.second)
+                {
+                  all_letters.push_back(p);
+                }
+              }
             }
           }
         }
