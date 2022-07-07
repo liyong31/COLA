@@ -20,6 +20,7 @@ ARG_SIM_STR = "--simulation"
 ARG_STU_STR = "--stutter"
 ARG_VERB_LEVEL = 0
 ARG_IWC_PAR = 0
+ARG_DAC = "--prefer-dac"
 
 mgr_str = ""
 sim_str = ""
@@ -29,6 +30,7 @@ verbose = 0
 parity = False
 compl = False
 pariwc = False 
+dac = False
 num_workers = 0
 
 
@@ -64,6 +66,7 @@ def getopts(header):
     p = argparse.ArgumentParser(description=str(header), formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('file', help='file name for the input automaton in HOA format', type=str)
 #    p.add_argument('--acd',             help='Use Alternating Cycle Decompostion for obtaining Parity automata', action="count", default=0)
+    p.add_argument('--dac',            help='SCC identified as DAC over IWC', action="count", default=0)
     p.add_argument('--comp',            help='Output complement automaton after determinization', action="count", default=0)
     p.add_argument('--merge',           help='Use state-merging after determinization', action="count", default=0)
     p.add_argument('--stutter',         help='Use stutter-invarince in determinization', action="count", default=0)
@@ -86,6 +89,7 @@ def setup():
     global compl
     global pariwc
     global num_workers
+    global dac
     
     num_workers = multiprocessing.cpu_count()
     
@@ -113,6 +117,9 @@ def setup():
     
     if (opts.parity > 0):
         parity = True
+        
+    if (opts.dac > 0):
+    	dac = True
     
     if (opts.comp > 0):
         compl = True
@@ -157,7 +164,7 @@ def get_all_files(path, file = ""):
         arg_list.append(path + tmp)
 
 def run_command(arg, file_name):
-    command = [cola_exe, '--determinize=ba', arg, '-o', output_bas + file_name, '--acd', '--parity']
+    command = [cola_exe, arg, '-o', output_bas + file_name, '--acd', '--parity']
     
     if sim_str:
         command.append(sim_str)
@@ -165,6 +172,8 @@ def run_command(arg, file_name):
         command.append(stu_str)
     if mgr_str:
         command.append(mgr_str)
+    if dac:
+    	command.append(ARG_DAC)
 
     if verbose > 0:
         print(command)
@@ -182,15 +191,111 @@ def compose_dpas(p_queue):
         spot.simplify_acceptance_here(res_aut)
         res_aut = res_aut.postprocess('generic', 'deterministic', 'low')
         p_queue.put((res_aut.num_states(), res_aut))
+        
+def compose_par(file_list):
+    while len(file_list) > 1:
+        filepath1, filename1 = os.path.split(file_list[0])
+        filepath2, filename2 = os.path.split(file_list[1])
+        file_name = 'product_' + filename1 + '_' + filename2 + '.hoa'
+        multiprocessing.apply_async(autfilt_compose, args=(file_list[:2], output_bas + file_name))
+        if len(file_list) > 3:
+            filepath3, filename3 = os.path.split(file_list[2])
+            filepath4, filename4 = os.path.split(file_list[3])
+            file_name2 = 'product_' + filename3 + '_' + filename4 + '.hoa'
+            multiprocessing.apply_async(autfilt_compose, args=(file_list[2:4], output_bas + file_name2))
+        p_queue.put((res_aut.num_states(), res_aut))
+
+def split_data(data, split_points):
+    partitions = []
+    n = 0
+    for i in split_points:
+        partitions.append(data[n:i])
+        n = i
+    partitions.append(data[n:])
+    return partitions
+
+import functools
+
+def autfilt_compose(arg, file_name):
+    command = ['autfilt', '--product-or='+ arg[0], arg[1], '--generic', '--deterministic', '-o', file_name]
+
+    if verbose > 0:
+        print(command)
+    subprocess.call(command)
+    return file_name
+
+## only two threads?
+def parallel_reduce(lst, k):
+    
+    if len(lst) <= 1:
+        return lst
+    
+    split_points = [num for num in range(len(lst)) if num % 2 == 0 and num > 0]
+    partitions = split_data(lst, split_points)
+    n = len(partitions)
+    
+    pool = multiprocessing.Pool(processes = min(n, k))
+    pool_results = []
+    
+    res = []
+    for arg in partitions:
+        filename = ""
+        if len(arg) > 1:
+            filename += 'product_'+ arg[0] + '_' + arg[1] + '.hoa'
+            filename = output_bas + ""
+            res.append(filename)
+            pool_results.append(pool.apply_async(autfilt_compose, args=(arg, filename)))
+        elif len(arg) == 1:
+            res.append(arg[0])
+        else:
+            pass
+    
+    return res
+            
+            
+    
+    
+    
+    #return reduce(f, results)
+
+def parallel_compose(pool, pool_results):
+    
+    res_aut = None
+    #p_queue = queue.PriorityQueue()
+    lst = []
+    
+    while len(pool_results) > 0:
+        to_remove = [] #avoid removing objects during for_loop
+        for r in pool_results:
+            # check if process is finished
+            if r.ready(): 
+                # print result (or do any operation with result)
+                filename = r.get()
+                #print(filename)
+                to_remove.append(r)
+                lst.append(output_bas + filename)
+                #aut = spot.automaton(output_bas + filename)
+                #aut = aut.postprocess('parity', 'deterministic', 'low')
+                #print ('current aut: ' + str(aut.num_states()))
+                #p_queue.put((aut.num_states(), aut))
+        # compose
+        # split data
+        
+        
+        for remove in to_remove:
+            pool_results.remove(remove)
+    
+    pool.join()
+    
 
 # given the list of automaton names
 def run_command_all(aut_names):
-    global num_workers
     
-    if num_workers == 0:
-        num_workers = len(aut_names)
+    num_procs = num_workers
+    if num_procs == 0:
+        num_procs = len(aut_names)
     
-    pool = multiprocessing.Pool(processes = num_workers)
+    pool = multiprocessing.Pool(processes = num_procs)
     pool_results = []
     for aut_name in aut_names:
         filepath, filename = os.path.split(aut_name)
