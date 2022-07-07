@@ -61,8 +61,6 @@ By default, it reads a Büchi automaton from standard input and converts it into
 
 Input options:
     -f FILENAME reads the input from FILENAME instead of stdin
-    --determinize=[ba|cola]
-            Use our algorithm for TBA or let cola decide which one to obtain deterministic automata
     --type 
             Output the type of the input Buchi automaton: limit-deterministic, cut-deterministic, unambiguous or none of them
     --print-scc
@@ -90,6 +88,7 @@ Optimizations:
     --max-sim=[INT]       Maximal number of states in the input to enable simulation (default=INT_MAX)
 
 Pre- and Post-processing:
+    --prefer-dac                 Identify SCC as DAC even if it is both DAC and weak
     --preprocess=[0|1|2|3]       Level for simplifying the input automaton (default=1)
     --postprocess-det[=0|1|2|3]  Level for simplifying the output of the determinization (default=1)
     --num-states=[INT]           Simplify the output with number of states less than INT (default=30000)
@@ -172,6 +171,7 @@ int main(int argc, char *argv[]) {
   om.set(NUM_TRANS_PRUNING, 512);
   om.set(MSTATE_REARRANGE, 0);
   om.set(OUTPUT_AUT_TYPE, Parity);
+  om.set(DAC_SCC_FIRST, 0);
 
   // Will be deleted
   //  --scc-mem-limit=[INT]
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
   om.set(NUM_SCC_LIMIT_MERGER, 0);
   om.set(MAX_NUM_SIMULATION, INT_MAX);
 
-  determinize_t determinize = NoDeterminize;
+  determinize_t determinize = NBA;
   complement_t complement_algo = NoComplement;
 
   // options
@@ -233,7 +233,9 @@ int main(int argc, char *argv[]) {
       post_process = Medium;
     else if (arg == "--postprocess-det=3")
       post_process = High;
-    else if (arg == "--generic") {
+    else if (arg == "--prefer-dac") {
+      om.set(DAC_SCC_FIRST, 1);
+    } else if (arg == "--generic") {
       output_type = Generic;
     } else if (arg == "--parity") {
       output_type = Parity;
@@ -281,23 +283,25 @@ int main(int argc, char *argv[]) {
     } else if (arg == "--stutter") {
       use_stutter = true;
       om.set(USE_STUTTER, 1);
-    } else if (arg == "--determinize=ba")
-      determinize = NBA;
-    else if (arg == "--determinize=ldba")
-      determinize = LDBA;
-    else if (arg == "--determinize=eba")
-      determinize = EBA;
-    // else if (arg == "--determinize=spot")
-    //   determinize = Spot;
-    else if (arg == "--determinize=cola") {
-      determinize = COLA;
-      // default settings
-      om.set(USE_SIMULATION, 1);
-      om.set(USE_SCC_INFO, 1);
-      om.set(USE_STUTTER, 1);
-      use_acd = true;
-      output_type = Parity;
-    } else if (arg == "--algo=comp") {
+    }else
+    // else if (arg == "--determinize=ba")
+    //   determinize = NBA;
+    // else if (arg == "--determinize=ldba")
+    //   determinize = LDBA;
+    // else if (arg == "--determinize=eba")
+    //   determinize = EBA;
+    // // else if (arg == "--determinize=spot")
+    // //   determinize = Spot;
+    // else if (arg == "--determinize=cola") {
+    //   determinize = COLA;
+    //   // default settings
+    //   om.set(USE_SIMULATION, 1);
+    //   om.set(USE_SCC_INFO, 1);
+    //   om.set(USE_STUTTER, 1);
+    //   use_acd = true;
+    //   output_type = Parity;
+    // } else 
+    if (arg == "--algo=comp") {
       complement_algo = SCC;
     } else if (arg == "-f") {
       if (argc < i + 1) {
@@ -462,7 +466,7 @@ int main(int argc, char *argv[]) {
         unsigned num_nacs_states = 0;
         unsigned num_max_nacs_states = 0;
 
-        std::string types = cola::get_scc_types(si);
+        std::string types = cola::get_scc_types(si, om.get(DAC_SCC_FIRST));
         for (unsigned sc = 0; sc < si.scc_count(); sc++) {
           unsigned num = si.states_of(sc).size();
           if (cola::is_weakscc(types, sc)) {
@@ -596,7 +600,7 @@ int main(int argc, char *argv[]) {
       if (complement_algo && determinize == NoDeterminize) {
         throw std::runtime_error("Complementation algorithm under construction "
                                  "and not available yet");
-        aut = cola::complement_tnba(aut, om);
+        aut = spot::complement(aut);
         spot::postprocessor p;
         p.set_level(spot::postprocessor::Low);
         p.set_type(spot::postprocessor::Buchi);

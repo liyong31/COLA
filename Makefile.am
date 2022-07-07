@@ -21,6 +21,8 @@
 ##
 ## Removed some unnecessary files (e.g. the python binding for Seminator)
 
+#noinst_LIBRARIES = src/libcola.a
+
 bin_PROGRAMS = cola
 lib_LTLIBRARIES = src/libcola.la
 
@@ -30,22 +32,22 @@ ACLOCAL_AMFLAGS = -I m4
 cola_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 src_libcola_la_LIBADD = -L$(SPOTPREFIX)/lib -lspot -lbddx
 
+
+
 src_libcola_la_SOURCES =			\
   src/cola.hpp			\
   src/cola.cpp			\
-  src/complement_tnba.cpp			\
   src/composer.cpp				\
   src/composer.hpp				\
   src/decomposer.hpp			\
   src/decomposer.cpp			\
-  src/determinize_teba.cpp			\
-  src/determinize_tldba.cpp			\
   src/determinize_tnba.cpp			\
-  src/determinize_twba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
+  
+# libcola_a_SOURCES = src_libcola_la_SOURCES
 
 cola_SOURCES = src/main.cpp

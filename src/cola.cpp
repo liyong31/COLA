@@ -36,6 +36,7 @@
 #include <spot/twaalgos/word.hh>
 
 namespace cola {
+
 bool is_elevator_automaton(const spot::const_twa_graph_ptr &aut) {
   spot::scc_info si(aut);
   unsigned nc = si.scc_count();
@@ -257,7 +258,7 @@ void get_reachable_sccs(const spot::scc_info &si,
   } while (!prev.empty());
 }
 
-std::string get_scc_types(spot::scc_info &si) {
+std::string get_scc_types(spot::scc_info &si, bool prefer_dac) {
   unsigned nc = si.scc_count();
   std::string res(nc, 0);
   for (unsigned sc = 0; sc < nc; ++sc) {
@@ -271,6 +272,15 @@ std::string get_scc_types(spot::scc_info &si) {
                      // accepting
     type |= spot::is_inherently_weak_scc(si, sc) ? SCC_WEAK_TYPE : 0;
     type |= si.is_accepting_scc(sc) ? SCC_ACC : 0;
+    // std::cout << "type : " << (int)type << std::endl;
+
+    if (prefer_dac && (type & SCC_INSIDE_DET_TYPE) > 0 
+        && (type & SCC_ACC) > 0 
+        && (type & SCC_WEAK_TYPE) > 0) {
+      type ^= SCC_WEAK_TYPE; // remove weak
+    }
+    // std::cout << "after type : " << (int)type << std::endl;
+
     // other type is 0
     res[sc] = type;
   }
@@ -332,13 +342,13 @@ bool is_deterministic_scc(unsigned scc, spot::scc_info &si, bool inside_only) {
 }
 
 bool is_accepting_detscc(std::string &scc_types, unsigned scc) {
-  return (scc_types[scc] & SCC_WEAK_TYPE) == 0 &&
-         (scc_types[scc] & SCC_INSIDE_DET_TYPE) > 0 &&
-         (scc_types[scc] & SCC_ACC) > 0;
+  return (scc_types[scc] & SCC_INSIDE_DET_TYPE) > 0 &&
+         (scc_types[scc] & SCC_ACC) > 0 &&
+         (scc_types[scc] & SCC_WEAK_TYPE) == 0;
 }
 
 bool is_accepting_weakscc(std::string &scc_types, unsigned scc) {
-  return (scc_types[scc] & SCC_WEAK_TYPE) > 0 && (scc_types[scc] & SCC_ACC) > 0;
+  return (scc_types[scc] & SCC_ACC) > 0 && is_weakscc(scc_types, scc);
 }
 
 bool is_weakscc(std::string &scc_types, unsigned scc) {

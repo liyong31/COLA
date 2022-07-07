@@ -54,6 +54,7 @@ static const char SCC_ACC = 8;
 static const int RANK_N = -1; // nondeterministic states
 static const int RANK_M = -2; // missing states
 
+
 enum automaton_type {
   NONDETERMINISTIC = 0,
   INHERENTLY_WEAK = 1,
@@ -111,7 +112,7 @@ std::vector<bool> get_deterministic_sccs(spot::scc_info &scc);
 
 std::vector<bool> get_accepting_reachable_sccs(spot::scc_info &scc);
 
-std::string get_scc_types(spot::scc_info &scc);
+std::string get_scc_types(spot::scc_info &scc, bool prefer_dac = false);
 // /// \brief Output an automaton to a file
 // std::vector<bool>
 // is_reachable_weak_sccs(const spot::scc_info &scc, state_simulator& sim);

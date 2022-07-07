@@ -1216,19 +1216,23 @@ public:
       }
     }
     // obtain the types of each SCC
-    scc_types_ = get_scc_types(si_);
+    scc_types_ = get_scc_types(si_, om_.get(DAC_SCC_FIRST));
     // find out the DACs and NACs
     for (unsigned i = 0; i < scc_types_.size(); i++) {
       // ignore weak types
-      if ((scc_types_[i] & SCC_WEAK_TYPE))
+      if (is_weakscc(scc_types_, i)) {
+        // std::cout << "weak scc: " << i << std::endl;
         continue;
+      }
       max_colors_.push_back(-1);
       min_colors_.push_back(INT_MAX);
       // accepting deterministic scc
       if (is_accepting_detscc(scc_types_, i)) {
+        // std::cout << "dac scc: " << i << std::endl;
         acc_detsccs_.push_back(i);
       } else if (is_accepting_nondetscc(scc_types_, i)) {
         // accepting nondeterministic scc
+        // std::cout << "nac scc: " << i << std::endl;
         acc_nondetsccs_.push_back(i);
       }
     }
@@ -1245,7 +1249,7 @@ public:
     tnba_mstate new_init_state(si_, acc_detsccs_.size(),
                                acc_nondetsccs_.size());
     unsigned init_scc = si_.scc_of(init_state);
-    if ((scc_types_[init_scc] & SCC_WEAK_TYPE)) {
+    if (is_weakscc(scc_types_, init_scc)) {
       new_init_state.weak_set_.insert(init_state);
     } else if (is_accepting_detscc(scc_types_, init_scc)) {
       int init_scc_index = get_detscc_index(init_scc);
@@ -1288,7 +1292,7 @@ public:
   bool has_weak_acc_sccs() {
     for (unsigned i = 0; i < scc_types_.size(); i++) {
       // if there is an accepting weak SCC
-      if ((scc_types_[i] & SCC_WEAK_TYPE) > 0 &&
+      if (is_weakscc(scc_types_, i) &&
           (scc_types_[i] & SCC_ACC) > 0) {
         return true;
       }

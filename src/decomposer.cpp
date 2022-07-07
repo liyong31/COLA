@@ -32,7 +32,7 @@ std::vector<spot::twa_graph_ptr> decomposer::run() {
     num_nbas_ = si.scc_count();
   }
 
-  std::string scc_types = get_scc_types(si);
+  std::string scc_types = get_scc_types(si, om_.get(DAC_SCC_FIRST));
   std::vector<bool> reach_sccs = find_scc_paths_(si);
 
   struct pair_compare {
