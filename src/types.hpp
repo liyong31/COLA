@@ -19,34 +19,31 @@
 
 #pragma once
 
-#include <string>
+#include <bddx.h>
+#include <iostream>
 #include <iterator>
-#include <vector>
-#include <tuple>
 #include <map>
 #include <set>
-#include <iostream>
-#include <bddx.h>
+#include <string>
+#include <tuple>
+#include <vector>
 
-#include <spot/twa/twa.hh>
-#include <spot/twaalgos/powerset.hh>
 #include <spot/misc/bitvect.hh>
 #include <spot/misc/optionmap.hh>
-#include <spot/twaalgos/hoa.hh>
 #include <spot/twa/bddprint.hh>
+#include <spot/twa/twa.hh>
+#include <spot/twaalgos/hoa.hh>
+#include <spot/twaalgos/powerset.hh>
 #include <spot/twaalgos/sccinfo.hh>
-
 
 typedef unsigned state_t;
 
 typedef std::vector<std::string> *state_names;
 
-
 static const state_set empty_set;
 
 // for complementation and determinization
-enum ncsb
-{
+enum ncsb {
   ncsb_n = 0,  // non deterministic
   ncsb_c = 2,  // needs check
   ncsb_cb = 3, // needs check AND in breakpoint
@@ -55,8 +52,7 @@ enum ncsb
 };
 
 // fengwz
-enum ncb
-{
+enum ncb {
   ncb_i = 1, // init phase
   ncb_n = 6, // 110
   ncb_c = 2, // 10
@@ -65,8 +61,7 @@ enum ncb
 };
 
 // N S B C do not intersect each other
-enum nsbc
-{
+enum nsbc {
   nsbc_n = 1,  // non deterministic
   nsbc_s = 4,  // safe
   nsbc_b = 3,  // needs check AND in breakpoint
@@ -92,14 +87,10 @@ typedef std::vector<std::pair<unsigned, nsbc>> small_mcstate;
 typedef std::vector<int> dstate;
 typedef std::vector<std::pair<int, int>> small_dstate;
 
-struct small_mstate_hash
-{
-  size_t
-  operator()(small_mstate s) const noexcept
-  {
+struct small_mstate_hash {
+  size_t operator()(small_mstate s) const noexcept {
     size_t hash = 0;
-    for (const auto &p : s)
-    {
+    for (const auto &p : s) {
       hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
     }
     return hash;
@@ -107,14 +98,10 @@ struct small_mstate_hash
 };
 
 // fengwz
-struct small_macrostate_hash
-{
-  size_t
-  operator()(small_macrostate s) const noexcept
-  {
+struct small_macrostate_hash {
+  size_t operator()(small_macrostate s) const noexcept {
     size_t hash = 0;
-    for (const auto &p : s)
-    {
+    for (const auto &p : s) {
       hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
     }
     return hash;
@@ -122,14 +109,10 @@ struct small_macrostate_hash
 };
 
 // new semi complement
-struct small_mcstate_hash
-{
-  size_t
-  operator()(small_mcstate s) const noexcept
-  {
+struct small_mcstate_hash {
+  size_t operator()(small_mcstate s) const noexcept {
     size_t hash = 0;
-    for (const auto &p : s)
-    {
+    for (const auto &p : s) {
       hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
     }
     return hash;
@@ -137,14 +120,10 @@ struct small_mcstate_hash
 };
 
 // determinization
-struct small_dstate_hash
-{
-  size_t
-  operator()(small_dstate s) const noexcept
-  {
+struct small_dstate_hash {
+  size_t operator()(small_dstate s) const noexcept {
     size_t hash = 0;
-    for (const auto &p : s)
-    {
+    for (const auto &p : s) {
       hash = spot::wang32_hash(hash ^ ((p.first << 2) | p.second));
     }
     return hash;

@@ -15,87 +15,81 @@
 
 #include "composer.hpp"
 
-#include <set>
-#include <vector>
 #include <functional>
 #include <queue>
+#include <set>
+#include <vector>
 
+#include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/complement.hh>
-#include <spot/twaalgos/sccinfo.hh>
+#include <spot/twaalgos/dualize.hh>
+#include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/product.hh>
-#include <spot/twaalgos/dualize.hh>
+#include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/zlktree.hh>
-#include <spot/twaalgos/isdet.hh>
-#include <spot/twaalgos/cleanacc.hh>
 
-namespace cola
-{
-    spot::twa_graph_ptr
-    composer::run()
-    {
-        struct aut_compare
-        {
-        // increasing order
-            bool operator()( spot::twa_graph_ptr aut1,  spot::twa_graph_ptr aut2) const
-            {
-                return aut1->num_states() >= aut2->num_states();
-            }
-        };
-        // smaller number first
-        std::priority_queue<spot::twa_graph_ptr, std::vector<spot::twa_graph_ptr>, aut_compare> autlist;
-        for (auto& aut : dpas_)
-        {
-            
-            // spot::twa_graph_ptr tmp = spot::dualize(aut);
-            spot::postprocessor p;
-            // p.set_pref(spot::postprocessor::Rabin);
-            p.set_type(spot::postprocessor::Generic);
-            p.set_pref(spot::postprocessor::Deterministic);
-            // p.set_pref(spot::postprocessor::Parity);
-            spot::twa_graph_ptr tmp = p.run(aut);
-            // std::cout << "input is_deterministic: " << spot::is_deterministic(tmp) << std::endl;
-            tmp = spot::acd_transform(tmp);
-            if (tmp->num_states() >= aut->num_states())
-            {
-                tmp = aut;
-            }
-
-            autlist.push(tmp);
-        }
-        if (om_.get(VERBOSE_LEVEL) > 0)
-        {
-            std::cout << "Start to compose the results.\n";
-        }
-        while(autlist.size() > 1)
-        {
-            auto aut1 = autlist.top();
-            autlist.pop();
-            auto aut2 = autlist.top();
-            autlist.pop();
-
-            spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
-            spot::simplify_acceptance_here(res);
-            // only make it smaller when it is not the final result
-                    // postprocessing
-            spot::postprocessor p;
-                // p.set_pref(spot::postprocessor::Rabin);
-                // p.set_pref(spot::postprocessor::Parity);
-            p.set_type(spot::postprocessor::Generic);
-            p.set_pref(spot::postprocessor::Deterministic);
-            p.set_level(spot::postprocessor::Low);
-            // p.set_pref(spot::postprocessor::Small);
-            res = p.run(res);
-            // res = spot::acd_transform(res);
-            autlist.push(res);
-        }
-        spot::twa_graph_ptr res = autlist.top();
-        res = spot::acd_transform(res);
-        // output_file(res, "final.hoa");
-        // spot::postprocessor p;
-        // p.set_pref(spot::postprocessor::Parity);
-        // p.set_pref(spot::postprocessor::Deterministic);
-        // res = p.run(res);
-        return res;
+namespace cola {
+spot::twa_graph_ptr composer::run() {
+  struct aut_compare {
+    // increasing order
+    bool operator()(spot::twa_graph_ptr aut1, spot::twa_graph_ptr aut2) const {
+      return aut1->num_states() >= aut2->num_states();
     }
+  };
+  // smaller number first
+  std::priority_queue<spot::twa_graph_ptr, std::vector<spot::twa_graph_ptr>,
+                      aut_compare>
+      autlist;
+  for (auto &aut : dpas_) {
+
+    // spot::twa_graph_ptr tmp = spot::dualize(aut);
+    spot::postprocessor p;
+    // p.set_pref(spot::postprocessor::Rabin);
+    p.set_type(spot::postprocessor::Generic);
+    p.set_pref(spot::postprocessor::Deterministic);
+    // p.set_pref(spot::postprocessor::Parity);
+    spot::twa_graph_ptr tmp = p.run(aut);
+    // std::cout << "input is_deterministic: " << spot::is_deterministic(tmp) <<
+    // std::endl;
+    tmp = spot::acd_transform(tmp);
+    if (tmp->num_states() >= aut->num_states()) {
+      tmp = aut;
+    }
+
+    autlist.push(tmp);
+  }
+  if (om_.get(VERBOSE_LEVEL) > 0) {
+    std::cout << "Start to compose the results.\n";
+  }
+  while (autlist.size() > 1) {
+    auto aut1 = autlist.top();
+    autlist.pop();
+    auto aut2 = autlist.top();
+    autlist.pop();
+
+    spot::twa_graph_ptr res = spot::product_or(aut1, aut2);
+    spot::simplify_acceptance_here(res);
+    // only make it smaller when it is not the final result
+    // postprocessing
+    spot::postprocessor p;
+    // p.set_pref(spot::postprocessor::Rabin);
+    // p.set_pref(spot::postprocessor::Parity);
+    p.set_type(spot::postprocessor::Generic);
+    p.set_pref(spot::postprocessor::Deterministic);
+    p.set_level(spot::postprocessor::Low);
+    // p.set_pref(spot::postprocessor::Small);
+    res = p.run(res);
+    // res = spot::acd_transform(res);
+    autlist.push(res);
+  }
+  spot::twa_graph_ptr res = autlist.top();
+  res = spot::acd_transform(res);
+  // output_file(res, "final.hoa");
+  // spot::postprocessor p;
+  // p.set_pref(spot::postprocessor::Parity);
+  // p.set_pref(spot::postprocessor::Deterministic);
+  // res = p.run(res);
+  return res;
 }
+} // namespace cola

@@ -14,27 +14,19 @@
 
 #include "cola.hpp"
 
-
-#include <spot/twaalgos/hoa.hh>
 #include <spot/misc/optionmap.hh>
+#include <spot/twaalgos/hoa.hh>
 
-namespace cola
-{
-    class composer
-    {  
-        private:
-        std::vector<spot::twa_graph_ptr>& dpas_;
-        spot::option_map& om_;
+namespace cola {
+class composer {
+private:
+  std::vector<spot::twa_graph_ptr> &dpas_;
+  spot::option_map &om_;
 
-        public:
-        composer(std::vector<spot::twa_graph_ptr>& dpas, spot::option_map& om)
-        : dpas_(dpas), om_(om)
-        {
+public:
+  composer(std::vector<spot::twa_graph_ptr> &dpas, spot::option_map &om)
+      : dpas_(dpas), om_(om) {}
 
-        }
-
-        spot::twa_graph_ptr
-        run();
-
-    };
-}
+  spot::twa_graph_ptr run();
+};
+} // namespace cola
