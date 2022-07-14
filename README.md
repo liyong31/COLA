@@ -32,12 +32,12 @@ make
 Then you will get an executable file named **cola** !
 
 ### Determinization
-Input an NBA from "filename", and run ```./cola --determinize=cola filename --simulation --stutter --use-scc```, then you will get an equivalent deterministic automaton on standard output!
+Input an NBA from "filename", and run ```./cola filename --simulation --stutter --use-scc```, then you will get an equivalent deterministic automaton on standard output!
 
-To output the result to a file, use ```./cola --determinize=cola filename -o out_filename --simulation --stutter --use-scc```
+To output the result to a file, use ```./cola filename -o out_filename --simulation --stutter --use-scc```
 
-To output a deterministic Parity automaton, use ```./cola --determinize=cola filename --parity --acd --simulation --stutter --use-scc```
+To output a deterministic Parity automaton, use ```./cola filename --parity --acd --simulation --stutter --use-scc```
 
-To output a deterministic Rabin automaton, use ```./cola --determinize=cola filename --rabin --simulation --stutter --use-scc```
+To output a deterministic Rabin automaton, use ```./cola filename --rabin --simulation --stutter --use-scc```
 
-To output a complement automaton, use ```./cola --determinize=cola filename --parity --acd --complement --simulation --stutter --use-scc```
+To output a complement automaton, use ```./cola filename --parity --acd --complement --simulation --stutter --use-scc```
