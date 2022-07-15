@@ -40,4 +40,13 @@ To output a deterministic Parity automaton, use ```./cola filename --parity --ac
 
 To output a deterministic Rabin automaton, use ```./cola filename --rabin --simulation --stutter --use-scc```
 
-To output a complement automaton, use ```./cola filename --parity --acd --complement --simulation --stutter --use-scc```
+### Complementation
+To output a complement automaton, use ```./cola filename --complement --simulation --stutter --use-scc```
+
+### Inclusion checking
+To check the language containment between an NBA A.hoa and an NBA B.hoa, i.e., L(A) <= L(B), use ```./cola B.hoa --contain=A.hoa --simulation --stutter --use-scc```
+
+*Note* When the input automaton is very large, say with 80k states, it may be better to turn off the simulation optimisation as computing simulation relation can be quite time consuming.
+Also note that when the size of the constructed DELA is large, say with half a million states, it may be useful to not use ```--use-scc``` option.
+
+
