@@ -44,6 +44,8 @@ static const char *NUM_TRANS_PRUNING = "num-trans-pruning";
 static const char *MSTATE_REARRANGE = "rank-rearrange";
 static const char *MAX_NUM_SIMULATION = "max-num-simulation";
 static const char *DAC_SCC_FIRST = "dac-scc-first";
+static const char *NAC_SCC_FIRST = "nac-scc-first";
+
 
 static const char SCC_WEAK_TYPE = 1;
 static const char SCC_INSIDE_DET_TYPE = 2;
@@ -112,7 +114,8 @@ std::vector<bool> get_deterministic_sccs(spot::scc_info &scc);
 
 std::vector<bool> get_accepting_reachable_sccs(spot::scc_info &scc);
 
-std::string get_scc_types(spot::scc_info &scc, bool prefer_dac = false);
+std::string get_scc_types(spot::scc_info &scc
+  , bool prefer_dac = false, bool prefer_nac = false);
 // /// \brief Output an automaton to a file
 // std::vector<bool>
 // is_reachable_weak_sccs(const spot::scc_info &scc, state_simulator& sim);

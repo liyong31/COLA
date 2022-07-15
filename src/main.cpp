@@ -89,6 +89,7 @@ Optimizations:
 
 Pre- and Post-processing:
     --prefer-dac                 Identify SCC as DAC even if it is both DAC and weak
+    --prefer-nac                 Identify SCC as NAC even if it is DAC
     --preprocess=[0|1|2|3]       Level for simplifying the input automaton (default=1)
     --postprocess-det[=0|1|2|3]  Level for simplifying the output of the determinization (default=1)
     --num-states=[INT]           Simplify the output with number of states less than INT (default=30000)
@@ -235,6 +236,8 @@ int main(int argc, char *argv[]) {
       post_process = High;
     else if (arg == "--prefer-dac") {
       om.set(DAC_SCC_FIRST, 1);
+    } else if (arg == "--prefer-nac") {
+      om.set(NAC_SCC_FIRST, 1);
     } else if (arg == "--generic") {
       output_type = Generic;
     } else if (arg == "--parity") {
@@ -466,7 +469,7 @@ int main(int argc, char *argv[]) {
         unsigned num_nacs_states = 0;
         unsigned num_max_nacs_states = 0;
 
-        std::string types = cola::get_scc_types(si, om.get(DAC_SCC_FIRST));
+        std::string types = cola::get_scc_types(si, om.get(DAC_SCC_FIRST), om.get(NAC_SCC_FIRST));
         for (unsigned sc = 0; sc < si.scc_count(); sc++) {
           unsigned num = si.states_of(sc).size();
           if (cola::is_weakscc(types, sc)) {

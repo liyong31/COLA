@@ -41,6 +41,7 @@
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/simulation.hh>
+// #include <spot/priv/robin_hood.hh>
 
 // Compositional determinization of Buchi automara based on SCC decomposition
 // We classify three types of SCCs in the input NBA:
@@ -1163,7 +1164,7 @@ private:
     }
     return -1;
   }
-  const int NUM_APS_FOR_ENUMERATION_ = 6;
+  const int NUM_APS_FOR_ENUMERATION_ = 5;
 
 public:
   tnba_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si,
@@ -1216,7 +1217,7 @@ public:
       }
     }
     // obtain the types of each SCC
-    scc_types_ = get_scc_types(si_, om_.get(DAC_SCC_FIRST));
+    scc_types_ = get_scc_types(si_, om_.get(DAC_SCC_FIRST), om_.get(NAC_SCC_FIRST));
     // find out the DACs and NACs
     for (unsigned i = 0; i < scc_types_.size(); i++) {
       // ignore weak types
@@ -1421,14 +1422,18 @@ public:
     }
   }
   spot::twa_graph_ptr run() {
+    bool verbose = om_.get(VERBOSE_LEVEL) > 0;
     // Main stuff happens here
     // todo_ is a queue for handling states
-    std::unordered_map<state_set, std::vector<bdd>, state_set_hash> cache;
+    // std::unordered_map<state_set, std::vector<bdd>, state_set_hash> cache;
     while (!todo_.empty()) {
       auto top = todo_.front();
       todo_.pop_front();
       // pop current state, (N, Rnk)
       tnba_mstate ms = top.first;
+      if (verbose) {
+        std::cout << "computing the successors of mstate " << top.second << std::endl;
+      }
 
       std::set<unsigned> reach_set = ms.get_reach_set();
       // compute the occurred variables in the outgoing transitions of ms,
@@ -1470,14 +1475,15 @@ public:
           }
         }
 
-        auto i = cache.emplace(reach_set, std::vector<bdd>());
-        if (i.second) {
-          // now get the partition
-          compute_letters(reach_set, all_letters);
-          i.first->second = all_letters;
-        } else {
-          all_letters = i.first->second;
-        }
+        // auto i = cache.emplace(reach_set, std::vector<bdd>());
+        // if (i.second) {
+        // now get the partition
+        // NOTE: no cache is much faster
+        compute_letters(reach_set, all_letters);
+          // i.first->second = all_letters;
+        // } else {
+          // all_letters = i.first->second;
+        // }
       }
 
       for (bdd letter : all_letters) {
@@ -1527,7 +1533,7 @@ public:
       res_->prop_complete(true);
     res_->prop_universal(true);
     res_->prop_state_acc(false);
-    if (om_.get(VERBOSE_LEVEL) >= 1) {
+    if (verbose) {
       output_file(res_, "dpa.hoa");
       std::cout << "Before simplification #States: " << res_->num_states()
                 << " #Colors: " << res_->num_sets() << std::endl;
@@ -1549,7 +1555,7 @@ public:
   }
 
   spot::twa_graph_ptr postprocess(spot::twa_graph_ptr aut) {
-    spot::scc_info scc_dpa(aut, spot::scc_info_options::ALL);
+    spot::scc_info scc_dpa(aut, spot::scc_info_options::NONE); //spot::scc_info_options::ALL);
     // set of states -> the forest of reachability in the states.
     mstate_equiv_map set2scc;
     // record the representative of every SCC

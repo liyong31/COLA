@@ -258,7 +258,7 @@ void get_reachable_sccs(const spot::scc_info &si,
   } while (!prev.empty());
 }
 
-std::string get_scc_types(spot::scc_info &si, bool prefer_dac) {
+std::string get_scc_types(spot::scc_info &si, bool prefer_dac, bool prefer_nac) {
   unsigned nc = si.scc_count();
   std::string res(nc, 0);
   for (unsigned sc = 0; sc < nc; ++sc) {
@@ -278,6 +278,10 @@ std::string get_scc_types(spot::scc_info &si, bool prefer_dac) {
         && (type & SCC_ACC) > 0 
         && (type & SCC_WEAK_TYPE) > 0) {
       type ^= SCC_WEAK_TYPE; // remove weak
+    }
+    if (prefer_nac && ((type & SCC_INSIDE_DET_TYPE) > 0 
+        && (type & SCC_ACC) > 0 )) { // change to nac for dac
+      type ^= SCC_INSIDE_DET_TYPE;
     }
     // std::cout << "after type : " << (int)type << std::endl;
 

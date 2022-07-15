@@ -40,7 +40,7 @@ spot::twa_graph_ptr mstate_merger::run() {
   for (unsigned s = 0; s < num_states; s++) {
     replace_states[s] = s;
   }
-  spot::scc_info scc = si_;
+  const spot::scc_info& scc = si_;
   bool debug = false;
   unsigned num_replaced_states = 0;
   // Key: set of reached states in NBA, Value: the mstates with the same Key
