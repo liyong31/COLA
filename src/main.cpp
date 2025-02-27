@@ -169,10 +169,10 @@ to_deterministic(spot::twa_graph_ptr aut, spot::option_map &om, unsigned aut_typ
   {
     res = cola::determinize_tldba(aut, om);
   }
-  // else if (algo == EBA)
-  // {
-  //   res = cola::determinize_televator(aut, om);
-  // }
+  else if (algo == EBA)
+  {
+    res = cola::determinize_televator(aut, om);
+  }
   else //if (algo == NBA)
   {
     res = cola::determinize_tnba(aut, om);
@@ -537,7 +537,7 @@ int main(int argc, char *argv[])
         aut = spot::degeneralize_tba(aut);
       }
 
-      if (!aut->acc().is_buchi())
+      if (!aut->acc().is_buchi() && determinize != EBA)
       {
         std::cerr << "cola requires Buchi condition on input.\n";
         return 1;
@@ -735,6 +735,16 @@ int main(int argc, char *argv[])
         {
           // trivial acceptance condition
           aut = spot::minimize_monitor(aut);
+        }else if (determinize == EBA) {
+          spot::twa_graph_ptr res = nullptr;
+          c_start = clock();
+          res = to_deterministic(aut, om, aut_type, determinize);
+          c_end = clock();
+          if (om.get(VERBOSE_LEVEL) > 0)
+          {
+            std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
+          }
+          aut = res;
         }
       }
       if (complement_algo && determinize == NoDeterminize)

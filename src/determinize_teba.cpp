@@ -22,6 +22,7 @@
 #include <deque>
 #include <map>
 #include <set>
+#include <bitset>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -41,7 +42,7 @@
 #include <spot/twa/acc.hh>
 
 
-// specific determinization construction for elevator automata
+// specific determinization construction for elevator automata with Emeron-Lei condition
 // elevator automata have only deterministic SCCs and inherently weak SCCs
 namespace cola
 {
@@ -74,21 +75,30 @@ namespace cola
   class elevator_mstate
   {
   public:
-    elevator_mstate(spot::scc_info &si, size_t num, int value)
-        : si_(si), ordered_states_(num, value)
+    elevator_mstate(spot::scc_info &si, unsigned num_det_acc_sccs)
+        : si_(si)
     {
+      for (unsigned i = 0; i < num_det_acc_sccs; i ++)
+      {
+        detscc_labels_.emplace_back(std::vector<label>());
+      }
     }
 
     elevator_mstate(const elevator_mstate &other)
         : si_(other.si_)
     {
-      ordered_states_.clear();
-      for (unsigned i = 0; i < other.ordered_states_.size(); i++)
+      this->break_set_.clear();
+      this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
+      this->weak_set_.clear();
+      this->weak_set_.insert(other.weak_set_.begin(), other.weak_set_.end());
+
+      this->detscc_labels_.clear();
+      for (unsigned i = 0; i < other.detscc_labels_.size(); i ++)
       {
-        ordered_states_.push_back(other.ordered_states_[i]);
+        std::vector<label> copy = other.detscc_labels_[i];
+        detscc_labels_.emplace_back(copy);
       }
-      break_set_.clear();
-      break_set_.insert(other.break_set_.begin(), other.break_set_.end());
+  
     }
 
     std::set<unsigned>
@@ -111,13 +121,17 @@ namespace cola
     operator=(const elevator_mstate &other)
     {
       this->si_ = other.si_;
-      this->ordered_states_.clear();
-      for (unsigned i = 0; i < other.ordered_states_.size(); i++)
-      {
-        this->ordered_states_.push_back(other.ordered_states_[i]);
-      }
       this->break_set_.clear();
       this->break_set_.insert(other.break_set_.begin(), other.break_set_.end());
+      this->weak_set_.clear();
+      this->weak_set_.insert(other.weak_set_.begin(), other.weak_set_.end());
+
+      this->detscc_labels_.clear();
+      for (unsigned i = 0; i < other.detscc_labels_.size(); i ++)
+      {
+        std::vector<label> copy = other.detscc_labels_[i];
+        detscc_labels_.emplace_back(copy);
+      }
       return *this;
     }
 
@@ -126,9 +140,11 @@ namespace cola
     // SCC information
     spot::scc_info &si_;
     // states are ordered according to their SCCs
-    std::vector<int> ordered_states_;
+    std::vector<std::vector<label>> detscc_labels_;
+    // std::vector<int> ordered_states_;
     // breakpoint construction for weak accepting SCCs
     std::set<unsigned> break_set_;
+    std::set<unsigned> weak_set_;
   };
 
   struct elevator_mstate_hash
@@ -143,31 +159,65 @@ namespace cola
   bool
   elevator_mstate::operator<(const elevator_mstate &other) const
   {
-    if (ordered_states_ == other.ordered_states_)
+    if (weak_set_ == other.weak_set_)
     {
-      return break_set_ < other.break_set_;
+      if (break_set_ == other.break_set_)
+      {
+        for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+        {
+          if (detscc_labels_[i] == other.detscc_labels_[i])
+          {
+            continue;
+          }else 
+          {
+            return detscc_labels_[i] < other.detscc_labels_[i];
+          }
+        }
+        return false;
+      }
+      else
+      {
+        return break_set_ < other.break_set_;
+      }
+    }else 
+    {
+      return weak_set_ < other.weak_set_;
     }
-    return ordered_states_ < other.ordered_states_;
   }
   bool
   elevator_mstate::operator==(const elevator_mstate &other) const
   {
-    return ordered_states_ == other.ordered_states_ && break_set_ == other.break_set_;
+    if (this->weak_set_ != other.weak_set_)
+    {
+      return false;
+    }
+    if (this->break_set_ != other.break_set_)
+    {
+      return false;
+    }
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+    {
+      if (detscc_labels_[i] != other.detscc_labels_[i])
+      {
+        return false;
+      }
+    }
+    return true;
   }
   int elevator_mstate::get_max_rank() const
   {
     int max_rnk = -1;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
-    {
-      max_rnk = std::max(max_rnk, ordered_states_[i]);
-    }
     return max_rnk;
   }
   bool elevator_mstate::is_empty() const
   {
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    if (! weak_set_.empty())
     {
-      if (ordered_states_[i] != RANK_M)
+      return false;
+    }
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+    {
+      if (! detscc_labels_[i].empty())
       {
         return false;
       }
@@ -178,11 +228,13 @@ namespace cola
   elevator_mstate::get_reach_set() const
   {
     std::set<unsigned> result;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    result.insert(weak_set_.begin(), weak_set_.end());
+    for (auto & vec : detscc_labels_)
     {
-      if (ordered_states_[i] == RANK_M)
-        continue;
-      result.insert(i);
+      for (auto& p : vec)
+      {
+        result.insert(p.first);
+      }
     }
     return result;
   }
@@ -191,10 +243,13 @@ namespace cola
   elevator_mstate::get_unlabelled_set() const
   {
     std::set<unsigned> result;
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
+    result.insert(weak_set_.begin(), weak_set_.end());
+    for (auto & vec : detscc_labels_)
     {
-      if (ordered_states_[i] == RANK_N)
-        result.insert(i);
+      for (auto& p : vec)
+      {
+        result.insert(p.first);
+      }
     }
     return result;
   }
@@ -208,44 +263,25 @@ namespace cola
     std::cout << "\n";
   }
 
-  std::vector<label>
-  elevator_mstate::get_detscc_states(unsigned scc) const
-  {
-    std::vector<label> res;
-    // traverse all states
-    for (unsigned i = 0; i < ordered_states_.size(); i++)
-    {
-      if (ordered_states_[i] == RANK_M || ordered_states_[i] == RANK_N)
-      {
-        continue;
-      }
-      if (si_.scc_of(i) == scc)
-      {
-        res.emplace_back(i, ordered_states_[i]);
-      }
-    }
-    // std::cout << "\nBefore: ";
-    // print_label_vec(res);
-    // ordered the states
-    std::sort(res.begin(), res.end(), label_compare);
-    // std::cout << "After: ";
-    // print_label_vec(res);
-    return res;
-  }
-
   size_t
   elevator_mstate::hash() const
   {
     size_t res = 0;
-    for (unsigned i = 0; i < ordered_states_.size(); i ++)
+    for (unsigned i : weak_set_)
     {
-      if (ordered_states_[i] == RANK_M) continue;
-      res = (res << 3) ^ (i);
-      res = (res << 3) ^ (ordered_states_[i]);
+      res = (res << 3) ^ i;
     }
     for (unsigned i : break_set_)
     {
       res ^= (res << 3) ^ i;
+    }
+    for (unsigned i = 0; i < detscc_labels_.size(); i ++)
+    {
+      for (auto& p : detscc_labels_[i])
+      {
+        res ^= (res << 3) ^ (p.first);
+        res ^= (res << 3) ^ (p.second);
+      }
     }
     return res;
   }
@@ -326,8 +362,7 @@ namespace cola
       // nondeterministic states (including weak states)
       std::string res = "N={";
       bool first_state = true;
-      for (unsigned i = 0; i < ms.ordered_states_.size(); i++)
-        if (ms.ordered_states_[i] == RANK_N)
+      for (unsigned i : ms.weak_set_)
         {
           if (!first_state)
             res += ",";
@@ -337,9 +372,11 @@ namespace cola
       res += "}";
       res += ", O=" + get_set_string(ms.break_set_);
       // now output according SCCs
-      for (unsigned scc_id : acc_detsccs_)
+      for (unsigned i = 0; i < acc_detsccs_.size(); i ++)
       {
-        std::vector<label> states = ms.get_detscc_states(scc_id);
+        unsigned scc_id = acc_detsccs_[i];
+        std::vector<label> states = ms.detscc_labels_[i];
+        std::sort(states.begin(), states.end(), label_compare);
         res += ",[";
         first_state = true;
         for (unsigned p = 0; p < states.size(); p++)
@@ -347,7 +384,7 @@ namespace cola
           if (!first_state)
             res += "<";
           first_state = false;
-          res += std::to_string(states[p].first);
+          res += std::to_string(states[p].first) + ":" + std::to_string(states[p].second);
         }
         res += "] = scc " + std::to_string(scc_id);
       }
@@ -382,41 +419,69 @@ namespace cola
       std::set<unsigned> reached_states = ms.get_reach_set();
       for (unsigned i : reached_states)
       {
-        for (unsigned j : reached_states)
-        {
-          if (i == j)
-            continue;
-          // j simulates i and j cannot reach i
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
-          {
-            // std::cout << j << " simulated " << i << std::endl;
-            // std::cout << "can_reach = " << simulator_.can_reach(j, i) << std::endl;
-            ms.ordered_states_[i] = RANK_M;
-            ms.break_set_.erase(i);
-          }
-          // (j, k1) and (i, k2), if j simulates i and k1 < k2, then remove k2
-          // Note that here i and j are not equivalent
-          if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && ms.ordered_states_[j] > RANK_N && (si_.scc_of(i) == si_.scc_of(j)) && ms.ordered_states_[j] < ms.ordered_states_[i])
-          // if j can reach i, then scc(j) must be larger scc(i) ms[j] > RANK_N && ms[j] < ms[i])
-          {
-            // std::cout << j << "simulated" << i << std::endl;
-            ms.ordered_states_[i] = RANK_M;
-            ms.break_set_.erase(i);
-          }
-        }
+        // for (unsigned j : reached_states)
+        // {
+        //   if (i == j)
+        //     continue;
+        //   // j simulates i and j cannot reach i
+        //   if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && simulator_.can_reach(j, i) == 0)
+        //   {
+        //     // std::cout << j << " simulated " << i << std::endl;
+        //     // std::cout << "can_reach = " << simulator_.can_reach(j, i) << std::endl;
+        //     ms.ordered_states_[i] = RANK_M;
+        //     ms.break_set_.erase(i);
+        //   }
+        //   // (j, k1) and (i, k2), if j simulates i and k1 < k2, then remove k2
+        //   // Note that here i and j are not equivalent
+        //   if ((simulator_.simulate(j, i) || delayed_simulator_.simulate(j, i)) && ms.ordered_states_[j] > RANK_N && (si_.scc_of(i) == si_.scc_of(j)) && ms.ordered_states_[j] < ms.ordered_states_[i])
+        //   // if j can reach i, then scc(j) must be larger scc(i) ms[j] > RANK_N && ms[j] < ms[i])
+        //   {
+        //     // std::cout << j << "simulated" << i << std::endl;
+        //     ms.ordered_states_[i] = RANK_M;
+        //     ms.break_set_.erase(i);
+        //   }
+        // }
       }
     }
 
-    // compute the successor N={nondeterministic states and nonaccepting SCCs} O = {breakpoint for weak SCCs}
+    int get_detscc_index(unsigned scc)
+    {
+      for (int idx = 0; idx < acc_detsccs_.size(); idx++)
+      {
+        if (acc_detsccs_[idx] == scc)
+        {
+          return idx;
+        }
+      }
+      return -1;
+    }
+
+    void print_set(const std::set<unsigned>& states)
+  {
+    for (unsigned i : states)
+    {
+      std::cout << " " << i;
+    }
+    std::cout << "\n";
+  }
+
+    typedef spot::acc_cond::mark_t mark_set;
+
+    // compute the successor N={nondeterministic states and nonaccepting SCCs} 
+    // O = {breakpoint for weak SCCs}
     // and labelling states for each SCC
     void
     compute_successors(const elevator_mstate &ms, bdd letter, elevator_mstate &nxt, std::vector<int> &color)
     {
-      elevator_mstate succ(si_, nb_states_, RANK_M);
+      // initialise the successor macrostate
+      elevator_mstate succ(si_, nb_states_);
       // used for unambiguous automaton
       std::vector<bool> incoming(nb_states_, false);
       std::vector<bool> ignores(nb_states_, false);
-
+      std::cout << "current mstate: " << get_name(ms) << std::endl;
+      std::cout << "current letter: ";
+      bdd_printset(letter);
+      std::cout << std::endl;
       auto can_ignore = [&incoming, &ignores](bool use_ambiguous, unsigned dst) -> bool
       {
         if (use_ambiguous)
@@ -439,32 +504,56 @@ namespace cola
 
       //1. first handle nondeterministic states
       std::set<unsigned> acc_weak_coming_states;
-      std::set<unsigned> unlabelled_states = ms.get_unlabelled_set();
-      int max_rnk = ms.get_max_rank();
+      // all reachable states
+      std::set<unsigned> current_states = ms.get_reach_set();
+      
+      std::vector<std::set<unsigned>> next_detstates;
+      for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+      {
+        std::set<unsigned> states;
+        next_detstates.emplace_back(states);
+      }
+      int max_rnk = INT_MAX;
 
-      for (unsigned s : unlabelled_states)
+      std::unordered_map<unsigned, std::vector<std::pair<mark_set, unsigned>>> det_cache;
+      
+      //1. first handle inherently weak states
+      for (unsigned s : current_states)
       {
         // nondeterministic states or states in nonaccepting SCCs
         bool in_break_set = (ms.break_set_.find(s) != ms.break_set_.end());
+        bool in_acc_det = is_accepting_detscc(scc_types_, si_.scc_of(s));
+        if (in_acc_det)
+        {
+          det_cache.emplace(s, std::vector<std::pair<mark_set, unsigned>>());
+        }
         for (const auto &t : aut_->out(s))
         {
           if (!bdd_implies(letter, t.cond))
             continue;
           // it is legal to ignore the states have two incoming transitions
           // in unambiguous Buchi automaton
-          if (can_ignore(use_unambiguous_, t.dst)) continue;
+          if (can_ignore(use_unambiguous_, t.dst))
+            continue;
           unsigned scc_id = si_.scc_of(t.dst);
-          // we move the states in accepting det SCC to ordered states
-          if (is_acc_detscc(scc_id))
+          // we move the states in accepting det SCC 
+          if (is_accepting_detscc(scc_types_, scc_id))
           {
-            succ.ordered_states_[t.dst] = max_rnk + 1; //Sharing labels
+            int det_scc_index = get_detscc_index(scc_id); 
+            assert(det_scc_index != -1);
+            // incoming states
+            next_detstates[det_scc_index].insert(t.dst);
+            if (in_acc_det)
+            {
+              det_cache[s].emplace_back(t.acc, t.dst);
+            }
           }
-          else
+          else if (is_weakscc(scc_types_, scc_id))
           {
             // weak states or nondeterministic or nonaccepting det scc
-            succ.ordered_states_[t.dst] = RANK_N;
-            bool in_acc_set = // must be accepting and weak
-                (scc_types_[scc_id] & SCC_ACC) > 0 && (scc_types_[scc_id] & SCC_WEAK_TYPE) > 0;
+            succ.weak_set_.insert(t.dst);
+            // be accepting and weak
+            bool in_acc_set = (scc_types_[scc_id] & SCC_ACC) > 0;
             // in breakpoint and it is accepting
             if (in_break_set && in_acc_set)
             {
@@ -476,130 +565,27 @@ namespace cola
               acc_weak_coming_states.insert(t.dst);
             }
           }
-        }
-      }
-      // std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
-
-      //2. Compute the labelling successors
-      const int MAX_RANK = max_rnk + 3;
-      std::vector<std::pair<int, int>> min_labellings;
-
-      for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-      {
-        unsigned scc_curr_id = acc_detsccs_[i];
-        // list of deterministic states, already ordered by its labelling
-        std::vector<label> acc_det_states = ms.get_detscc_states(scc_curr_id);
-        // print_label_vec(acc_det_states);
-        for (unsigned j = 0; j < acc_det_states.size(); j++)
-        {
-          unsigned s = acc_det_states[j].first;
-          int curr_label = acc_det_states[j].second;
-          // states and ranking
-          for (const auto &t : aut_->out(s))
+          else
           {
-            if (!bdd_implies(letter, t.cond))
-              continue;
-            if (can_ignore(use_unambiguous_, t.dst))
-            {
-              continue;
-            }
-
-            // NORMAL way, inherit the labelling
-            //int update_rnk = label;
-            unsigned scc_succ_id = si_.scc_of(t.dst);
-            // get out of the SCC and go to non-accepting or deterministic SCC
-            // 1). go to a different SCC and it is not accepting deterministic SCC
-            //      in this case, the state is not labelled
-            if (scc_curr_id != scc_succ_id && !is_acc_detscc(scc_succ_id))
-            {
-              succ.ordered_states_[t.dst] = RANK_N; // go back to nondeterministic part
-              bool in_acc_set =    // must be accepting and weak
-                  (scc_types_[scc_succ_id] & SCC_ACC) > 0 && (scc_types_[scc_succ_id] & SCC_WEAK_TYPE) > 0;
-              // record accepting weak SCC states
-              if (in_acc_set)
-              {
-                acc_weak_coming_states.insert(t.dst);
-              }
-            } else if (scc_curr_id != scc_succ_id && is_acc_detscc(scc_succ_id))
-            {
-              //2). go to a different and smaller accepting deterministic SCC
-              // if it is a new state entering that SCC
-              if (succ.ordered_states_[t.dst] < RANK_N)
-              {
-                succ.ordered_states_[t.dst] = max_rnk + 1;
-              }
-              // else it is not new, must already inherit some labelling
-            } else if (scc_curr_id == scc_succ_id)
-            {
-              //2). stay in the same accepting deterministic SCC
-              // will inherit the same labelling
-      
-              // else the successor is also in the same scc, no change, inherit the labelling
-              if (succ.ordered_states_[t.dst] == RANK_M) succ.ordered_states_[t.dst] = curr_label;
-              else succ.ordered_states_[t.dst] = std::min(succ.ordered_states_[t.dst], curr_label);
-            }
+            assert(false);
           }
         }
       }
-      
-      // remove redudant states
-      if (use_simulation_)
-      {
-        make_simulation_state(succ);
-      }
-      min_labellings.clear();
-        // record the numbers
-        for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-        {
-          unsigned scc_curr_id = acc_detsccs_[i];
-          int min_acc = MAX_RANK;
-          int min_dcc = MAX_RANK;
-          // list of deterministic states, already ordered by its labelling
-          std::vector<label> acc_det_states = ms.get_detscc_states(scc_curr_id);
-          // std::cout << "Computing scc " << scc_curr_id << "\n";
-          // print_label_vec(acc_det_states);
-          for (unsigned j = 0; j < acc_det_states.size(); j++)
-          {
-            bool has_succ = false;
-            bool has_acc = false;
-            unsigned s = acc_det_states[j].first;
-            int curr_label = acc_det_states[j].second;
-            assert (curr_label == j);
-            for (const auto &t : aut_->out(s))
-            {
-              if (!bdd_implies(letter, t.cond))
-              continue;
-              if (can_ignore(use_unambiguous_, t.dst))
-              {
-                continue;
-              }
-              // 1. first they should be in the same SCC
-              // 2. second the label should be equal
-              if (si_.scc_of(s) == si_.scc_of(t.dst)
-              && succ.ordered_states_[t.dst] == curr_label)
-              {
-                has_succ = true;
-                has_acc = has_acc || t.acc;
-              }
-            }
-            if (!has_succ && min_dcc == MAX_RANK)
-            {
-              // i. no successor, record the smaller label 
-              min_dcc = j;
-            } else if (has_acc && min_acc == MAX_RANK)
-            {
-              // ii. see an accepting transition
-              min_acc = j;
-            }
-          }
-          // record the pair of labellings for the SCC
-          min_labellings.emplace_back(min_dcc, min_acc);
-        }
+      std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
+      //2. Compute the labelling successors for deterministic SCCs
+      compute_deterministic_successors(ms, succ, next_detstates, det_cache);
+      std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
+
+      std::vector<std::pair<int, int>> det_min_labellings;
+      //4. decide the color for deterministic SCCs
+      compute_deterministic_color(ms, succ, det_min_labellings, det_cache);
 
       bool break_empty = succ.break_set_.empty();
       // now determine the break set
       if (break_empty)
       {
+        std::cout << "new Incoming: ";
+        print_set(acc_weak_coming_states);
         // if the breakpoint is empty, then fill it with newly-incoming accepting weak SCC states
         std::set<unsigned> result;
         std::set<unsigned> reach_sucss = succ.get_reach_set();
@@ -607,55 +593,213 @@ namespace cola
         succ.break_set_ = result;
       }
 
-      std::vector<int> colors;
-      //3. Determine the color on the transition for each accepting deterministic SCC 
-      // the minimal even color is 2 and the minimal odd color is 1
-      for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-      {
-        int parity;
-        int min_dcc = min_labellings[i].first;
-        int min_acc = min_labellings[i].second;
-        if (min_dcc == MAX_RANK && min_acc != MAX_RANK)
-        {
-          parity = 2 * (min_acc + 1);
-        }
-        else if (min_dcc != MAX_RANK && min_acc == MAX_RANK)
-        {
-          parity = 2 * min_dcc + 1;
-        }
-        else if (min_dcc != MAX_RANK && min_acc != MAX_RANK)
-        {
-          parity = std::min(2 * min_dcc + 1, 2 * min_acc + 2);
-        }
-        else
-        {
-          parity = -1;
-        }
-        colors.push_back(parity);
-      }
-      // give color for the weak SCCs
-      if (break_empty)
-      {
-        colors.push_back(1);
-      }
-      else
-      {
-        colors.push_back(2);
-      }
+      // exit(0);
+      // std::vector<int> colors;
+      // //3. Determine the color on the transition for each accepting deterministic SCC 
+      // // the minimal even color is 2 and the minimal odd color is 1
+      // for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+      // {
+      //   int parity;
+      //   int min_dcc = min_labellings[i].first;
+      //   int min_acc = min_labellings[i].second;
+      //   if (min_dcc == MAX_RANK && min_acc != MAX_RANK)
+      //   {
+      //     parity = 2 * (min_acc + 1);
+      //   }
+      //   else if (min_dcc != MAX_RANK && min_acc == MAX_RANK)
+      //   {
+      //     parity = 2 * min_dcc + 1;
+      //   }
+      //   else if (min_dcc != MAX_RANK && min_acc != MAX_RANK)
+      //   {
+      //     parity = std::min(2 * min_dcc + 1, 2 * min_acc + 2);
+      //   }
+      //   else
+      //   {
+      //     parity = -1;
+      //   }
+      //   colors.push_back(parity);
+      // }
+      // // give color for the weak SCCs
+      // if (break_empty)
+      // {
+      //   colors.push_back(1);
+      // }
+      // else
+      // {
+      //   colors.push_back(2);
+      // }
 
-      //4. Reorgnize the indices of each accepting deterministic SCC
-      for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-      {
-        std::vector<label> acc_det_states = succ.get_detscc_states(acc_detsccs_[i]);
-        for (unsigned j = 0; j < acc_det_states.size(); j++)
-        {
-          succ.ordered_states_[acc_det_states[j].first] = j;
-        }
-      }
+      // //4. Reorgnize the indices of each accepting deterministic SCC
+      // for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+      // {
+      //   std::vector<label> acc_det_states = succ.get_detscc_states(acc_detsccs_[i]);
+      //   for (unsigned j = 0; j < acc_det_states.size(); j++)
+      //   {
+      //     succ.ordered_states_[acc_det_states[j].first] = j;
+      //   }
+      // }
 
       nxt = succ;
-      color = colors;
+      // color = colors;
     }
+
+    // Runs with higher labelling may be merged by those with lower labelling
+    void compute_deterministic_successors(const elevator_mstate &ms, elevator_mstate &succ, std::vector<std::set<unsigned>>& next_detstates
+      , std::unordered_map<unsigned, std::vector<std::pair<mark_set, unsigned>>>& det_cache)
+      {
+        for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+        {
+          unsigned curr_scc = acc_detsccs_[i];
+          // list of deterministic states, already ordered by its labelling
+          const std::vector<label> &acc_det_states = ms.detscc_labels_[i];
+          std::map<unsigned, int> succ_nodes;
+          int max_rnk = -1;
+          print_label_vec(acc_det_states);
+          for (unsigned j = 0; j < acc_det_states.size(); j++)
+          {
+            unsigned s = acc_det_states[j].first;
+            int curr_label = acc_det_states[j].second;
+            max_rnk = std::max(max_rnk, curr_label);
+            assert (curr_label == j);
+            // states and ranking
+            for (const auto &t : det_cache[s])
+            {
+              unsigned succ_scc = si_.scc_of(t.second);
+              // ignore the states that go to other SCCs
+              if (curr_scc != succ_scc)
+                continue;
+              next_detstates[i].erase(t.second);
+              // Stay in the same accepting deterministic SCC or just enter this SCC
+              // All DAC-states already have assigned with MAX_RANK
+              auto it = succ_nodes.emplace(t.second, curr_label);
+              if (! it.second) // already there
+              {
+                int prev_label = it.first->second;
+                it.first->second = std::min(curr_label, prev_label);
+              }
+            }
+          }
+          ++ max_rnk ;
+          // put them into succ
+          for (unsigned p : next_detstates[i])
+          {
+            // insertion failed is possible
+            succ_nodes.emplace(p, max_rnk);
+            ++ max_rnk;
+          }
+          //succ.detscc_labels_[i].clear();
+          for (auto& node : succ_nodes)
+          {
+            succ.detscc_labels_[i].emplace_back(node.first, node.second);
+          }
+        }
+      }
+      // with each SCC
+      // assume that the total used sets are [0,...,k-1]
+      // k is the number of sets
+      // for each run i, we use the colours (k + 1) * i, to, (k+1)*i + k
+      // hence, for run 0, it is 0, ..., k-1, k
+      // for run 1, k+1, ..., (k+1) + k
+      //     run 2, 2*(k+1), ..., 2*(k+1) + j, ... , 2*(k+1)+k
+      //     ...
+      //     run i, i*(k+1), ..., i*(k+1) + j, ..., i*(k+1) + k
+      //     ...
+      //  where j is the original colour
+      void compute_deterministic_color(const elevator_mstate &ms, elevator_mstate &succ
+        , std::vector<std::pair<int, int>> &min_labellings
+        , std::unordered_map<unsigned, std::vector<std::pair<mark_set, unsigned>>>& det_cache)
+        {
+          // now we need to check for each color c
+          // For Inf(c), it is quite similar to accepting transition
+          // For Fin(c), we need to reject, so we just shift one bit maybe
+          const int MAX_RANK = aut_->num_states() + 2;
+          // std::vector<std::set<unsigned>> discontinued_runs;
+          auto num_colours = used_sets.max_set(); // k + 1
+          std::vector<std::set<unsigned>> colours;
+          std::cout << "num_colours: " << num_colours << std::endl;
+
+          // record the numbers
+          for (unsigned i = 0; i < acc_detsccs_.size(); i++)
+          {
+            unsigned curr_scc = acc_detsccs_[i];
+            // list of deterministic states, already ordered by its labelling
+            const std::vector<label> &acc_det_states = ms.detscc_labels_[i];
+            std::map<unsigned, int> succ_nodes;
+            for (auto & p : succ.detscc_labels_[i])
+            {
+              succ_nodes[p.first] = p.second;
+            }
+
+            // discontinued_runs.emplace_back(std::set<unsigned>());
+            colours.emplace_back(std::set<unsigned>());
+            std::vector<unsigned> decr_by;
+            decr_by.assign(acc_det_states.size(), 0);
+            unsigned decr = 0;
+            // the runs must be from 0 to size-1
+            for (unsigned j = 0; j < acc_det_states.size(); j++)
+            {
+              unsigned base_colour = j * (num_colours+1);
+              bool has_succ = false;
+              unsigned s = acc_det_states[j].first;
+              int curr_label = acc_det_states[j].second;
+              assert(curr_label == j);
+              mark_set colour_set;
+              for (const auto &t : det_cache[s])
+              {
+                // t.first contains all colours
+                // t.second is the successor
+                std::cout << "curr: " << s << " succ: " << t.second
+                  << " colour: " << t.first << std::endl;
+                
+                // ignore the states that are not existing any more
+                if (succ_nodes.find(t.second) == succ_nodes.end())
+                {
+                  continue;
+                }
+                // 1. first they should be in the same SCC
+                // 2. second the label should be equal
+                if (si_.scc_of(s) == si_.scc_of(t.second) 
+                  && succ_nodes[t.second] == curr_label)
+                {
+                  has_succ = true;
+                  colour_set = t.first;
+                }
+              }
+              if (!has_succ)
+              {
+                ++ decr;
+                // i. no successor, record the smaller label
+                colours[i].insert(base_colour + num_colours);
+                std::cout << "run " << j << " id=" << "Fin=" 
+                << base_colour + num_colours << std::endl;
+              }
+              else
+              {
+                // ii. see a transition, record all the colours
+                for (unsigned c = 0; c < num_colours; c ++) {
+                  if (colour_set.has(c)) {
+                    colours[i].insert(base_colour + c);
+                    std::cout << "run " << j << " id=" << "colour=" 
+                    << base_colour + c << " from orginal colour " << c << std::endl;
+                  }
+                }
+              }
+              // number
+              decr_by[j] = decr;
+            }
+    
+            // reorganize the indices
+            std::sort(succ.detscc_labels_[i].begin(), succ.detscc_labels_[i].end(), label_compare);
+            for (int k = 0; k < succ.detscc_labels_[i].size(); k ++)
+            {
+              succ.detscc_labels_[i][k].second = k;
+            }
+          }
+
+    }
+    
+  
     // copied and adapted from deterministic.cc in Spot
     void
     make_stutter_state(const elevator_mstate &curr, bdd letter, elevator_mstate &succ, std::vector<int> &colors)
@@ -664,6 +808,7 @@ namespace cola
       std::vector<elevator_mstate> stutter_path;
       if (use_stutter_ && aut_->prop_stutter_invariant())
       {
+        std::cout << "enter stutter" << std::endl;
         // The path is usually quite small (3-4 states), so it's
         // not worth setting up a hash table to detect a cycle.
         stutter_path.clear();
@@ -683,7 +828,7 @@ namespace cola
           }
           stutter_path.emplace_back(std::move(ms));
           // next state
-          elevator_mstate tmp_succ(si_, nb_states_, RANK_M);
+          elevator_mstate tmp_succ(si_, nb_states_);
           std::vector<int> tmp_color(acc_detsccs_.size() + 1, -1);
           compute_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
          
@@ -748,6 +893,62 @@ namespace cola
       return (scc_types_[scc] & SCC_ACC) > 0 && (scc_types_[scc] & SCC_WEAK_TYPE) > 0;
     }
 
+    // enum class acc_type {
+    //   NONE = 0,
+    //   FIN = 1,
+    //   INF = 2,
+    //   BOTH = 3
+    // };
+
+    // typedef std::bitset<2> mark_type;
+    std::vector<char> colour_sets;
+    mark_set used_sets;
+    // we need to collect the colours for each SCC
+    void prepare_acc(const spot::acc_cond::acc_code& acc_f) {
+      used_sets = acc_f.used_sets();
+      for (unsigned c = 0; c < used_sets.max_set(); c ++) {
+        colour_sets.push_back(0);
+      }
+      std::cout << "used sets: " << used_sets << std::endl;
+      // compute the occurrences of colours
+      auto pos = aut_->acc().get_acceptance().size();
+      std::cout << "EL condition:" << acc_f << std::endl;
+      // there is  a shifting <<
+      while (pos > 0)
+      {
+        auto op = acc_f[pos - 1].sub.op;
+        auto sz = acc_f[pos - 1].sub.size;
+        switch (op)
+          {
+          case spot::acc_cond::acc_op::And:
+          case spot::acc_cond::acc_op::Or:
+            // can we travese the operands?
+            --pos;
+            break;
+          case spot::acc_cond::acc_op::Inf:
+            pos -= 2;
+            std::cout << "Inf mark: " << acc_f[pos].mark << std::endl;
+            for (auto c : acc_f[pos].mark.sets()) {
+              colour_sets[c] |= 2;
+            }
+            break;
+          case spot::acc_cond::acc_op::Fin:
+            pos -= 2;
+            // mark is a set of colours, we need to enumerate them
+            std::cout << "Fin mark: " << acc_f[pos].mark << std::endl;
+            for (auto c : acc_f[pos].mark.sets()) {
+              colour_sets[c] |= 1;
+            }
+            break;
+          }
+      }
+      for (unsigned i = 0; i < colour_sets.size(); i ++) {
+        std::cout << i << ": " << (int)colour_sets[i] << std::endl;
+      }
+      // we need to collect all these colours and then 
+      // create intervals for all of them
+    }
+
   public:
     elevator_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
         : aut_(aut),
@@ -765,6 +966,9 @@ namespace cola
           delayed_simulator_(aut, om),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
+      std::cout << "current EL:" << std::endl;
+      spot::print_hoa(std::cout, aut_);
+      std::cout << std::endl;
       if (om.get(VERBOSE_LEVEL) >= 2)
       {
         simulator_.output_simulation();
@@ -804,7 +1008,11 @@ namespace cola
                 support_[st] = c_supp;
             }
       }
+      // we assume that no negations
       scc_types_ = get_scc_types(si_);
+      auto aut_f = aut_->acc().get_acceptance();
+      // collect all colours
+      prepare_acc(aut_f);
       // find out the accepting and deterministic SCCs
       for (unsigned i = 0; i < scc_types_.size(); i++)
       {
@@ -814,6 +1022,12 @@ namespace cola
           max_colors_.push_back(-1);
           min_colors_.push_back(INT_MAX);
         }
+        std::cout << "scc " << i << std::endl;
+        std::cout << " {" ;
+        for (auto s : si_.states_of(i)) {
+          std::cout << " " << s;
+        }
+        std::cout << std::endl;
       }
 
       // optimize with the fact of being unambiguous
@@ -827,13 +1041,17 @@ namespace cola
       // belongs to the N set. (otherwise the automaton would be
       // deterministic)
       unsigned init_state = aut->get_init_state_number();
-      elevator_mstate new_init_state(si_, nb_states_, RANK_M);
-      if (! is_acc_detscc(si_.scc_of(init_state)))
+      elevator_mstate new_init_state(si_, nb_states_);
+      unsigned init_scc = si_.scc_of(init_state);
+      std::cout << "init_scc: " << init_scc << std::endl;
+      if ((scc_types_[init_scc] & SCC_WEAK_TYPE))
       {
-        new_init_state.ordered_states_[init_state] = RANK_N;
-      }else 
+        new_init_state.weak_set_.insert(init_state);
+      }
+      else if (is_accepting_detscc(scc_types_, init_scc))
       {
-        new_init_state.ordered_states_[init_state] = 0;
+        int init_scc_index = get_detscc_index(init_scc);
+        new_init_state.detscc_labels_[init_scc_index].emplace_back(init_state, 0);
       }
       // we assume that the initial state is not in deterministic part
       res_->set_init_state(new_state(new_init_state));
@@ -977,9 +1195,10 @@ namespace cola
         // Compute support of all available states.
         bdd msupport = bddtrue;
         bdd n_s_compat = bddfalse;
+        std::set<unsigned> reach_set = ms.get_reach_set();
+
         // compute the occurred variables in the outgoing transitions of ms, stored in msupport
-        for (unsigned s = 0; s < nb_states_; ++s)
-          if (ms.ordered_states_[s] != RANK_M)
+        for (unsigned s : reach_set)
           {
             msupport &= support_[s];
             n_s_compat |= compat_[s];
@@ -991,18 +1210,19 @@ namespace cola
           bdd letter = bdd_satoneset(all, msupport, bddfalse);
           all -= letter;
 
-          elevator_mstate succ(si_, nb_states_, RANK_M);
+          elevator_mstate succ(si_, nb_states_);
           // the number of SCCs we care is the accepting det SCCs and the weak SCCs
           std::vector<int> colors(acc_detsccs_.size() + 1, -1);
           //compute_labelling_successors(std::move(ms), top.second, letter, succ, color);
           make_stutter_state(ms, letter, succ, colors);
-      
+          std::cout << "computed succ: " << get_name(succ) << std::endl;
           if (succ.is_empty()) continue;
 
           unsigned origin = top.second;
           // add transitions
           // Create the automaton states
           unsigned dst = new_state(succ);
+          std::cout << "todo size: " << todo_.size() << std::endl;
           // first add this transition
           res_->new_edge(origin, dst, letter);
           // handle with colors
@@ -1023,8 +1243,8 @@ namespace cola
       }
       finalize_acceptance();
 
-      if (aut_->prop_complete().is_true())
-        res_->prop_complete(true);
+      // if (res_->prop_complete().is_true())
+      res_->prop_complete(true);
       res_->prop_universal(true);
       res_->prop_state_acc(false);
       if (om_.get(VERBOSE_LEVEL) >= 1)
@@ -1040,8 +1260,8 @@ namespace cola
         output_file(res_, "dpa1.hoa");
         if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
       }
-      simplify_acceptance_here(res_);
-
+      // simplify_acceptance_here(res_);
+      spot::print_hoa(std::cout, res_);
       return res_;
     }
 
