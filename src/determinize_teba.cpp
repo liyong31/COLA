@@ -698,14 +698,15 @@ namespace cola
       // with each SCC
       // assume that the total used sets are [0,...,k-1]
       // k is the number of sets
-      // for each run i, we use the colours (k + 1) * i, to, (k+1)*i + k
+      // for each run i, we use the colours (k + 1) * j, to, (k+1)*j + k
       // hence, for run 0, it is 0, ..., k-1, k
       // for run 1, k+1, ..., (k+1) + k
-      //     run 2, 2*(k+1), ..., 2*(k+1) + j, ... , 2*(k+1)+k
+      //     run 2, 2*(k+1), ..., 2*(k+1) + c, ... , 2*(k+1)+k
       //     ...
-      //     run i, i*(k+1), ..., i*(k+1) + j, ..., i*(k+1) + k
+      //     run j, j*(k+1), ..., j*(k+1) + c, ..., j*(k+1) + k
       //     ...
-      //  where j is the original colour
+      //  where c is the original colour; the last colour j*(k+1)+k 
+      // indicates the run has been discontinued
       void compute_deterministic_color(const elevator_mstate &ms, elevator_mstate &succ
         , std::vector<std::pair<int, int>> &min_labellings
         , std::unordered_map<unsigned, std::vector<std::pair<mark_set, unsigned>>>& det_cache)
@@ -716,6 +717,8 @@ namespace cola
           const int MAX_RANK = aut_->num_states() + 2;
           // std::vector<std::set<unsigned>> discontinued_runs;
           auto num_colours = used_sets.max_set(); // k + 1
+          // record the colours we put on this transition
+          // note that these are relative colours, need to shift afterwards
           std::vector<std::set<unsigned>> colours;
           std::cout << "num_colours: " << num_colours << std::endl;
 
@@ -766,15 +769,7 @@ namespace cola
                   colour_set = t.first;
                 }
               }
-              if (!has_succ)
-              {
-                ++ decr;
-                // i. no successor, record the smaller label
-                colours[i].insert(base_colour + num_colours);
-                std::cout << "run " << j << " id=" << "Fin=" 
-                << base_colour + num_colours << std::endl;
-              }
-              else
+              if (has_succ && decr <= 0)
               {
                 // ii. see a transition, record all the colours
                 for (unsigned c = 0; c < num_colours; c ++) {
@@ -784,6 +779,13 @@ namespace cola
                     << base_colour + c << " from orginal colour " << c << std::endl;
                   }
                 }
+              }else // (!has_succ) or the labelling is going to change
+              {
+                ++ decr;
+                // i. no successor, record the smaller label
+                colours[i].insert(base_colour + num_colours);
+                std::cout << "run " << j << " id=" << "Fin=" 
+                << base_colour + num_colours << std::endl;
               }
               // number
               decr_by[j] = decr;
