@@ -1218,11 +1218,11 @@ namespace cola
       std::cout << "set state acc false" << std::endl;
       res_->prop_state_acc(spot::trival(false));
       finalize_acceptance();
-      std::cout << res_->get_acceptance().max_size() << std::endl;
+      std::cout << res_->get_acceptance() << std::endl;
       std::cout << "set up acceptance" << std::endl;
 
-      // if (res_->prop_complete().is_true())
-      res_->prop_complete(true);
+      if (res_->prop_complete().is_true())
+        res_->prop_complete(true);
       res_->prop_universal(true);
       std::cout << "state acc: " << res_->prop_state_acc() << std::endl;
       // res_->prop_deterministic(spot::trival(true));
