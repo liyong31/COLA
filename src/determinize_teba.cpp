@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <bitset>
+#include <bits/stdc++.h>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -39,6 +40,7 @@
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
 #include <spot/misc/version.hh>
+#include <spot/misc/trival.hh>
 #include <spot/twa/acc.hh>
 
 
@@ -49,6 +51,7 @@ namespace cola
   // state and the labelling value
   typedef std::pair<unsigned, int> label;
   typedef std::pair<unsigned, bdd> outgoing_trans;
+  typedef std::set<unsigned> mark_labels;
 
   struct outgoing_trans_hash
   {
@@ -330,11 +333,11 @@ namespace cola
     std::unordered_map<elevator_mstate, unsigned, elevator_mstate_hash> rank2n_;
 
     // outgoing transition to its colors by each accepting SCCs (weak is the righmost)
-    std::unordered_map<outgoing_trans, std::vector<int>, outgoing_trans_hash> trans2colors_;
+    std::unordered_map<unsigned, std::pair<unsigned, std::vector<mark_labels>>> trans2colors_;
 
     // maximal colors for each accepting SCCs
-    std::vector<int> max_colors_;
-    std::vector<int> min_colors_;
+    std::vector<unsigned> max_colors_;
+    std::vector<unsigned> min_colors_;
     // States to process.
     std::deque<std::pair<elevator_mstate, unsigned>> todo_;
 
@@ -471,7 +474,8 @@ namespace cola
     // O = {breakpoint for weak SCCs}
     // and labelling states for each SCC
     void
-    compute_successors(const elevator_mstate &ms, bdd letter, elevator_mstate &nxt, std::vector<int> &color)
+    compute_successors(const elevator_mstate &ms, bdd letter, elevator_mstate &nxt, std::pair<unsigned
+      , std::vector<std::set<unsigned>>> &colours)
     {
       // initialise the successor macrostate
       elevator_mstate succ(si_, nb_states_);
@@ -571,14 +575,14 @@ namespace cola
           }
         }
       }
-      std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
+      std::cout << "After step: " << get_name(succ) << std::endl;
       //2. Compute the labelling successors for deterministic SCCs
       compute_deterministic_successors(ms, succ, next_detstates, det_cache);
-      std::cout << "After nondeterministic: " << get_name(succ) << std::endl;
+      std::cout << "After receiving more successors: " << get_name(succ) << std::endl;
 
-      std::vector<std::pair<int, int>> det_min_labellings;
+      std::vector<std::set<unsigned>> det_labellings;
       //4. decide the color for deterministic SCCs
-      compute_deterministic_color(ms, succ, det_min_labellings, det_cache);
+      compute_deterministic_color(ms, succ, det_labellings, det_cache);
 
       bool break_empty = succ.break_set_.empty();
       // now determine the break set
@@ -591,55 +595,13 @@ namespace cola
         std::set<unsigned> reach_sucss = succ.get_reach_set();
         std::set_intersection(reach_sucss.begin(), reach_sucss.end(), acc_weak_coming_states.begin(), acc_weak_coming_states.end(), std::inserter(result, result.begin()));
         succ.break_set_ = result;
+        colours.first = 1;
+        // Should finitely see it
+      }else {
+        colours.first = 0;
       }
 
-      // exit(0);
-      // std::vector<int> colors;
-      // //3. Determine the color on the transition for each accepting deterministic SCC 
-      // // the minimal even color is 2 and the minimal odd color is 1
-      // for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-      // {
-      //   int parity;
-      //   int min_dcc = min_labellings[i].first;
-      //   int min_acc = min_labellings[i].second;
-      //   if (min_dcc == MAX_RANK && min_acc != MAX_RANK)
-      //   {
-      //     parity = 2 * (min_acc + 1);
-      //   }
-      //   else if (min_dcc != MAX_RANK && min_acc == MAX_RANK)
-      //   {
-      //     parity = 2 * min_dcc + 1;
-      //   }
-      //   else if (min_dcc != MAX_RANK && min_acc != MAX_RANK)
-      //   {
-      //     parity = std::min(2 * min_dcc + 1, 2 * min_acc + 2);
-      //   }
-      //   else
-      //   {
-      //     parity = -1;
-      //   }
-      //   colors.push_back(parity);
-      // }
-      // // give color for the weak SCCs
-      // if (break_empty)
-      // {
-      //   colors.push_back(1);
-      // }
-      // else
-      // {
-      //   colors.push_back(2);
-      // }
-
-      // //4. Reorgnize the indices of each accepting deterministic SCC
-      // for (unsigned i = 0; i < acc_detsccs_.size(); i++)
-      // {
-      //   std::vector<label> acc_det_states = succ.get_detscc_states(acc_detsccs_[i]);
-      //   for (unsigned j = 0; j < acc_det_states.size(); j++)
-      //   {
-      //     succ.ordered_states_[acc_det_states[j].first] = j;
-      //   }
-      // }
-
+      colours.second = det_labellings;
       nxt = succ;
       // color = colors;
     }
@@ -707,8 +669,9 @@ namespace cola
       //     ...
       //  where c is the original colour; the last colour j*(k+1)+k 
       // indicates the run has been discontinued
+      // note that if a j*(k+1) + k occurs, all larger ones must also occur
       void compute_deterministic_color(const elevator_mstate &ms, elevator_mstate &succ
-        , std::vector<std::pair<int, int>> &min_labellings
+        , std::vector<std::set<unsigned>> &labellings
         , std::unordered_map<unsigned, std::vector<std::pair<mark_set, unsigned>>>& det_cache)
         {
           // now we need to check for each color c
@@ -790,95 +753,107 @@ namespace cola
               // number
               decr_by[j] = decr;
             }
-    
+            // there are still runs that comes just now or do not present for now
+            // those runs should also be assigned finite colours
+            unsigned num_scc_states = si_.states_of(curr_scc).size();
+            for (unsigned j = acc_det_states.size(); j < num_scc_states; j ++) {
+              colours[i].insert(j * (num_colours+1) + num_colours);
+              std::cout << "run " << j << " id=" << "Fin=" 
+                << j * (num_colours+1) + num_colours << std::endl;
+            }
             // reorganize the indices
             std::sort(succ.detscc_labels_[i].begin(), succ.detscc_labels_[i].end(), label_compare);
             for (int k = 0; k < succ.detscc_labels_[i].size(); k ++)
             {
               succ.detscc_labels_[i][k].second = k;
             }
+            labellings = colours;
           }
 
     }
     
   
     // copied and adapted from deterministic.cc in Spot
+    // for emerson-lei automata, we need to define stutter path
+    // before using this optimisation
     void
-    make_stutter_state(const elevator_mstate &curr, bdd letter, elevator_mstate &succ, std::vector<int> &colors)
+    make_stutter_state(const elevator_mstate &curr, bdd letter, elevator_mstate &succ
+      , std::pair<unsigned, std::vector<std::set<unsigned>>> &colors)
     {
       elevator_mstate ms(curr);
-      std::vector<elevator_mstate> stutter_path;
-      if (use_stutter_ && aut_->prop_stutter_invariant())
-      {
-        std::cout << "enter stutter" << std::endl;
-        // The path is usually quite small (3-4 states), so it's
-        // not worth setting up a hash table to detect a cycle.
-        stutter_path.clear();
-        std::vector<elevator_mstate>::iterator cycle_seed;
-        std::vector<int> mincolor(acc_detsccs_.size() + 1, -1);
-        // stutter forward until we   cycle
-        for (;;)
-        {
-          // any duplicate value, if any, is usually close to
-          // the end, so search backward.
-          auto it = std::find(stutter_path.rbegin(),
-                              stutter_path.rend(), ms);
-          if (it != stutter_path.rend())
-          {
-            cycle_seed = (it + 1).base();
-            break;
-          }
-          stutter_path.emplace_back(std::move(ms));
-          // next state
-          elevator_mstate tmp_succ(si_, nb_states_);
-          std::vector<int> tmp_color(acc_detsccs_.size() + 1, -1);
-          compute_successors(stutter_path.back(), letter, tmp_succ, tmp_color);
+      // std::vector<elevator_mstate> stutter_path;
+      // if (use_stutter_ && aut_->prop_stutter_invariant())
+      // {
+      //   std::cout << "enter stutter" << std::endl;
+      //   // The path is usually quite small (3-4 states), so it's
+      //   // not worth setting up a hash table to detect a cycle.
+      //   stutter_path.clear();
+      //   std::vector<elevator_mstate>::iterator cycle_seed;
+      //   std::vector<int> mincolor(acc_detsccs_.size() + 1, -1);
+      //   // stutter forward until we   cycle
+      //   for (;;)
+      //   {
+      //     // any duplicate value, if any, is usually close to
+      //     // the end, so search backward.
+      //     auto it = std::find(stutter_path.rbegin(),
+      //                         stutter_path.rend(), ms);
+      //     if (it != stutter_path.rend())
+      //     {
+      //       cycle_seed = (it + 1).base();
+      //       break;
+      //     }
+      //     stutter_path.emplace_back(std::move(ms));
+      //     // next state
+      //     elevator_mstate tmp_succ(si_, nb_states_);
+      //     std::vector<std::set<unsigned>> det_colours;
+      //     std::pair<unsigned, std::vector<std::set<unsigned>>> tmp_colours;
+      //     compute_successors(stutter_path.back(), letter, tmp_succ, tmp_colours);
          
-          ms = tmp_succ;
-          for (unsigned i = 0; i < mincolor.size(); i++)
-          {
-            if (tmp_color[i] != -1 && mincolor[i] != -1)
-            {
-              mincolor[i] = std::min(tmp_color[i], mincolor[i]);
-            }
-            else if (tmp_color[i] != -1 && mincolor[i] == -1)
-            {
-              mincolor[i] = tmp_color[i];
-            }
-          }
-        }
-        // check whether this ms has been seen before
-        bool in_seen = exists(*cycle_seed);
-        for (auto it = cycle_seed + 1; it < stutter_path.end(); ++it)
-        {
-          if (in_seen)
-          {
-            // if *cycle_seed is already in seen, replace
-            // it with a smaller state also in seen.
-            if (exists(*it) && (*it < *cycle_seed))
-              cycle_seed = it;
-          }
-          else
-          {
-            // if *cycle_seed is not in seen, replace it
-            // either with a state in seen or with a smaller
-            // state
-            if (exists(*it))
-            {
-              cycle_seed = it;
-              in_seen = true;
-            }
-            else if (*it < *cycle_seed)
-            {
-              cycle_seed = it;
-            }
-          }
-        }
-        succ = std::move(*cycle_seed);
+      //     ms = tmp_succ;
+      //     for (unsigned i = 0; i < mincolor.size(); i++)
+      //     {
+      //       if (tmp_color[i] != -1 && mincolor[i] != -1)
+      //       {
+      //         mincolor[i] = std::min(tmp_color[i], mincolor[i]);
+      //       }
+      //       else if (tmp_color[i] != -1 && mincolor[i] == -1)
+      //       {
+      //         mincolor[i] = tmp_color[i];
+      //       }
+      //     }
+      //   }
+      //   // check whether this ms has been seen before
+      //   bool in_seen = exists(*cycle_seed);
+      //   for (auto it = cycle_seed + 1; it < stutter_path.end(); ++it)
+      //   {
+      //     if (in_seen)
+      //     {
+      //       // if *cycle_seed is already in seen, replace
+      //       // it with a smaller state also in seen.
+      //       if (exists(*it) && (*it < *cycle_seed))
+      //         cycle_seed = it;
+      //     }
+      //     else
+      //     {
+      //       // if *cycle_seed is not in seen, replace it
+      //       // either with a state in seen or with a smaller
+      //       // state
+      //       if (exists(*it))
+      //       {
+      //         cycle_seed = it;
+      //         in_seen = true;
+      //       }
+      //       else if (*it < *cycle_seed)
+      //       {
+      //         cycle_seed = it;
+      //       }
+      //     }
+      //   }
+      //   succ = std::move(*cycle_seed);
 
-        colors = mincolor;
-      }
-      else
+      //   colors = mincolor;
+      // }
+      // else
       {
         compute_successors(ms, letter, succ, colors);
       }
@@ -1021,7 +996,7 @@ namespace cola
         if (is_acc_detscc(i))
         {
           acc_detsccs_.push_back(i);
-          max_colors_.push_back(-1);
+          max_colors_.push_back(0);
           min_colors_.push_back(INT_MAX);
         }
         std::cout << "scc " << i << std::endl;
@@ -1100,65 +1075,52 @@ namespace cola
     void
     finalize_acceptance()
     {
-      std::vector<bool> odds(max_colors_.size(), false);
+      std::vector<unsigned> num_colours(max_colors_.size(), 0);
       for (unsigned i = 0; i < max_colors_.size(); i++)
       {
-        if (max_colors_[i] < 0)
-          continue;
-        // std::cout << "SCC " << acc_detsccs_[i] << " max_color = " << max_colors_[i] << " min_color = " << min_colors_[i] << std::endl;
-        // now we make all maximal colors an odd color (the color that cannot be visited infinitely often)
-        max_colors_[i] = (max_colors_[i] & 1) ? max_colors_[i] : (max_colors_[i] + 1);
-        // make minimal color an even color (no zero by construction, will shift to zero later)
-        // min_colors_[i] = (min_colors_[i] & 1) ? min_colors_[i] - 1 : min_colors_[i];
-        // std::cout << "SCC " << acc_detsccs_[i] << " max_color = " << max_colors_[i] << " min_color = " << min_colors_[i] << std::endl;
-        odds[i] = (min_colors_[i] & 1) > 0;
+        std::cout << "scc " << i << " max=" << max_colors_[i] << " min=" << min_colors_[i] << std::endl;
+        // we compute for each DAC, how many colours needed
+        num_colours[i] = (max_colors_[i] - min_colors_[i]) + 1;
+        // should be equal to n * (k + 1)
       }
       // now max_colors_ has the maximal color for each accepting deterministic SCC
       // compute the color base of each SCC
       std::vector<unsigned> color_bases(max_colors_.size(), 0);
       // the size of max_colors must be larger than 0
-      int accumulated_colors = 0;
-      if (max_colors_.size() > 0) 
+      unsigned accumulated_colors = 0;
+      for (unsigned i = 0; i < max_colors_.size(); i++)
       {
-        accumulated_colors = (max_colors_[0] < 0) ? 0 : max_colors_[0] - min_colors_[0] + 1;
-        color_bases[0] = 0;
-      } 
-      for (unsigned i = 1; i < max_colors_.size(); i++)
-      {
-        if (max_colors_[i] < 0)
-          continue;
         color_bases[i] = accumulated_colors;
-        accumulated_colors += (max_colors_[i] - min_colors_[i] + 1);
+        accumulated_colors += num_colours[i];
       }
-      unsigned weak_base = (unsigned)accumulated_colors;
+      unsigned weak_base = accumulated_colors;
+      std::cout << "weak_base " << weak_base << " accu " << accumulated_colors << std::endl;
       bool has_weak = false;
       bool has_weak_acc = has_weak_acc_sccs();
       for (auto &t : res_->edges())
       {
-        auto p = trans2colors_.find(std::make_pair(t.src, t.cond));
+        unsigned edge_id = res_->get_graph().index_of_edge(t);
+        auto p = trans2colors_.find(edge_id);
         if (p == trans2colors_.end())
         {
           throw std::runtime_error("No outgoing transition found in finalize_acceptance()");
         }
         // the list of colors, including the last one for weak SCCs
-        for (unsigned i = 0; i < p->second.size() - 1; i++)
+        // ->second contains first a weak and a set of colours for each DAC
+        auto & det_colours = p->second.second;
+        for (unsigned i = 0; i < det_colours.size(); i++)
         {
-          // if the maximal color is not -1
-          if (max_colors_[i] < 0)
-            continue;
-          // should be set to the maximal odd color
-          if (p->second[i] < 0)
-          {
-            t.acc.set((unsigned)(color_bases[i] + max_colors_[i] - min_colors_[i]));
-            // maximal color
+          std::cout << "scc " << i << std::endl;
+          // DAC i
+          for (auto& c : det_colours[i]) {
+            std::cout << "colour: " << c << std::endl;
+            t.acc.set(color_bases[i] + c - min_colors_[i]);
+            std::cout << "set colour: " << color_bases[i] + c - min_colors_[i] << std::endl;
           }
-          else
-          {
-            t.acc.set(((unsigned)(color_bases[i] + p->second[i] - min_colors_[i])));
-          }
+          // should be set to the relative color
         }
         // has the value of fin
-        if (has_weak_acc && (p->second.back() & 1))
+        if (has_weak_acc && (p->second.first & 1))
         {
           has_weak = true;
           t.acc.set(weak_base);
@@ -1166,12 +1128,23 @@ namespace cola
       }
       // now set up the acceptance
       spot::acc_cond::acc_code acceptance = spot::acc_cond::acc_code::f();
+      const auto aut_acc = aut_->acc().get_acceptance();
+      auto max_set = aut_acc.used_sets().max_set();
       for (unsigned i = 0; i < max_colors_.size(); i++)
       {
-        if (max_colors_[i] < 0)
-          continue;
-        // max_colors are all odd colors, the biggest one
-        acceptance |= make_parity_condition(color_bases[i], odds[i], max_colors_[i] - min_colors_[i] + 1);
+        // we need to set up the acceptance for every run
+        auto num_scc_states = si_.states_of(acc_detsccs_[i]);
+        for (unsigned j = 0; j < num_scc_states.size(); j ++) {
+          auto base = j * (max_set + 1);
+          std::cout << "shift " << base << " total " << color_bases[i] + base << std::endl;
+          auto scc_acceptance = aut_acc << color_bases[i] + base;
+          // now we need to add finitely many colours
+          scc_acceptance &= spot::acc_cond::acc_code::fin({base + max_set});
+          std::cout << "scc " << i << " acc="<< scc_acceptance << std::endl;
+          // max_colors are all odd colors, the biggest one
+          acceptance |= scc_acceptance;
+        }
+         // first move to zero, but should be alright
       }
       if (has_weak_acc && has_weak)
       {
@@ -1179,7 +1152,9 @@ namespace cola
       }
       unsigned num_sets = has_weak_acc && has_weak ? weak_base + 1 : weak_base;
       // the final one
+      std::cout << "sets " << num_sets << " acc " << acceptance << std::endl;
       res_->set_acceptance(num_sets, acceptance);
+      std::cout << acceptance << std::endl;
     }
 
     spot::twa_graph_ptr
@@ -1214,9 +1189,9 @@ namespace cola
 
           elevator_mstate succ(si_, nb_states_);
           // the number of SCCs we care is the accepting det SCCs and the weak SCCs
-          std::vector<int> colors(acc_detsccs_.size() + 1, -1);
+          std::pair<unsigned, std::vector<std::set<unsigned>>> colours;
           //compute_labelling_successors(std::move(ms), top.second, letter, succ, color);
-          make_stutter_state(ms, letter, succ, colors);
+          make_stutter_state(ms, letter, succ, colours);
           std::cout << "computed succ: " << get_name(succ) << std::endl;
           if (succ.is_empty()) continue;
 
@@ -1226,29 +1201,31 @@ namespace cola
           unsigned dst = new_state(succ);
           std::cout << "todo size: " << todo_.size() << std::endl;
           // first add this transition
-          res_->new_edge(origin, dst, letter);
-          // handle with colors
-          for (unsigned i = 0; i < colors.size(); i++)
+          unsigned edge_id = res_->new_edge(origin, dst, letter);
+          auto& det_colours = colours.second;
+          for (unsigned i = 0; i < det_colours.size(); i++)
           {
-            if (colors[i] < 0)
-              continue;
-            int color = colors[i];
-            if (i < max_colors_.size())
-            {
-              max_colors_[i] = std::max(max_colors_[i], color);
-              min_colors_[i] = std::min(min_colors_[i], color);
-            }
+              auto r = std::minmax_element(det_colours[i].begin(), det_colours[i].end());
+              max_colors_[i] = std::max(max_colors_[i], *r.second);
+              min_colors_[i] = std::min(min_colors_[i], *r.first);
             // record this color
           }
-          trans2colors_.emplace(std::make_pair(origin, letter), colors);
+          // handle with colors
+          trans2colors_.emplace(edge_id, colours);
         }
       }
+      std::cout << "state acc: " << res_->prop_state_acc() << std::endl;
+      std::cout << "set state acc false" << std::endl;
+      res_->prop_state_acc(spot::trival(false));
       finalize_acceptance();
+      std::cout << res_->get_acceptance().max_size() << std::endl;
+      std::cout << "set up acceptance" << std::endl;
 
       // if (res_->prop_complete().is_true())
       res_->prop_complete(true);
       res_->prop_universal(true);
-      res_->prop_state_acc(false);
+      std::cout << "state acc: " << res_->prop_state_acc() << std::endl;
+      // res_->prop_deterministic(spot::trival(true));
       if (om_.get(VERBOSE_LEVEL) >= 1)
       {
         output_file(res_, "dpa.hoa");
@@ -1262,8 +1239,10 @@ namespace cola
         output_file(res_, "dpa1.hoa");
         if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
       }
-      // simplify_acceptance_here(res_);
+      simplify_acceptance_here(res_);
+      std::cout << "output res_" << std::endl;
       spot::print_hoa(std::cout, res_);
+      std::cout << "done" << std::endl;
       return res_;
     }
 
@@ -1309,7 +1288,6 @@ namespace cola
     if (!is_elevator_automaton(aut))
       throw std::runtime_error("determinize_teba() requires a elevator input");
 
-    // now we compute the simulator
     // now we compute the simulator
     spot::const_twa_graph_ptr aut_reduced;
     std::vector<bdd> implications;
