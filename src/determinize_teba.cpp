@@ -1017,9 +1017,13 @@ namespace cola
                           false,        // state based
                           false,        // inherently_weak
                           false, false, // deterministic
-                          true,         // complete
-                          false         // stutter inv
+                          false,         // complete
+                          true         // stutter inv
                       });
+      if (aut_->prop_complete().is_true()) {
+          std::cout << "complete automaton " << res_->prop_complete() << std::endl;
+          res_->prop_complete(true);
+      }
       // Generate bdd supports and compatible options for each state.
       // Also check if all its transitions are accepting.
       for (unsigned i = 0; i < nb_states_; ++i)
@@ -1244,12 +1248,10 @@ namespace cola
         }
       }
       
-      res_->prop_state_acc(spot::trival(false));
       finalize_acceptance();
-
+      res_->prop_state_acc(spot::trival(false));
       res_->prop_universal(true);
-      // res_->prop_deterministic(spot::trival(true));
-      res_->prop_complete(true);
+      
       if (om_.get(VERBOSE_LEVEL) >= 1)
       {
         output_file(res_, "dpa.hoa");
@@ -1261,7 +1263,11 @@ namespace cola
       {
         std::cout << "After simplification #States: " << res_->num_states() << " #Colors: " << res_->num_sets() << std::endl;
         output_file(res_, "dpa1.hoa");
-        if (om_.get(VERBOSE_LEVEL) >= 2) check_equivalence(aut_, res_);
+        if (om_.get(VERBOSE_LEVEL) >= 2) {
+          std::cout << "checking equivalence" << std::endl;
+          check_equivalence(aut_, res_);
+          std::cout << "equivalence done..." << std::endl; 
+        }
       }
       
       simplify_acceptance_here(res_);
@@ -1311,20 +1317,30 @@ namespace cola
     if (!is_elevator_automaton(aut))
       throw std::runtime_error("determinize_teba() requires a elevator input");
 
-    // now we compute the simulator
-    spot::const_twa_graph_ptr aut_reduced;
-    std::vector<bdd> implications;
-    spot::twa_graph_ptr aut_tmp = nullptr;
-    if (om.get(USE_SIMULATION) > 0)
-    {
-      aut_tmp = spot::scc_filter(aut);
-      auto aut2 = spot::simulation(aut_tmp, &implications, om.get(NUM_TRANS_PRUNING));
-      aut_tmp = aut2;
-    }
-    if (aut_tmp)
-      aut_reduced = aut_tmp;
-    else
-      aut_reduced = aut;
+      const int trans_pruning = om.get(NUM_TRANS_PRUNING);
+      bool verbose = om.get(VERBOSE_LEVEL) > 0;
+      // now we compute the simulator
+      spot::const_twa_graph_ptr aut_reduced;
+      std::vector<bdd> implications;
+      spot::twa_graph_ptr aut_tmp = nullptr;
+      if (verbose)
+      {
+        std::cout << "Computing simulation relation...\n";
+      }
+      if (om.get(USE_SIMULATION) > 0)
+      {
+        aut_tmp = spot::scc_filter(aut);
+        auto aut2 = spot::simulation(aut_tmp, &implications, trans_pruning);
+        aut_tmp = aut2;
+      }
+      if (aut_tmp)
+        aut_reduced = aut_tmp;
+      else
+        aut_reduced = aut;
+      if (verbose)
+      {
+        std::cout << "Entering determinization procedure...\n";
+      }
     spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
     auto det = cola::elevator_determinize(aut_reduced, scc, om, implications);
     return det.run();

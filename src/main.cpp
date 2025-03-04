@@ -709,7 +709,7 @@ int main(int argc, char *argv[])
           cola::composer dpa_composer(dpas, om);
           aut = dpa_composer.run();
         }
-        else if (determinize != NoDeterminize && aut->acc().is_buchi())
+        else if (determinize != NoDeterminize && aut->acc().is_buchi() || determinize == EBA)
         {
           if (om.get(USE_SIMULATION) > 0)
           {
@@ -735,16 +735,8 @@ int main(int argc, char *argv[])
         {
           // trivial acceptance condition
           aut = spot::minimize_monitor(aut);
-        }else if (determinize == EBA) {
-          spot::twa_graph_ptr res = nullptr;
-          c_start = clock();
-          res = to_deterministic(aut, om, aut_type, determinize);
-          c_end = clock();
-          if (om.get(VERBOSE_LEVEL) > 0)
-          {
-            std::cout << "Done for determinizing the input automaton in " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << " ms..." << std::endl;
-          }
-          aut = res;
+        }else {
+          throw std::runtime_error("No valid determinization algorithm has been selected"); 
         }
       }
       if (complement_algo && determinize == NoDeterminize)
