@@ -45,6 +45,10 @@ static const char *NUM_TRANS_PRUNING = "num-trans-pruning";
 static const char *MSTATE_REARRANGE = "rank-rearrange";
 static const char *MAX_NUM_SIMULATION = "max-num-simulation";
 static const char *USE_FORMULA_ANNOTATIONS = "use-formula-annotations";
+static const char *USE_EXACT_STATE_LANGUAGES = "use-exact-state-languages";
+static const char *EXACT_STATE_LANG_SCC_LIMIT = "exact-state-lang-scc-limit";
+static const char *EXACT_UNION_COVER_LIMIT = "exact-union-cover-limit";
+static const char *EXACT_CONTAINMENT_BUDGET = "exact-containment-budget";
 
 
 static const char SCC_WEAK_TYPE = 1;
