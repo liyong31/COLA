@@ -45,6 +45,7 @@ namespace cola
     // is cheap.  Larger SCCs and exhausted budgets automatically fall back to
     // simulation + formula-annotation approximation.
     unsigned exact_state_lang_scc_limit = 8;
+    unsigned exact_union_cover_limit = 4;
     unsigned exact_containment_budget = 64;
 
     unsigned verbose = 0;
