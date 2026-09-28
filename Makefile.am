@@ -21,7 +21,7 @@
 ##
 ## Removed some unnecessary files (e.g. the python binding for Seminator)
 
-bin_PROGRAMS = cola
+bin_PROGRAMS = cola ltl2dela
 lib_LTLIBRARIES = src/libcola.la
 
 AM_CPPFLAGS = -I$(srcdir)/src -I$(SPOTPREFIX)/include
@@ -49,3 +49,6 @@ src_libcola_la_SOURCES =			\
   src/types.hpp
 
 cola_SOURCES = src/main.cpp
+
+ltl2dela_SOURCES = src/ltl2dela_main.cpp
+ltl2dela_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
