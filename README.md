@@ -120,10 +120,14 @@ CoLA uses them in two ways that preserve correctness:
 
 * states inside nondeterministic accepting SCCs contribute their residual
   temporal obligations to the candidate G-profile separators;
-* when elevator determinization has several runs entering the same
-  deterministic accepting SCC simultaneously, their fresh ranks are ordered
-  by syntactic-implication coverage of their matched residual formulas instead
-  of arbitrary state number.
+* for every deterministic accepting SCC, CoLA precomputes one fixed semantic
+  state order.  Sound direct/delayed-simulation dominance gives hard ordering
+  constraints (a simulator must occur before a state it simulates); mutual
+  dominance is quotiented first.  The resulting DAG is topologically ordered,
+  with matched-formula implication coverage used only to choose among
+  incomparable classes.  At runtime, inherited runs keep their historical
+  ranks and only genuinely fresh runs are appended according to this fixed
+  SCC order.
 
 The annotations are **not** used by themselves to remove runs or states,
 because `match_states()` may over-approximate a nondeterministic state's
