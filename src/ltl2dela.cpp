@@ -376,11 +376,9 @@ namespace cola
         && f.size() > 1)
       {
         bool disjunction = f.is(spot::op::Or);
-        auto it = f.begin();
-        auto res = compile(*it, depth, used, true);
-        ++it;
-        for (; it != f.end(); ++it)
-          res = compose(res, compile(*it, depth, used, true), disjunction);
+        auto res = compile(f[0], depth, used, true);
+        for (unsigned i = 1; i < f.size(); ++i)
+          res = compose(res, compile(f[i], depth, used, true), disjunction);
         return res;
       }
 
