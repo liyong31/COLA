@@ -353,6 +353,12 @@ namespace cola
     // the index of each deterministic accepting SCCs
     std::vector<unsigned> acc_detsccs_;
 
+    // Optional LTL annotations for source states.  These are sound
+    // over-approximations returned by Spot::match_states(); they are used only
+    // to order simultaneously new runs, never to delete runs.
+    std::vector<spot::formula> state_annotations_;
+    bool use_formula_annotations_;
+
     // Show Rank states in state name to help debug
     bool show_names_;
 
@@ -697,8 +703,28 @@ namespace cola
             }
           }
           ++ max_rnk ;
-          // put them into succ
-          for (unsigned p : next_detstates[i])
+          // Put newly entering runs into the ordered deterministic SCC.
+          // Their relative order is semantically arbitrary in the original
+          // construction.  When LTL annotations are available, use them as a
+          // deterministic formula-aware tie-breaker instead of the numeric
+          // source-state id.  This does not remove any run.
+          std::vector<unsigned> fresh(next_detstates[i].begin(),
+                                      next_detstates[i].end());
+          if (use_formula_annotations_)
+          {
+            std::stable_sort(fresh.begin(), fresh.end(),
+              [&](unsigned a, unsigned b)
+              {
+                std::string sa = spot::str_psl(state_annotations_[a]);
+                std::string sb = spot::str_psl(state_annotations_[b]);
+                if (sa.size() != sb.size())
+                  return sa.size() < sb.size();
+                if (sa != sb)
+                  return sa < sb;
+                return a < b;
+              });
+          }
+          for (unsigned p : fresh)
           {
             // insertion failed is possible
             succ_nodes.emplace(p, max_rnk);
@@ -990,7 +1016,9 @@ namespace cola
     unsigned num_colours_plus_one_;
 
   public:
-    elevator_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
+    elevator_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si,
+                         spot::option_map &om, std::vector<bdd> &implications,
+                         std::vector<spot::formula> state_annotations = {})
         : aut_(aut),
           om_(om),
           use_simulation_(om.get(USE_SIMULATION) > 0),
@@ -1004,6 +1032,9 @@ namespace cola
           // is_accepting_(nb_states_),
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           delayed_simulator_(aut, om),
+          state_annotations_(std::move(state_annotations)),
+          use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
+                                   && state_annotations_.size() == aut->num_states()),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
@@ -1311,22 +1342,25 @@ namespace cola
     }
   };
 
-  spot::twa_graph_ptr
-  determinize_televator(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+  namespace
   {
-    if (!is_elevator_automaton(aut))
-      throw std::runtime_error("determinize_teba() requires a elevator input");
+    spot::twa_graph_ptr
+    determinize_televator_impl(const spot::const_twa_graph_ptr &aut,
+                               spot::option_map &om,
+                               spot::formula source_formula,
+                               bool have_formula)
+    {
+      if (!is_elevator_automaton(aut))
+        throw std::runtime_error("determinize_teba() requires a elevator input");
 
       const int trans_pruning = om.get(NUM_TRANS_PRUNING);
       bool verbose = om.get(VERBOSE_LEVEL) > 0;
-      // now we compute the simulator
       spot::const_twa_graph_ptr aut_reduced;
       std::vector<bdd> implications;
       spot::twa_graph_ptr aut_tmp = nullptr;
       if (verbose)
-      {
         std::cout << "Computing simulation relation...\n";
-      }
+
       if (om.get(USE_SIMULATION) > 0)
       {
         aut_tmp = spot::scc_filter(aut);
@@ -1337,12 +1371,38 @@ namespace cola
         aut_reduced = aut_tmp;
       else
         aut_reduced = aut;
-      if (verbose)
+
+      std::vector<spot::formula> annotations;
+      if (have_formula && om.get(USE_FORMULA_ANNOTATIONS) > 0)
       {
-        std::cout << "Entering determinization procedure...\n";
+        annotations = spot::match_states(aut_reduced, source_formula);
+        if (verbose)
+          std::cout << "Using LTL annotations for "
+                    << annotations.size() << " elevator states.\n";
       }
-    spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
-    auto det = cola::elevator_determinize(aut_reduced, scc, om, implications);
-    return det.run();
+
+      if (verbose)
+        std::cout << "Entering determinization procedure...\n";
+      spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
+      auto det = cola::elevator_determinize(aut_reduced, scc, om,
+                                            implications,
+                                            std::move(annotations));
+      return det.run();
+    }
+  }
+
+  spot::twa_graph_ptr
+  determinize_televator(const spot::const_twa_graph_ptr &aut,
+                        spot::option_map &om)
+  {
+    return determinize_televator_impl(aut, om, spot::formula(), false);
+  }
+
+  spot::twa_graph_ptr
+  determinize_televator(const spot::const_twa_graph_ptr &aut,
+                        spot::option_map &om,
+                        spot::formula source_formula)
+  {
+    return determinize_televator_impl(aut, om, source_formula, true);
   }
 }
