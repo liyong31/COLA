@@ -38,6 +38,7 @@
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/matchstates.hh>
 #include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/product.hh>
 #include <spot/tl/print.hh>
 #include <spot/tl/simplify.hh>
 
