@@ -45,6 +45,9 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-annotations        disable match_states() formula annotations
+  --no-exact-languages    disable exact state-language containment
+  --exact-scc-limit=N     exact containment only in DA SCCs of size <= N
+  --exact-budget=N        maximum exact containment queries
   --no-boolean-split      disable top-level Boolean decomposition
   --allow-flat-profiles   accept a split even without measured SCC improvement
   --stats                 print translation statistics to stderr
@@ -154,6 +157,25 @@ int main(int argc, char** argv)
           if (a == "--no-annotations")
             {
               opts.use_state_annotations = false;
+              continue;
+            }
+          if (a == "--no-exact-languages")
+            {
+              opts.use_exact_state_languages = false;
+              continue;
+            }
+          if (a.rfind("--exact-scc-limit=", 0) == 0)
+            {
+              opts.exact_state_lang_scc_limit =
+                parse_uint(value_after("--exact-scc-limit="),
+                           "--exact-scc-limit");
+              continue;
+            }
+          if (a.rfind("--exact-budget=", 0) == 0)
+            {
+              opts.exact_containment_budget =
+                parse_uint(value_after("--exact-budget="),
+                           "--exact-budget");
               continue;
             }
           if (a == "--no-boolean-split")
