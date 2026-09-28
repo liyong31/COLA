@@ -5,12 +5,14 @@
 #include "ltl2dela.hpp"
 
 #include <spot/tl/print.hh>
+#include <spot/tl/delta2.hh>
 #include <spot/twaalgos/translate.hh>
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/product.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/sccinfo.hh>
+#include <spot/twaalgos/matchstates.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -56,6 +58,8 @@ namespace cola
         << "  profile splits: " << profile_splits << '\n'
         << "  profile leaves: " << profile_leaves << '\n'
         << "  deterministic fallbacks: " << deterministic_fallbacks << '\n'
+        << "  Delta2 rewrites: " << delta2_rewrites << '\n'
+        << "  annotated NA states: " << annotated_na_states << '\n'
         << "  Buchi states examined: " << buchi_states_examined << '\n'
         << "  largest NA SCC: " << max_na_scc_states << '\n';
   }
@@ -72,10 +76,7 @@ namespace cola
   bool
   ltl2dela_translator::delta2_available() const
   {
-    // The first implementation deliberately does not depend on Spot's
-    // version-specific Delta2 normalization API.  Profile splitting is
-    // independent of it and works with older Spot releases used by COLA.
-    return false;
+    return true;
   }
 
   spot::option_map
@@ -94,6 +95,7 @@ namespace cola
     om.set(SCC_REACH_MEMORY_LIMIT, 0);
     om.set(NUM_SCC_LIMIT_MERGER, 0);
     om.set(MAX_NUM_SIMULATION, std::numeric_limits<int>::max());
+    om.set(USE_FORMULA_ANNOTATIONS, options_.use_state_annotations ? 1 : 0);
     return om;
   }
 
@@ -102,7 +104,26 @@ namespace cola
   {
     // Spot's simplifier is semantics preserving and already performs many
     // pure-eventuality / purely-universal rewrites useful before profiling.
-    return simplifier_.simplify(f);
+    f = simplifier_.simplify(f);
+
+    // Spot implements the Esparza-Rubio-Sickert Delta2 normalization.
+    // Keep the normalized formula only when it is not excessively larger:
+    // Delta2 is used here as an SCC-shaping rewrite, not as a mandatory
+    // normal form.
+    if (options_.use_delta2
+        && formula_length(f) <= options_.delta2_input_limit
+        && !f.is_delta2())
+      {
+        auto d = spot::to_delta2(f, &simplifier_);
+        unsigned old_len = formula_length(f);
+        unsigned new_len = formula_length(d);
+        if (new_len <= options_.delta2_growth_limit * std::max(1U, old_len))
+          {
+            ++stats_.delta2_rewrites;
+            f = simplifier_.simplify(d);
+          }
+      }
+    return f;
   }
 
   bool
@@ -271,6 +292,79 @@ namespace cola
     };
   }
 
+
+  std::vector<ltl2dela_translator::separator>
+  ltl2dela_translator::collect_annotation_separators(
+    const spot::twa_graph_ptr& aut,
+    spot::formula source,
+    const hardness&) const
+  {
+    std::vector<separator> out;
+    if (!options_.use_state_annotations)
+      return out;
+
+    // match_states() is sound in the direction we need: when source
+    // over-approximates L(aut), every word accepted from state q satisfies
+    // annotations[q].  The annotation itself may be an over-approximation,
+    // so it is used only to propose asymptotic separators, never to prune.
+    auto annotations = spot::match_states(aut, source);
+    if (annotations.size() != aut->num_states())
+      return out;
+
+    spot::scc_info si(aut, spot::scc_info_options::ALL);
+    std::string types = cola::get_scc_types(si);
+
+    auto add = [&](spot::formula g, unsigned priority)
+      {
+        if (g.is_tt() || g.is_ff())
+          return;
+        if (formula_length(g) > options_.profile_guard_max_length)
+          return;
+        for (const auto& e: out)
+          if (e.guard == g)
+            return;
+        out.push_back({g, priority});
+      };
+
+    for (unsigned sc = 0; sc < si.scc_count(); ++sc)
+      {
+        if (!cola::is_accepting_nondetscc(types, sc))
+          continue;
+        for (unsigned s: si.states_of(sc))
+          {
+            ++const_cast<ltl2dela_stats&>(stats_).annotated_na_states;
+            spot::formula ann = annotations[s];
+            ann.traverse([&](spot::formula sf)
+              {
+                if (sf.is(spot::op::G) && sf.size() == 1)
+                  add(sf[0], 120);
+                if ((sf.is(spot::op::U) || sf.is(spot::op::M))
+                    && sf.size() == 2)
+                  add(sf[0], 105);
+                if ((sf.is(spot::op::W) || sf.is(spot::op::R))
+                    && sf.size() == 2)
+                  add(sf[1], 95);
+                if (sf != ann
+                    && (sf.is_syntactic_persistence()
+                        || sf.is_syntactic_safety()))
+                  add(sf, 70);
+                return false;
+              });
+          }
+      }
+
+    std::stable_sort(out.begin(), out.end(),
+      [](const separator& a, const separator& b)
+      {
+        if (a.priority != b.priority)
+          return a.priority > b.priority;
+        return formula_less(a.guard, b.guard);
+      });
+    if (out.size() > options_.profile_lookahead)
+      out.resize(options_.profile_lookahead);
+    return out;
+  }
+
   bool
   ltl2dela_translator::was_used(
     spot::formula guard,
@@ -324,12 +418,34 @@ namespace cola
   ltl2dela_translator::separator_eval
   ltl2dela_translator::choose_separator(
     spot::formula f,
+    const spot::twa_graph_ptr& baseline_aut,
     const hardness& baseline,
     const std::vector<spot::formula>& used)
   {
     separator_eval best;
 
-    for (const auto& sep: collect_separators(f))
+    auto candidates = collect_annotation_separators(baseline_aut, f, baseline);
+    auto syntactic = collect_separators(f);
+    for (const auto& s: syntactic)
+      {
+        bool found = false;
+        for (const auto& e: candidates)
+          if (e.guard == s.guard)
+            { found = true; break; }
+        if (!found)
+          candidates.push_back(s);
+      }
+    std::stable_sort(candidates.begin(), candidates.end(),
+      [](const separator& a, const separator& b)
+      {
+        if (a.priority != b.priority)
+          return a.priority > b.priority;
+        return formula_less(a.guard, b.guard);
+      });
+    if (candidates.size() > options_.profile_lookahead)
+      candidates.resize(options_.profile_lookahead);
+
+    for (const auto& sep: candidates)
       {
         if (was_used(sep.guard, used))
           continue;
@@ -398,6 +514,9 @@ namespace cola
     if (h.elevator)
       {
         ++stats_.elevator_components;
+        if (options_.use_state_annotations)
+          return normalize_deterministic(
+            cola::determinize_televator(ba, cola_options_, f));
         return normalize_deterministic(
           cola::determinize_televator(ba, cola_options_));
       }
@@ -411,7 +530,7 @@ namespace cola
         && depth < options_.profile_depth
         && stats_.profile_splits < options_.profile_budget)
       {
-        auto choice = choose_separator(f, h, used);
+        auto choice = choose_separator(f, ba, h, used);
         if (choice.valid)
           {
             ++stats_.profile_splits;
