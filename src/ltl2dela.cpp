@@ -18,6 +18,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
+#include <utility>
 
 namespace cola
 {
@@ -195,7 +196,7 @@ namespace cola
 
     auto add = [&](spot::formula g, unsigned priority)
       {
-        if (!g || g.is_tt() || g.is_ff())
+        if (g.is_tt() || g.is_ff())
           return;
         if (formula_length(g) > options_.profile_guard_max_length)
           return;
@@ -447,7 +448,7 @@ namespace cola
   spot::twa_graph_ptr
   ltl2dela_translator::run(spot::formula f)
   {
-    if (!f || !f.is_ltl_formula())
+    if (!f.is_ltl_formula())
       throw std::runtime_error("ltl2dela requires an LTL formula");
 
     stats_ = {};
