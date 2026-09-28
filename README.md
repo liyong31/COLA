@@ -136,3 +136,51 @@ language.  Existing simulation checks remain responsible for pruning.
 The central invariant is that CoLA's Buchi determinizer is invoked only after
 `is_elevator_automaton()` succeeds; hard nondeterministic accepting SCCs
 trigger profile refinement or direct formula-level deterministic fallback.
+
+
+### Hybrid semantic ordering for deterministic accepting SCCs
+
+The `ltl2dela` branch now uses a hybrid exact/approximate ordering policy
+inside deterministic accepting SCCs.
+
+For a state pair `p,q`, CoLA first tries the inexpensive sound relations
+already available from direct or delayed simulation.  If those do not decide
+that `p` dominates `q`, then, for sufficiently small SCCs and while a
+global query budget remains, CoLA performs the exact check
+
+```
+L(q) subseteq L(p)
+```
+
+using Spot's `contains()` routine on copies of the source automaton with
+`p` and `q` selected as initial states.  Exact results are cached.  When
+the SCC is too large or the exact-query budget has been exhausted, the
+construction automatically falls back to the existing approximation based on
+simulation plus `match_states()` formula implication coverage.
+
+The default bounds are intentionally conservative:
+
+```
+--exact-scc-limit=8
+--exact-budget=64
+```
+
+Exact checks may be disabled completely with:
+
+```
+--no-exact-languages
+```
+
+The fixed per-SCC order therefore follows the hierarchy
+
+```
+cheap sound simulation
+    -> bounded exact state-language containment for unresolved pairs
+    -> formula-annotation implication coverage between incomparable classes
+    -> stable textual/state-id tie break
+```
+
+Exact and simulation-based dominance facts are hard ordering constraints.
+Formula annotations remain heuristic only.  Existing runs preserve their
+historical ranks; the fixed semantic order is applied only to genuinely fresh
+runs entering a deterministic accepting SCC.
