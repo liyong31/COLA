@@ -443,7 +443,7 @@ namespace cola
 
       unsigned max_prefix = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_UNION_COVER_LIMIT, 4)));
-      if (pos > max_prefix)
+      if (max_prefix == 0)
         return false;
 
       unsigned budget = static_cast<unsigned>(
@@ -451,11 +451,53 @@ namespace cola
       if (exact_containment_queries_ >= budget)
         return false;
 
-      // Build the exact union of the retained earlier state languages.
-      spot::twa_graph_ptr cover = state_language_automaton(ordered[0].first);
-      for (unsigned j = 1; j < pos; ++j)
-        cover = spot::product_or(cover,
-                                 state_language_automaton(ordered[j].first));
+      // If the full earlier prefix is too large, approximate only the choice
+      // of which earlier runs to test.  Deletion is still guarded by an exact
+      // containment proof against the selected subset union.
+      std::vector<unsigned> candidates;
+      candidates.reserve(pos);
+      for (unsigned j = 0; j < pos; ++j)
+        candidates.push_back(j);
+
+      if (candidates.size() > max_prefix)
+        {
+          unsigned target = ordered[pos].first;
+          std::stable_sort(candidates.begin(), candidates.end(),
+            [&](unsigned aidx, unsigned bidx)
+            {
+              unsigned a = ordered[aidx].first;
+              unsigned b = ordered[bidx].first;
+
+              bool ta = false;
+              bool tb = false;
+              if (use_formula_annotations_)
+                {
+                  ta = annotation_simplifier_.syntactic_implication(
+                         state_annotations_[target], state_annotations_[a]);
+                  tb = annotation_simplifier_.syntactic_implication(
+                         state_annotations_[target], state_annotations_[b]);
+                }
+              if (ta != tb)
+                return ta > tb;
+
+              if (annotation_coverage_[a] != annotation_coverage_[b])
+                return annotation_coverage_[a] > annotation_coverage_[b];
+
+              // Prefer older runs after semantic hints tie.
+              if (ordered[aidx].second != ordered[bidx].second)
+                return ordered[aidx].second < ordered[bidx].second;
+              return a < b;
+            });
+          candidates.resize(max_prefix);
+          std::stable_sort(candidates.begin(), candidates.end());
+        }
+
+      // Build the exact union of the selected retained earlier languages.
+      spot::twa_graph_ptr cover =
+        state_language_automaton(ordered[candidates[0]].first);
+      for (unsigned k = 1; k < candidates.size(); ++k)
+        cover = spot::product_or(
+          cover, state_language_automaton(ordered[candidates[k]].first));
 
       ++exact_containment_queries_;
       ++exact_union_queries_;
@@ -474,8 +516,10 @@ namespace cola
 
       // Kretinsky-style ordered union subsumption: never remove the smallest
       // run.  Each later run is removed only after an exact proof that its
-      // state language is contained in the union of the retained earlier
-      // runs.  If the prefix is too large or the budget is exhausted, keep it.
+      // state language is contained in a union of retained earlier runs.
+      // For large prefixes, annotations choose a promising bounded subset;
+      // the final deletion decision remains exact.  If the budget is
+      // exhausted, keep the run.
       std::stable_sort(nodes.begin(), nodes.end(), label_compare);
 
       std::vector<label> kept;
