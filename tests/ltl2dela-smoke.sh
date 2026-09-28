@@ -44,3 +44,9 @@ compare_exact()
 compare_exact exact_gprofile 'GF(a | G b)'
 compare_exact exact_until 'GF(c & (a U b))'
 compare_exact exact_mixed '(GF(a | G b)) & G(c -> F d)'
+
+
+# Stress formulas intended to create several recurrent obligations and expose
+# differences between cold/narrow and hot/wide deterministic accepting SCCs.
+compare_exact adaptive_conj   '(GF(a | G b)) & (GF(c | G d)) & G(e -> F f)'
+compare_exact adaptive_until   'GF((a U b) & (c U d)) & G(e -> F g)'
