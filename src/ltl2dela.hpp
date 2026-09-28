@@ -139,7 +139,7 @@ namespace cola
     std::vector<separator> collect_annotation_separators(
       const spot::twa_graph_ptr& aut,
       spot::formula source,
-      const hardness& h) const;
+      const hardness& h);
     separator_eval choose_separator(
       spot::formula f,
       const spot::twa_graph_ptr& baseline_aut,
