@@ -29,3 +29,18 @@ run until_profile 'GF(c & (a U b))' --profile-depth=4 --profile-budget=16
 run mixed '(GF(a | G b)) & G(c -> F d)' --profile-depth=5 --profile-budget=24
 
 echo "ltl2dela smoke tests passed"
+
+
+compare_exact()
+{
+  name=$1
+  formula=$2
+  "$LTLD" -f "$formula" -o "$TMP/$name-exact.hoa"
+  "$LTLD" --no-exact-languages -f "$formula" -o "$TMP/$name-approx.hoa"
+  autfilt -q "$TMP/$name-exact.hoa"     --equivalent-to="$TMP/$name-approx.hoa" >/dev/null
+}
+
+# Exact/approximate ordering and pruning must preserve the language.
+compare_exact exact_gprofile 'GF(a | G b)'
+compare_exact exact_until 'GF(c & (a U b))'
+compare_exact exact_mixed '(GF(a | G b)) & G(c -> F d)'
