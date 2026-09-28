@@ -297,7 +297,7 @@ namespace cola
   ltl2dela_translator::collect_annotation_separators(
     const spot::twa_graph_ptr& aut,
     spot::formula source,
-    const hardness&) const
+    const hardness&)
   {
     std::vector<separator> out;
     if (!options_.use_state_annotations)
@@ -332,7 +332,7 @@ namespace cola
           continue;
         for (unsigned s: si.states_of(sc))
           {
-            ++const_cast<ltl2dela_stats&>(stats_).annotated_na_states;
+            ++stats_.annotated_na_states;
             spot::formula ann = annotations[s];
             ann.traverse([&](spot::formula sf)
               {
