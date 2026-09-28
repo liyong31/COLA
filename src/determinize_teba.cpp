@@ -378,7 +378,10 @@ namespace cola
     {
       if (p == q)
         return false;
-      return simulator_.simulate(p, q) || delayed_simulator_.simulate(p, q);
+      bool direct = use_simulation_ && simulator_.simulate(p, q);
+      bool delayed = om_.get(USE_DELAYED_SIMULATION) > 0
+                     && delayed_simulator_.simulate(p, q);
+      return direct || delayed;
     }
 
     void
@@ -392,9 +395,9 @@ namespace cola
 
       for (unsigned scc_id: acc_detsccs_)
         {
-          const auto& scc_states_set = si_.states_of(scc_id);
-          std::vector<unsigned> states(scc_states_set.begin(),
-                                       scc_states_set.end());
+          std::vector<unsigned> states;
+          for (unsigned s: si_.states_of(scc_id))
+            states.push_back(s);
           const unsigned n = states.size();
           if (n <= 1)
             {
@@ -420,9 +423,6 @@ namespace cola
             }
 
           // Build the sound dominance graph p -> q when p simulates q.
-          std::map<unsigned, unsigned> local_index;
-          for (unsigned i = 0; i < n; ++i)
-            local_index.emplace(states[i], i);
           std::vector<std::vector<unsigned>> graph(n);
           for (unsigned i = 0; i < n; ++i)
             for (unsigned j = 0; j < n; ++j)
