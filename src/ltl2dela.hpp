@@ -26,6 +26,7 @@ namespace cola
     bool boolean_decomposition = true;
     bool use_profiles = true;
     bool use_delta2 = true;
+    bool use_state_annotations = true;
     bool require_profile_progress = true;
 
     unsigned profile_depth = 4;
@@ -51,6 +52,8 @@ namespace cola
     unsigned profile_splits = 0;
     unsigned profile_leaves = 0;
     unsigned deterministic_fallbacks = 0;
+    unsigned delta2_rewrites = 0;
+    unsigned annotated_na_states = 0;
     unsigned buchi_attempts = 0;
 
     unsigned long long buchi_states_examined = 0;
@@ -133,8 +136,13 @@ namespace cola
 
     hardness analyze(const spot::twa_graph_ptr& aut);
     std::vector<separator> collect_separators(spot::formula f) const;
+    std::vector<separator> collect_annotation_separators(
+      const spot::twa_graph_ptr& aut,
+      spot::formula source,
+      const hardness& h) const;
     separator_eval choose_separator(
       spot::formula f,
+      const spot::twa_graph_ptr& baseline_aut,
       const hardness& baseline,
       const std::vector<spot::formula>& used);
 
