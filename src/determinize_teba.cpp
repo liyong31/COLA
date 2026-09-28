@@ -383,8 +383,65 @@ namespace cola
     unsigned exact_union_queries_ = 0;
     unsigned exact_union_pruned_ = 0;
 
+    // Adaptive exact-query accounting.  Static semantic-order construction
+    // receives only a small reserved slice of the global budget.  Runtime
+    // union-cover checks receive per-SCC allowances that grow with observed
+    // macrostate pressure (visit count and maximum concurrent rank width).
+    bool building_semantic_order_ = true;
+    std::vector<unsigned> scc_macro_visits_;
+    std::vector<unsigned> scc_max_rank_width_;
+    std::vector<unsigned> scc_runtime_exact_queries_;
+
     // Show Rank states in state name to help debug
     bool show_names_;
+
+    unsigned
+    static_exact_budget() const
+    {
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (budget == 0)
+        return 0;
+      // Reserve at most one third for precomputing the static order.
+      return std::max(1U, budget / 3U);
+    }
+
+    unsigned
+    runtime_exact_allowance(unsigned scc) const
+    {
+      if (scc >= scc_macro_visits_.size())
+        return 0;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (budget == 0)
+        return 0;
+
+      unsigned runtime_budget = budget - std::min(budget, static_exact_budget());
+
+      // Width matters more than raw visit count: a wide SCC creates more
+      // ordered-run combinations.  Visits increase the allowance slowly.
+      unsigned visits = scc_macro_visits_[scc];
+      unsigned width = scc_max_rank_width_[scc];
+      unsigned allowance = 1U + 2U * width + visits / 8U;
+      return std::min(runtime_budget, allowance);
+    }
+
+    void
+    note_scc_activity(const elevator_mstate& ms)
+    {
+      for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+        {
+          unsigned scc = acc_detsccs_[i];
+          unsigned width =
+            static_cast<unsigned>(ms.detscc_labels_[i].size());
+          if (width == 0)
+            continue;
+          ++scc_macro_visits_[scc];
+          scc_max_rank_width_[scc] =
+            std::max(scc_max_rank_width_[scc], width);
+        }
+    }
 
     spot::twa_graph_ptr
     state_language_automaton(unsigned init)
@@ -420,8 +477,24 @@ namespace cola
 
       unsigned budget = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
-      if (exact_containment_queries_ >= budget)
+      unsigned phase_budget = building_semantic_order_
+        ? static_exact_budget()
+        : budget;
+      if (exact_containment_queries_ >= phase_budget)
         return false;
+
+      // During static ordering, use annotations only to decide which exact
+      // unresolved pairs are worth spending budget on.  The annotation never
+      // proves inclusion itself.
+      if (building_semantic_order_ && use_formula_annotations_)
+        {
+          bool suggested =
+            annotation_simplifier_.syntactic_implication(
+              state_annotations_[q], state_annotations_[p])
+            || annotation_coverage_[p] > annotation_coverage_[q];
+          if (!suggested)
+            return false;
+        }
 
       ++exact_containment_queries_;
 
@@ -456,6 +529,11 @@ namespace cola
       unsigned budget = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
       if (exact_containment_queries_ >= budget)
+        return false;
+
+      unsigned allowance = runtime_exact_allowance(target_scc);
+      if (target_scc >= scc_runtime_exact_queries_.size()
+          || scc_runtime_exact_queries_[target_scc] >= allowance)
         return false;
 
       // If the full earlier prefix is too large, approximate only the choice
@@ -508,6 +586,7 @@ namespace cola
 
       ++exact_containment_queries_;
       ++exact_union_queries_;
+      ++scc_runtime_exact_queries_[target_scc];
       bool covered = spot::contains(
         cover, state_language_automaton(target_state));
       if (covered)
@@ -1041,6 +1120,10 @@ namespace cola
         make_simulation_state(succ);
       }
 
+      // Observe SCC pressure before exact pruning so the runtime budget can
+      // adapt to the unpruned concurrent rank width.
+      note_scc_activity(succ);
+
       // Exact ordered union-language pruning is optional and bounded.
       // It is independent of simulation and therefore can still strengthen
       // macrostates when simulation is disabled or inconclusive.
@@ -1508,10 +1591,15 @@ namespace cola
         // std::cout << std::endl;
       }
 
+      scc_macro_visits_.assign(si_.scc_count(), 0);
+      scc_max_rank_width_.assign(si_.scc_count(), 0);
+      scc_runtime_exact_queries_.assign(si_.scc_count(), 0);
+
       // Build one fixed order per deterministic accepting SCC.  This order
-      // respects sound simulation dominance; formula annotations break ties
-      // only between incomparable dominance classes.
+      // respects sound simulation/exact dominance; formula annotations break
+      // ties only between incomparable dominance classes.
       build_semantic_orders();
+      building_semantic_order_ = false;
 
       if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
         std::cout << "Exact containment queries after ordering: "
@@ -1696,10 +1784,20 @@ namespace cola
       }
       
       if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
-        std::cout << "Exact containment total: "
-                  << exact_containment_queries_
-                  << ", union checks: " << exact_union_queries_
-                  << ", union-pruned runs: " << exact_union_pruned_ << "\n";
+        {
+          std::cout << "Exact containment total: "
+                    << exact_containment_queries_
+                    << ", union checks: " << exact_union_queries_
+                    << ", union-pruned runs: " << exact_union_pruned_ << "\n";
+          for (unsigned scc: acc_detsccs_)
+            if (scc_macro_visits_[scc] > 0)
+              std::cout << "  DA SCC " << scc
+                        << ": visits=" << scc_macro_visits_[scc]
+                        << ", max-width=" << scc_max_rank_width_[scc]
+                        << ", runtime-exact="
+                        << scc_runtime_exact_queries_[scc]
+                        << "/" << runtime_exact_allowance(scc) << "\n";
+        }
 
       finalize_acceptance();
       res_->prop_state_acc(spot::trival(false));
