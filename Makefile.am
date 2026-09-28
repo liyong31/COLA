@@ -44,6 +44,8 @@ src_libcola_la_SOURCES =			\
   src/determinize_twba.cpp			\
   src/optimizer.hpp				\
   src/optimizer.cpp				\
+  src/ltl2dela.hpp				\
+  src/ltl2dela.cpp				\
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
