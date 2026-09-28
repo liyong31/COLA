@@ -27,6 +27,7 @@ namespace cola
     bool use_profiles = true;
     bool use_delta2 = true;
     bool use_state_annotations = true;
+    bool use_exact_state_languages = true;
     bool require_profile_progress = true;
 
     unsigned profile_depth = 4;
@@ -39,6 +40,12 @@ namespace cola
     // only when the growth stays below this factor.
     unsigned delta2_input_limit = 128;
     unsigned delta2_growth_limit = 8;
+
+    // Exact state-language containment strengthens the semantic order when it
+    // is cheap.  Larger SCCs and exhausted budgets automatically fall back to
+    // simulation + formula-annotation approximation.
+    unsigned exact_state_lang_scc_limit = 8;
+    unsigned exact_containment_budget = 64;
 
     unsigned verbose = 0;
   };
