@@ -96,6 +96,12 @@ namespace cola
     om.set(NUM_SCC_LIMIT_MERGER, 0);
     om.set(MAX_NUM_SIMULATION, std::numeric_limits<int>::max());
     om.set(USE_FORMULA_ANNOTATIONS, options_.use_state_annotations ? 1 : 0);
+    om.set(USE_EXACT_STATE_LANGUAGES,
+           options_.use_exact_state_languages ? 1 : 0);
+    om.set(EXACT_STATE_LANG_SCC_LIMIT,
+           static_cast<int>(options_.exact_state_lang_scc_limit));
+    om.set(EXACT_CONTAINMENT_BUDGET,
+           static_cast<int>(options_.exact_containment_budget));
     return om;
   }
 
