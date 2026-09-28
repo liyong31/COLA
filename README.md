@@ -222,3 +222,33 @@ implied by the target annotation.  It then checks exact containment against
 the union of that subset.  This is a sound approximation: annotations affect
 only which exact query is attempted; a run is removed only after
 `spot::contains()` proves the inclusion.
+
+
+### Adaptive exact-query budgeting
+
+Exact language checks are now budgeted adaptively rather than uniformly.
+
+At most one third of `--exact-budget` is spent while computing the static
+semantic order.  During that phase, exact unresolved-pair checks are attempted
+preferentially when the matched residual formulas suggest that the candidate
+simulator is more general; the formula test only selects which exact queries
+to spend.
+
+The remaining budget is used during determinization.  For every deterministic
+accepting SCC CoLA tracks:
+
+* how often the SCC appears with ranked runs in generated macrostates; and
+* the maximum number of concurrent ranked runs observed there.
+
+The SCC's runtime exact allowance grows approximately with
+
+```
+1 + 2 * max_rank_width + macrostate_visits / 8
+```
+
+subject to the remaining global budget.  Consequently cold/narrow SCCs stay on
+the simulation/annotation path, while hot/wide SCCs receive more exact
+union-cover checks.
+
+With verbose diagnostics enabled, CoLA reports for each active deterministic
+accepting SCC its visit count, maximum observed width, and exact-query usage.
