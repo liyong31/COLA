@@ -47,6 +47,7 @@ Options:
   --no-annotations        disable match_states() formula annotations
   --no-exact-languages    disable exact state-language containment
   --exact-scc-limit=N     exact containment only in DA SCCs of size <= N
+  --exact-union-limit=N   exact union cover uses at most N earlier runs
   --exact-budget=N        maximum exact containment queries
   --no-boolean-split      disable top-level Boolean decomposition
   --allow-flat-profiles   accept a split even without measured SCC improvement
@@ -169,6 +170,13 @@ int main(int argc, char** argv)
               opts.exact_state_lang_scc_limit =
                 parse_uint(value_after("--exact-scc-limit="),
                            "--exact-scc-limit");
+              continue;
+            }
+          if (a.rfind("--exact-union-limit=", 0) == 0)
+            {
+              opts.exact_union_cover_limit =
+                parse_uint(value_after("--exact-union-limit="),
+                           "--exact-union-limit");
               continue;
             }
           if (a.rfind("--exact-budget=", 0) == 0)
