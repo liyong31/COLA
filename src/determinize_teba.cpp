@@ -441,6 +441,13 @@ namespace cola
       if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || pos == 0)
         return false;
 
+      unsigned target_state = ordered[pos].first;
+      unsigned target_scc = si_.scc_of(target_state);
+      unsigned scc_limit = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
+      if (si_.states_of(target_scc).size() > scc_limit)
+        return false;
+
       unsigned max_prefix = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_UNION_COVER_LIMIT, 4)));
       if (max_prefix == 0)
@@ -461,7 +468,7 @@ namespace cola
 
       if (candidates.size() > max_prefix)
         {
-          unsigned target = ordered[pos].first;
+          unsigned target = target_state;
           std::stable_sort(candidates.begin(), candidates.end(),
             [&](unsigned aidx, unsigned bidx)
             {
@@ -502,7 +509,7 @@ namespace cola
       ++exact_containment_queries_;
       ++exact_union_queries_;
       bool covered = spot::contains(
-        cover, state_language_automaton(ordered[pos].first));
+        cover, state_language_automaton(target_state));
       if (covered)
         ++exact_union_pruned_;
       return covered;
