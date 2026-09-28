@@ -100,6 +100,8 @@ namespace cola
            options_.use_exact_state_languages ? 1 : 0);
     om.set(EXACT_STATE_LANG_SCC_LIMIT,
            static_cast<int>(options_.exact_state_lang_scc_limit));
+    om.set(EXACT_UNION_COVER_LIMIT,
+           static_cast<int>(options_.exact_union_cover_limit));
     om.set(EXACT_CONTAINMENT_BUDGET,
            static_cast<int>(options_.exact_containment_budget));
     return om;
