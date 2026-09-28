@@ -43,6 +43,8 @@ Options:
   --profile-lookahead=N   number of separator candidates scored per residual
   --guard-max-length=N    maximum printed length of a separator formula
   --no-profiles           disable SCC-guided profile refinement
+  --no-delta2             disable Spot's Delta2 normalization
+  --no-annotations        disable match_states() formula annotations
   --no-boolean-split      disable top-level Boolean decomposition
   --allow-flat-profiles   accept a split even without measured SCC improvement
   --stats                 print translation statistics to stderr
@@ -142,6 +144,16 @@ int main(int argc, char** argv)
           if (a == "--no-profiles")
             {
               opts.use_profiles = false;
+              continue;
+            }
+          if (a == "--no-delta2")
+            {
+              opts.use_delta2 = false;
+              continue;
+            }
+          if (a == "--no-annotations")
+            {
+              opts.use_state_annotations = false;
               continue;
             }
           if (a == "--no-boolean-split")
