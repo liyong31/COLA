@@ -36,6 +36,9 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
+#include <spot/twaalgos/matchstates.hh>
+#include <spot/tl/print.hh>
+#include <spot/tl/simplify.hh>
 
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
@@ -360,8 +363,226 @@ namespace cola
     bool use_formula_annotations_;
     spot::tl_simplifier annotation_simplifier_;
 
+    // Fixed semantic order for states in deterministic accepting SCCs.
+    // Existing runs keep their historical labels; this order is consulted
+    // only for runs that enter a deterministic accepting SCC without an
+    // inherited label in the current step.
+    std::vector<unsigned> semantic_order_rank_;
+    std::vector<unsigned> annotation_coverage_;
+
     // Show Rank states in state name to help debug
     bool show_names_;
+
+    bool
+    dominance(unsigned p, unsigned q)
+    {
+      if (p == q)
+        return false;
+      return simulator_.simulate(p, q) || delayed_simulator_.simulate(p, q);
+    }
+
+    void
+    build_semantic_orders()
+    {
+      semantic_order_rank_.assign(nb_states_, 0);
+      annotation_coverage_.assign(nb_states_, 0);
+
+      for (unsigned s = 0; s < nb_states_; ++s)
+        semantic_order_rank_[s] = s;
+
+      for (unsigned scc_id: acc_detsccs_)
+        {
+          const auto& scc_states_set = si_.states_of(scc_id);
+          std::vector<unsigned> states(scc_states_set.begin(),
+                                       scc_states_set.end());
+          const unsigned n = states.size();
+          if (n <= 1)
+            {
+              if (n == 1)
+                semantic_order_rank_[states[0]] = 0;
+              continue;
+            }
+
+          // Formula coverage is only a priority among incomparable dominance
+          // classes.  It is not a language-inclusion certificate.
+          if (use_formula_annotations_)
+            {
+              for (unsigned p: states)
+                {
+                  unsigned score = 0;
+                  for (unsigned q: states)
+                    if (q != p
+                        && annotation_simplifier_.syntactic_implication(
+                             state_annotations_[q], state_annotations_[p]))
+                      ++score;
+                  annotation_coverage_[p] = score;
+                }
+            }
+
+          // Build the sound dominance graph p -> q when p simulates q.
+          std::map<unsigned, unsigned> local_index;
+          for (unsigned i = 0; i < n; ++i)
+            local_index.emplace(states[i], i);
+          std::vector<std::vector<unsigned>> graph(n);
+          for (unsigned i = 0; i < n; ++i)
+            for (unsigned j = 0; j < n; ++j)
+              if (i != j && dominance(states[i], states[j]))
+                graph[i].push_back(j);
+
+          // Tarjan SCCs quotient mutual-dominance cycles.
+          std::vector<int> index(n, -1);
+          std::vector<int> low(n, -1);
+          std::vector<int> comp_of(n, -1);
+          std::vector<unsigned> stack;
+          std::vector<bool> on_stack(n, false);
+          int next_index = 0;
+          int comp_count = 0;
+
+          std::function<void(unsigned)> visit = [&](unsigned v)
+            {
+              index[v] = low[v] = next_index++;
+              stack.push_back(v);
+              on_stack[v] = true;
+              for (unsigned w: graph[v])
+                {
+                  if (index[w] < 0)
+                    {
+                      visit(w);
+                      low[v] = std::min(low[v], low[w]);
+                    }
+                  else if (on_stack[w])
+                    {
+                      low[v] = std::min(low[v], index[w]);
+                    }
+                }
+              if (low[v] == index[v])
+                {
+                  for (;;)
+                    {
+                      unsigned w = stack.back();
+                      stack.pop_back();
+                      on_stack[w] = false;
+                      comp_of[w] = comp_count;
+                      if (w == v)
+                        break;
+                    }
+                  ++comp_count;
+                }
+            };
+
+          for (unsigned v = 0; v < n; ++v)
+            if (index[v] < 0)
+              visit(v);
+
+          std::vector<std::vector<unsigned>> members(comp_count);
+          for (unsigned i = 0; i < n; ++i)
+            members[comp_of[i]].push_back(states[i]);
+
+          std::vector<std::set<unsigned>> dag(comp_count);
+          std::vector<unsigned> indegree(comp_count, 0);
+          for (unsigned i = 0; i < n; ++i)
+            for (unsigned j: graph[i])
+              {
+                unsigned ci = comp_of[i];
+                unsigned cj = comp_of[j];
+                if (ci != cj && dag[ci].insert(cj).second)
+                  ++indegree[cj];
+              }
+
+          auto state_key = [&](unsigned s)
+            {
+              std::string text =
+                use_formula_annotations_
+                  ? spot::str_psl(state_annotations_[s])
+                  : std::string();
+              return std::make_tuple(
+                static_cast<long long>(-annotation_coverage_[s]),
+                text.size(),
+                text,
+                s);
+            };
+
+          // Give every equivalence class a stable semantic priority.
+          auto sort_members = [&](std::vector<unsigned>& m)
+            {
+              std::stable_sort(m.begin(), m.end(),
+                [&](unsigned a, unsigned b)
+                {
+                  return state_key(a) < state_key(b);
+                });
+            };
+          for (auto& m: members)
+            sort_members(m);
+
+          auto comp_key = [&](unsigned comp)
+            {
+              unsigned best = members[comp].front();
+              return state_key(best);
+            };
+
+          // Topological order: sound dominance edges are hard constraints;
+          // annotation coverage chooses only among incomparable zero-indegree
+          // classes.
+          std::vector<unsigned> comp_order;
+          std::set<unsigned> remaining;
+          for (unsigned cc = 0; cc < static_cast<unsigned>(comp_count); ++cc)
+            remaining.insert(cc);
+
+          while (!remaining.empty())
+            {
+              bool have = false;
+              unsigned best = 0;
+              for (unsigned cc: remaining)
+                {
+                  if (indegree[cc] != 0)
+                    continue;
+                  if (!have || comp_key(cc) < comp_key(best))
+                    {
+                      best = cc;
+                      have = true;
+                    }
+                }
+
+              // The quotient is a DAG, so this should be unreachable.  Keep a
+              // deterministic fallback in release builds.
+              if (!have)
+                best = *remaining.begin();
+
+              comp_order.push_back(best);
+              remaining.erase(best);
+              for (unsigned succ: dag[best])
+                {
+                  assert(indegree[succ] > 0);
+                  --indegree[succ];
+                }
+            }
+
+          unsigned rank = 0;
+          for (unsigned cc: comp_order)
+            for (unsigned s: members[cc])
+              semantic_order_rank_[s] = rank++;
+
+          if (show_names_)
+            {
+              std::cout << "Semantic order for deterministic accepting SCC "
+                        << scc_id << ":";
+              std::vector<unsigned> ordered = states;
+              std::stable_sort(ordered.begin(), ordered.end(),
+                [&](unsigned a, unsigned b)
+                {
+                  return semantic_order_rank_[a] < semantic_order_rank_[b];
+                });
+              for (unsigned s: ordered)
+                {
+                  std::cout << " " << s;
+                  if (use_formula_annotations_)
+                    std::cout << "{" << spot::str_psl(state_annotations_[s])
+                              << ";cov=" << annotation_coverage_[s] << "}";
+                }
+              std::cout << "\n";
+            }
+        }
+    }
 
     std::string
     get_name(const elevator_mstate &ms)
@@ -704,45 +925,18 @@ namespace cola
             }
           }
           ++ max_rnk ;
-          // Put newly entering runs into the ordered deterministic SCC.
-          // Their relative order is semantically arbitrary in the original
-          // construction.  When LTL annotations are available, use them as a
-          // deterministic formula-aware tie-breaker instead of the numeric
-          // source-state id.  This does not remove any run.
+          // Existing runs above keep their inherited historical ranks.
+          // Only genuinely fresh runs are appended, using the fixed semantic
+          // order precomputed once for this deterministic accepting SCC.
           std::vector<unsigned> fresh(next_detstates[i].begin(),
                                       next_detstates[i].end());
-          if (use_formula_annotations_)
-          {
-            // Prefer formulas that syntactically cover more peer residuals:
-            // if ann(q) => ann(p), then p receives one coverage point.
-            // This approximates the language-subsumption ordering used in
-            // LDBA-to-DPA constructions, but affects only fresh rank order.
-            std::map<unsigned, unsigned> coverage;
-            for (unsigned p: fresh)
-              {
-                unsigned score = 0;
-                for (unsigned q: fresh)
-                  if (q != p
-                      && annotation_simplifier_.syntactic_implication(
-                           state_annotations_[q], state_annotations_[p]))
-                    ++score;
-                coverage.emplace(p, score);
-              }
-
-            std::stable_sort(fresh.begin(), fresh.end(),
-              [&](unsigned a, unsigned b)
-              {
-                if (coverage[a] != coverage[b])
-                  return coverage[a] > coverage[b];
-                std::string sa = spot::str_psl(state_annotations_[a]);
-                std::string sb = spot::str_psl(state_annotations_[b]);
-                if (sa.size() != sb.size())
-                  return sa.size() < sb.size();
-                if (sa != sb)
-                  return sa < sb;
-                return a < b;
-              });
-          }
+          std::stable_sort(fresh.begin(), fresh.end(),
+            [&](unsigned a, unsigned b)
+            {
+              if (semantic_order_rank_[a] != semantic_order_rank_[b])
+                return semantic_order_rank_[a] < semantic_order_rank_[b];
+              return a < b;
+            });
           for (unsigned p : fresh)
           {
             // insertion failed is possible
@@ -1055,6 +1249,8 @@ namespace cola
           use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
                                    && state_annotations_.size() == aut->num_states()),
           annotation_simplifier_(aut->get_dict()),
+          semantic_order_rank_(nb_states_),
+          annotation_coverage_(nb_states_, 0),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
@@ -1122,6 +1318,11 @@ namespace cola
         // }
         // std::cout << std::endl;
       }
+
+      // Build one fixed order per deterministic accepting SCC.  This order
+      // respects sound simulation dominance; formula annotations break ties
+      // only between incomparable dominance classes.
+      build_semantic_orders();
 
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
