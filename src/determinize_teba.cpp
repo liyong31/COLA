@@ -438,16 +438,17 @@ namespace cola
       if (p == q)
         return false;
 
-      // Exact language inclusion is strongest, but deliberately bounded.
-      if (exact_language_dominance(p, q))
-        return true;
-
-      // Cheap sound approximations are used whenever exact checking is
-      // disabled, too expensive, or has exhausted its budget.
+      // Use cheap sound approximations first.  Exact containment is reserved
+      // for pairs not already decided by simulation so that the query budget
+      // is spent only where it can strengthen the order.
       bool direct = use_simulation_ && simulator_.simulate(p, q);
       bool delayed = om_.get(USE_DELAYED_SIMULATION) > 0
                      && delayed_simulator_.simulate(p, q);
-      return direct || delayed;
+      if (direct || delayed)
+        return true;
+
+      // Exact language inclusion is strongest, but deliberately bounded.
+      return exact_language_dominance(p, q);
     }
 
     void
