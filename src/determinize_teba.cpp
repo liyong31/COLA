@@ -358,6 +358,7 @@ namespace cola
     // to order simultaneously new runs, never to delete runs.
     std::vector<spot::formula> state_annotations_;
     bool use_formula_annotations_;
+    spot::tl_simplifier annotation_simplifier_;
 
     // Show Rank states in state name to help debug
     bool show_names_;
@@ -712,9 +713,27 @@ namespace cola
                                       next_detstates[i].end());
           if (use_formula_annotations_)
           {
+            // Prefer formulas that syntactically cover more peer residuals:
+            // if ann(q) => ann(p), then p receives one coverage point.
+            // This approximates the language-subsumption ordering used in
+            // LDBA-to-DPA constructions, but affects only fresh rank order.
+            std::map<unsigned, unsigned> coverage;
+            for (unsigned p: fresh)
+              {
+                unsigned score = 0;
+                for (unsigned q: fresh)
+                  if (q != p
+                      && annotation_simplifier_.syntactic_implication(
+                           state_annotations_[q], state_annotations_[p]))
+                    ++score;
+                coverage.emplace(p, score);
+              }
+
             std::stable_sort(fresh.begin(), fresh.end(),
               [&](unsigned a, unsigned b)
               {
+                if (coverage[a] != coverage[b])
+                  return coverage[a] > coverage[b];
                 std::string sa = spot::str_psl(state_annotations_[a]);
                 std::string sb = spot::str_psl(state_annotations_[b]);
                 if (sa.size() != sb.size())
@@ -1035,6 +1054,7 @@ namespace cola
           state_annotations_(std::move(state_annotations)),
           use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
                                    && state_annotations_.size() == aut->num_states()),
+          annotation_simplifier_(aut->get_dict()),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
@@ -1395,7 +1415,7 @@ namespace cola
   determinize_televator(const spot::const_twa_graph_ptr &aut,
                         spot::option_map &om)
   {
-    return determinize_televator_impl(aut, om, spot::formula(), false);
+    return determinize_televator_impl(aut, om, spot::formula::tt(), false);
   }
 
   spot::twa_graph_ptr
