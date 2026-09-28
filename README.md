@@ -212,3 +212,13 @@ exact-containment budget remains:
 If either bound is exceeded, the later run is kept.  Thus expensive cases
 automatically fall back to the cheaper simulation/annotation path.  Formula
 annotations alone are never used to justify deletion.
+
+
+When the retained earlier prefix is larger than `--exact-union-limit`, CoLA
+does not give up immediately.  It uses residual-formula annotations and the
+precomputed annotation-coverage scores to select a promising bounded subset
+of earlier runs, prioritizing candidates whose annotation is syntactically
+implied by the target annotation.  It then checks exact containment against
+the union of that subset.  This is a sound approximation: annotations affect
+only which exact query is attempted; a run is removed only after
+`spot::contains()` proves the inclusion.
