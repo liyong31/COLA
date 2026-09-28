@@ -37,6 +37,7 @@
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
 #include <spot/twaalgos/matchstates.hh>
+#include <spot/twaalgos/contains.hh>
 #include <spot/tl/print.hh>
 #include <spot/tl/simplify.hh>
 
@@ -370,14 +371,79 @@ namespace cola
     std::vector<unsigned> semantic_order_rank_;
     std::vector<unsigned> annotation_coverage_;
 
+    // Bounded exact state-language containment.  The cache stores
+    //   1  : L(q) subseteq L(p)
+    //   0  : containment disproved
+    //  -1  : not queried / unavailable
+    std::vector<spot::twa_graph_ptr> state_language_automata_;
+    std::map<std::pair<unsigned, unsigned>, char> exact_containment_cache_;
+    unsigned exact_containment_queries_ = 0;
+    unsigned exact_containment_hits_ = 0;
+
     // Show Rank states in state name to help debug
     bool show_names_;
+
+    spot::twa_graph_ptr
+    state_language_automaton(unsigned init)
+    {
+      if (state_language_automata_[init])
+        return state_language_automata_[init];
+
+      auto a = spot::make_twa_graph(aut_, spot::twa::prop_set::all(), false);
+      a->set_init_state(init);
+      state_language_automata_[init] = a;
+      return a;
+    }
+
+    bool
+    exact_language_dominance(unsigned p, unsigned q)
+    {
+      if (p == q || om_.get(USE_EXACT_STATE_LANGUAGES) <= 0)
+        return false;
+
+      unsigned scc = si_.scc_of(p);
+      if (scc != si_.scc_of(q))
+        return false;
+
+      unsigned limit = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
+      if (si_.states_of(scc).size() > limit)
+        return false;
+
+      auto key = std::make_pair(p, q);
+      auto it = exact_containment_cache_.find(key);
+      if (it != exact_containment_cache_.end())
+        return it->second == 1;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (exact_containment_queries_ >= budget)
+        return false;
+
+      ++exact_containment_queries_;
+
+      // spot::contains(left,right) checks L(right) subseteq L(left).
+      // Thus p dominates q exactly iff contains(A_p,A_q).
+      bool yes = spot::contains(state_language_automaton(p),
+                                state_language_automaton(q));
+      exact_containment_cache_.emplace(key, yes ? 1 : 0);
+      if (yes)
+        ++exact_containment_hits_;
+      return yes;
+    }
 
     bool
     dominance(unsigned p, unsigned q)
     {
       if (p == q)
         return false;
+
+      // Exact language inclusion is strongest, but deliberately bounded.
+      if (exact_language_dominance(p, q))
+        return true;
+
+      // Cheap sound approximations are used whenever exact checking is
+      // disabled, too expensive, or has exhausted its budget.
       bool direct = use_simulation_ && simulator_.simulate(p, q);
       bool delayed = om_.get(USE_DELAYED_SIMULATION) > 0
                      && delayed_simulator_.simulate(p, q);
@@ -1251,6 +1317,7 @@ namespace cola
           annotation_simplifier_(aut->get_dict()),
           semantic_order_rank_(nb_states_),
           annotation_coverage_(nb_states_, 0),
+          state_language_automata_(nb_states_),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
@@ -1323,6 +1390,17 @@ namespace cola
       // respects sound simulation dominance; formula annotations break ties
       // only between incomparable dominance classes.
       build_semantic_orders();
+
+      if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+        std::cout << "Exact containment queries: "
+                  << exact_containment_queries_
+                  << ", successful dominance facts: "
+                  << exact_containment_hits_ << "\n";
+
+      // Release the cloned per-state automata before the main determinization
+      // loop; only the resulting fixed semantic order is needed afterwards.
+      state_language_automata_.clear();
+      exact_containment_cache_.clear();
 
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
