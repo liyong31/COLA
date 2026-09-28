@@ -184,3 +184,31 @@ Exact and simulation-based dominance facts are hard ordering constraints.
 Formula annotations remain heuristic only.  Existing runs preserve their
 historical ranks; the fixed semantic order is applied only to genuinely fresh
 runs entering a deterministic accepting SCC.
+
+
+### Bounded exact union-cover pruning
+
+After the fixed semantic order has been assigned in a deterministic accepting
+SCC, CoLA can now remove a later run `q_k` when it proves exactly that
+
+```
+L(q_k) subseteq L(q_0) union ... union L(q_{k-1}).
+```
+
+The smallest run is never removed.  The exact union is built from copies of
+the source automaton with the retained earlier states selected as initial
+states, combined with Spot's `product_or()`, and checked with
+`spot::contains()`.
+
+This optimization is deliberately bounded.  By default it is attempted only
+when the number of retained earlier runs is at most 4 and while the global
+exact-containment budget remains:
+
+```
+--exact-union-limit=4
+--exact-budget=64
+```
+
+If either bound is exceeded, the later run is kept.  Thus expensive cases
+automatically fall back to the cheaper simulation/annotation path.  Formula
+annotations alone are never used to justify deletion.
