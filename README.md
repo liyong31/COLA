@@ -50,22 +50,27 @@ Buchi determinization whenever possible.
 
 The current pipeline is:
 
-1. let Spot directly compile syntactically easy safety, guarantee, obligation,
+1. simplify the formula and use Spot's `to_delta2()` implementation of the
+   Esparza-Rubio-Sickert 2024 Delta2 normalization when the normalized result
+   stays within the configured growth bound;
+2. let Spot directly compile syntactically easy safety, guarantee, obligation,
    recurrence, and persistence fragments to deterministic generic automata;
-2. for a residual formula, ask Spot for a small Buchi automaton;
-3. inspect its SCCs with CoLA and, if it is an elevator automaton (all SCCs
+3. for a residual formula, ask Spot for a small Buchi automaton;
+4. annotate hard Buchi states with `spot::match_states(aut, formula)`;
+5. inspect its SCCs with CoLA and, if it is an elevator automaton (all SCCs
    deterministic or inherently weak), use CoLA's elevator determinizer;
-4. otherwise generate asymptotic separator candidates from bodies of `G`
-   subformulas and recurrent `U/M/R/W` guards;
-5. refine the residual formula with the exhaustive profile split
+6. otherwise generate asymptotic separator candidates first from the matched
+   formulas of states in nondeterministic accepting SCCs, then from bodies of
+   syntactic `G` subformulas and recurrent `U/M/R/W` guards;
+7. refine the residual formula with the exhaustive profile split
 
        phi = (phi & FG gamma) | (phi & GF !gamma)
 
    and rank candidates by the number and size of nondeterministic accepting
    SCCs in the two resulting Buchi automata;
-6. recursively translate the two profile branches and combine their
+8. recursively translate the two profile branches and combine their
    deterministic results with generic Emerson-Lei acceptance;
-7. if bounded profile refinement does not remove the hard SCCs, fall back to
+9. if bounded profile refinement does not remove the hard SCCs, fall back to
    Spot's direct deterministic generic translation of that residual formula.
 
 Because every profile split is a tautological partition of the language, the
@@ -90,9 +95,10 @@ make
 ./ltl2dela --profile-depth=6 --profile-budget=40 -f 'G(a -> F b) & FG c'
 ```
 
-The tool writes HOA with deterministic generic acceptance.  Useful tuning
-options include `--profile-depth`, `--profile-budget`,
-`--profile-lookahead`, and `--guard-max-length`.
+The tool writes HOA with deterministic generic acceptance.  Useful tuning options include `--profile-depth`, `--profile-budget`,
+`--profile-lookahead`, and `--guard-max-length`.  Delta2 normalization and
+formula annotations are enabled by default and can be disabled with
+`--no-delta2` and `--no-annotations`.
 
 Smoke tests are in:
 
@@ -102,14 +108,27 @@ sh tests/ltl2dela-smoke.sh
 
 ### Current implementation boundary
 
-This first C++ implementation deliberately uses Spot as the LTL-to-Buchi
-backend and CoLA as the SCC/elevator backend.  It does **not yet** implement
-the full Esparza-Kretinsky-Sickert Master-Theorem derivative construction
-internally, nor the 2024 contextual Delta2 normalization.  The API is split
-into `src/ltl2dela.{hpp,cpp}` so those two pieces can be added without
-changing the command-line front-end.
+This C++ implementation uses Spot as the LTL-to-Buchi backend and CoLA as the
+SCC/elevator backend.  Spot's 2024 Delta2 normalization is wired in directly.
+The full Esparza-Kretinsky-Sickert Master-Theorem derivative construction is
+not yet reimplemented internally; that remains the main next step.
 
-The central invariant already implemented is that CoLA's Buchi determinizer
-is invoked only after `is_elevator_automaton()` succeeds; hard
-nondeterministic accepting SCCs trigger profile refinement or direct
-formula-level deterministic fallback instead.
+For LTL-derived Buchi automata, `spot::match_states(aut, f)` is used to
+recover a residual formula for each state.  Spot guarantees these formulas as
+sound over-approximations of the corresponding state languages.  Therefore
+CoLA uses them in two ways that preserve correctness:
+
+* states inside nondeterministic accepting SCCs contribute their residual
+  temporal obligations to the candidate G-profile separators;
+* when elevator determinization has several runs entering the same
+  deterministic accepting SCC simultaneously, their fresh ranks are ordered
+  by syntactic-implication coverage of their matched residual formulas instead
+  of arbitrary state number.
+
+The annotations are **not** used by themselves to remove runs or states,
+because `match_states()` may over-approximate a nondeterministic state's
+language.  Existing simulation checks remain responsible for pruning.
+
+The central invariant is that CoLA's Buchi determinizer is invoked only after
+`is_elevator_automaton()` succeeds; hard nondeterministic accepting SCCs
+trigger profile refinement or direct formula-level deterministic fallback.
