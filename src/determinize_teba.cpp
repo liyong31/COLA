@@ -379,6 +379,8 @@ namespace cola
     std::map<std::pair<unsigned, unsigned>, char> exact_containment_cache_;
     unsigned exact_containment_queries_ = 0;
     unsigned exact_containment_hits_ = 0;
+    unsigned exact_union_queries_ = 0;
+    unsigned exact_union_pruned_ = 0;
 
     // Show Rank states in state name to help debug
     bool show_names_;
@@ -430,6 +432,65 @@ namespace cola
       if (yes)
         ++exact_containment_hits_;
       return yes;
+    }
+
+    bool
+    exact_union_covers(const std::vector<label>& ordered, unsigned pos)
+    {
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || pos == 0)
+        return false;
+
+      unsigned max_prefix = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_UNION_COVER_LIMIT, 4)));
+      if (pos > max_prefix)
+        return false;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (exact_containment_queries_ >= budget)
+        return false;
+
+      // Build the exact union of the retained earlier state languages.
+      spot::twa_graph_ptr cover = state_language_automaton(ordered[0].first);
+      for (unsigned j = 1; j < pos; ++j)
+        cover = spot::product_or(cover,
+                                 state_language_automaton(ordered[j].first));
+
+      ++exact_containment_queries_;
+      ++exact_union_queries_;
+      bool covered = spot::contains(
+        cover, state_language_automaton(ordered[pos].first));
+      if (covered)
+        ++exact_union_pruned_;
+      return covered;
+    }
+
+    void
+    exact_union_cover_prune(std::vector<label>& nodes)
+    {
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || nodes.size() <= 1)
+        return;
+
+      // Kretinsky-style ordered union subsumption: never remove the smallest
+      // run.  Each later run is removed only after an exact proof that its
+      // state language is contained in the union of the retained earlier
+      // runs.  If the prefix is too large or the budget is exhausted, keep it.
+      std::stable_sort(nodes.begin(), nodes.end(), label_compare);
+
+      std::vector<label> kept;
+      kept.reserve(nodes.size());
+      kept.push_back(nodes.front());
+
+      for (unsigned i = 1; i < nodes.size(); ++i)
+        {
+          std::vector<label> trial = kept;
+          trial.push_back(nodes[i]);
+          if (!exact_union_covers(trial,
+                                  static_cast<unsigned>(trial.size() - 1)))
+            kept.push_back(nodes[i]);
+        }
+
+      nodes.swap(kept);
     }
 
     bool
@@ -927,6 +988,14 @@ namespace cola
       {
         make_simulation_state(succ);
       }
+
+      // Exact ordered union-language pruning is optional and bounded.
+      // It is independent of simulation and therefore can still strengthen
+      // macrostates when simulation is disabled or inconclusive.
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+        for (auto& nodes: succ.detscc_labels_)
+          exact_union_cover_prune(nodes);
+
       std::vector<std::set<unsigned>> det_labellings;
       //4. decide the color for deterministic SCCs
       compute_deterministic_color(ms, succ, det_labellings, det_cache);
@@ -1393,15 +1462,10 @@ namespace cola
       build_semantic_orders();
 
       if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
-        std::cout << "Exact containment queries: "
+        std::cout << "Exact containment queries after ordering: "
                   << exact_containment_queries_
                   << ", successful dominance facts: "
                   << exact_containment_hits_ << "\n";
-
-      // Release the cloned per-state automata before the main determinization
-      // loop; only the resulting fixed semantic order is needed afterwards.
-      state_language_automata_.clear();
-      exact_containment_cache_.clear();
 
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
@@ -1579,6 +1643,12 @@ namespace cola
         }
       }
       
+      if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+        std::cout << "Exact containment total: "
+                  << exact_containment_queries_
+                  << ", union checks: " << exact_union_queries_
+                  << ", union-pruned runs: " << exact_union_pruned_ << "\n";
+
       finalize_acceptance();
       res_->prop_state_acc(spot::trival(false));
       res_->prop_universal(true);
