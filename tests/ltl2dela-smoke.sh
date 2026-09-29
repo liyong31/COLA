@@ -149,3 +149,10 @@ compare_master master_u_fg  '(FG a) & GF(c & (a U b))'
 compare_master master_m_fg  '(FG b) & GF(c & (a M b))'
 compare_master master_w_gfn '(GF !a) & GF(c & (a W b))'
 compare_master master_r_gfn '(GF !b) & GF(c & (a R b))'
+
+# Persistent fixed-point guards can be profiled before Buchi construction.
+compare_master master_u_guard 'GF((a U b) | c)'
+compare_master master_w_guard 'GF((a W b) & c)'
+compare_master master_m_guard 'GF((a M b) | c)'
+compare_master master_r_guard 'GF((a R b) & c)'
+compare_master master_u_nested 'GF(c & ((a & d) U b))'
