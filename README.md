@@ -330,3 +330,41 @@ run before Delta2 normalization.  This preserves the `GF(mu)` syntax long
 enough for exact rewrites and asymptotic profile simplification.  Delta2 is
 used only after those passes, as an SCC-shaping normalization for the remaining
 residual formula.
+
+### Exact Master Y-advice for recurrence
+
+For a recurrence obligation `GF psi`, the translator now collects all
+nu-subformulas rooted at `G`, `W`, or `R`. The pre-Buchi profile layer
+classifies each such subformula by the asymptotic dichotomy
+
+```
+FG chi
+GF !chi
+```
+
+and, once the classification is complete, applies the exact EKS advice
+transformation `psi[Y]_mu`:
+
+```
+G p        -> true  if G p is in Y, false otherwise
+p W q      -> true  if p W q is in Y, otherwise p[Y]_mu U q[Y]_mu
+p R q      -> true  if p R q is in Y, otherwise p[Y]_mu M q[Y]_mu
+```
+
+All other operators are transformed by recursive descent.
+
+Thus the recurrence branch is explicitly reduced to mu-LTL before automata
+construction, matching the `GF(psi[Y]_mu)` component of the Master Theorem.
+The implementation keeps the previous cheaper profile rewrites as a secondary
+optimization, but the exact Y-advice takes precedence whenever the nu-profile
+is complete.
+
+The remaining missing Master-Theorem component is the X/advice side
+
+```
+af(phi,u)[X]_nu
+```
+
+which requires a delayed formula derivative/progression layer. Spot exposes
+the ordinary LTL-to-TGBA translation but no documented public after-function,
+so this part will be implemented symbolically in CoLA rather than approximated.
