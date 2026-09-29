@@ -67,6 +67,7 @@ namespace cola
         << "  Master profile bundles: " << master_profile_bundles << '\n'
         << "  Master profile splits: " << master_profile_splits << '\n'
         << "  Master profile facts: " << master_profile_facts << '\n'
+        << "  syntactic profile splits: " << syntactic_profile_splits << '\n'
         << "  profile-context rewrites: " << profile_context_rewrites << '\n'
         << "  annotated NA states: " << annotated_na_states << '\n'
         << "  Buchi states examined: " << buchi_states_examined << '\n'
@@ -167,6 +168,70 @@ namespace cola
     if (!body.is(spot::op::Not) || body.size() != 1)
       return false;
     guard = body[0];
+    return true;
+  }
+
+  bool
+  ltl2dela_translator::choose_syntactic_profile(
+    spot::formula f,
+    const std::vector<spot::formula>& used,
+    spot::formula& guard) const
+  {
+    struct candidate
+    {
+      spot::formula guard;
+      unsigned occurrences = 0;
+      unsigned length = 0;
+    };
+
+    std::vector<candidate> candidates;
+    auto add = [&](spot::formula g)
+      {
+        if (g.is_tt() || g.is_ff()
+            || was_used(g, used)
+            || formula_length(g) > options_.profile_guard_max_length)
+          return;
+        for (auto& c: candidates)
+          if (c.guard == g)
+            {
+              ++c.occurrences;
+              return;
+            }
+        candidates.push_back({g, 1U, formula_length(g)});
+      };
+
+    // Only inspect G-obligations that occur inside a recurrent GF kernel.
+    // Those are precisely the commitments whose eventual truth value can
+    // simplify all sufficiently late witnesses of the outer recurrence.
+    f.traverse([&](spot::formula sf)
+      {
+        spot::formula body;
+        if (!match_gf(sf, body))
+          return false;
+
+        body.traverse([&](spot::formula x)
+          {
+            if (x.is(spot::op::G) && x.size() == 1)
+              add(x[0]);
+            return false;
+          });
+        return false;
+      });
+
+    if (candidates.empty())
+      return false;
+
+    // Prefer predicates that occur in several recurrent kernels; ties go to
+    // shorter guards to keep the profile monitors small.
+    std::stable_sort(candidates.begin(), candidates.end(),
+      [](const candidate& a, const candidate& b)
+      {
+        if (a.occurrences != b.occurrences)
+          return a.occurrences > b.occurrences;
+        return a.length < b.length;
+      });
+
+    guard = candidates.front().guard;
     return true;
   }
 
@@ -1101,6 +1166,41 @@ namespace cola
                                 next_used, false, left_profile);
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
+            return compose(left, right, true);
+          }
+      }
+
+    // A remaining nested G inside a GF kernel is a genuine Y-profile
+    // candidate.  Split before constructing any Buchi automaton.  The split
+    // is exhaustive and therefore correctness-independent from this heuristic.
+    if (options_.use_profiles
+        && depth < options_.profile_depth
+        && stats_.profile_splits < options_.profile_budget)
+      {
+        spot::formula guard;
+        if (choose_syntactic_profile(f, used, guard))
+          {
+            ++stats_.profile_splits;
+            ++stats_.syntactic_profile_splits;
+
+            auto branches = profile_split(f, guard);
+            auto next_used = used;
+            next_used.push_back(guard);
+
+            auto left_profile = profile;
+            auto right_profile = profile;
+            add_profile_fact(left_profile, guard, true);
+            add_profile_fact(right_profile, guard, false);
+
+            if (options_.verbose >= 1)
+              std::cerr << "ltl2dela: syntactic Y-profile split on "
+                        << guard << '\n';
+
+            auto left = compile(branches.first, depth + 1,
+                                next_used, false, left_profile);
+            auto right = compile(branches.second, depth + 1,
+                                 next_used, false, right_profile);
+            ++stats_.profile_leaves;
             return compose(left, right, true);
           }
       }
