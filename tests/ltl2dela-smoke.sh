@@ -75,3 +75,22 @@ compare_recurrence gf_futures  'GF(a & F b & F c)'
 compare_recurrence flat_until1 'GF(c & (a U b))'
 compare_recurrence flat_until2 'GF((c | d) & ((a & e) U (b | f)))'
 compare_recurrence flat_mrelease 'GF(c & (a M b))'
+
+
+compare_master()
+{
+  name=$1
+  formula=$2
+  "$LTLD" -f "$formula" -o "$TMP/$name-master.hoa"
+  "$LTLD" --no-master-profiles -f "$formula" -o "$TMP/$name-nomaster.hoa"
+  autfilt -q "$TMP/$name-master.hoa"     --equivalent-to="$TMP/$name-nomaster.hoa" >/dev/null
+  autfilt --is-deterministic "$TMP/$name-master.hoa" >/dev/null
+}
+
+# Explicit post-commitment profile facts must preserve the language while
+# simplifying recurrent obligations under a shared asymptotic context.
+compare_master master_fg1  '(FG b) & GF(a | G b)'
+compare_master master_fg2  '(FG (b | c)) & GF(a & F(b | c))'
+compare_master master_gfn1 '(GF !b) & GF(a | G b)'
+compare_master master_gfn2 '(GF !b) & GF(F !b & (a U c))'
+compare_master master_multi '(FG b) & (GF !c) & GF((a | G b) & F !c)'
