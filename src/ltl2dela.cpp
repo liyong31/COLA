@@ -266,6 +266,48 @@ namespace cola
         if (!p.stable
             && in == spot::formula::F(spot::formula::Not(p.guard)))
           return spot::formula::tt();
+
+        if (in.size() == 2)
+          {
+            // Once gamma is permanently true:
+            //   gamma U beta  == F beta
+            //   alpha M gamma == F alpha
+            //   gamma W beta  == true
+            //   alpha R gamma == true
+            if (p.stable)
+              {
+                if (in.is(spot::op::U) && in[0] == p.guard)
+                  return spot::formula::F(
+                    rewrite_recurrence_with_profile(in[1], profile));
+
+                if (in.is(spot::op::M) && in[1] == p.guard)
+                  return spot::formula::F(
+                    rewrite_recurrence_with_profile(in[0], profile));
+
+                if (in.is(spot::op::W) && in[0] == p.guard)
+                  return spot::formula::tt();
+
+                if (in.is(spot::op::R) && in[1] == p.guard)
+                  return spot::formula::tt();
+              }
+            else
+              {
+                // Under GF(!gamma), G gamma is false on every suffix.
+                // Therefore the weak alternatives cannot discharge via the
+                // "forever gamma" branch:
+                //   gamma W beta  == gamma U beta
+                //   alpha R gamma == alpha M gamma.
+                if (in.is(spot::op::W) && in[0] == p.guard)
+                  return spot::formula::U(
+                    rewrite_recurrence_with_profile(in[0], profile),
+                    rewrite_recurrence_with_profile(in[1], profile));
+
+                if (in.is(spot::op::R) && in[1] == p.guard)
+                  return spot::formula::M(
+                    rewrite_recurrence_with_profile(in[0], profile),
+                    rewrite_recurrence_with_profile(in[1], profile));
+              }
+          }
       }
 
     return in.map([&](spot::formula child)
