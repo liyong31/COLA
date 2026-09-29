@@ -113,3 +113,10 @@ compare_master master_g2 'GF((a U c) | G b)'
 compare_master master_g3 'GF((a & G b) | (c & G d))'
 compare_master master_bundle 'FG b & GF(a | G b)'
 compare_master master_nested '(GF(a | G b)) & (GF(c | G d))'
+
+
+# Exact extraction of stable G-obligations from recurrence.
+compare_recurrence gf_g          'GF G a'
+compare_recurrence gf_and_g      'GF(a & G b)'
+compare_recurrence gf_many_g     'GF(a & G b & G c)'
+compare_recurrence gf_or_g       'GF(a | G b)'
