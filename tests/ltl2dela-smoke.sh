@@ -94,3 +94,22 @@ compare_master master_fg2  '(FG (b | c)) & GF(a & F(b | c))'
 compare_master master_gfn1 '(GF !b) & GF(a | G b)'
 compare_master master_gfn2 '(GF !b) & GF(F !b & (a U c))'
 compare_master master_multi '(FG b) & (GF !c) & GF((a | G b) & F !c)'
+
+
+compare_master()
+{
+  name=$1
+  formula=$2
+  "$LTLD" -f "$formula" -o "$TMP/$name-master.hoa"
+  "$LTLD" --no-master-profiles -f "$formula" -o "$TMP/$name-nomaster.hoa"
+  autfilt -q "$TMP/$name-master.hoa"     --equivalent-to="$TMP/$name-nomaster.hoa" >/dev/null
+  autfilt --is-deterministic "$TMP/$name-master.hoa" >/dev/null
+}
+
+# Pre-Buchi Master-profile splitting should preserve language while exposing
+# asymptotic modes before any hard Buchi SCC is constructed.
+compare_master master_g1 'GF(a | G b)'
+compare_master master_g2 'GF((a U c) | G b)'
+compare_master master_g3 'GF((a & G b) | (c & G d))'
+compare_master master_bundle 'FG b & GF(a | G b)'
+compare_master master_nested '(GF(a | G b)) & (GF(c | G d))'
