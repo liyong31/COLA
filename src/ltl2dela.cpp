@@ -254,6 +254,9 @@ namespace cola
   {
     for (const auto& p: profile)
       {
+        if (p.stable && in == p.guard)
+          return spot::formula::tt();
+
         auto gg = spot::formula::G(p.guard);
         if (in == gg)
           return p.stable ? spot::formula::tt() : spot::formula::ff();
@@ -359,6 +362,7 @@ namespace cola
     spot::formula gf_body;
     if (match_gf(f, gf_body))
       {
+        // First prefer explicit G-obligations.
         gf_body.traverse([&](spot::formula sf)
           {
             if (found)
@@ -374,6 +378,35 @@ namespace cola
                     found = true;
                     return true;
                   }
+              }
+            return false;
+          });
+        if (found)
+          return chosen;
+
+        // If there is no explicit G, use the persistent guard of a recurrent
+        // fixed-point obligation.  U/W use their left guard; M/R are the
+        // corresponding release forms and use their right guard.
+        gf_body.traverse([&](spot::formula sf)
+          {
+            if (found)
+              return true;
+
+            spot::formula g = spot::formula::ff();
+            if ((sf.is(spot::op::U) || sf.is(spot::op::W))
+                && sf.size() == 2)
+              g = sf[0];
+            else if ((sf.is(spot::op::M) || sf.is(spot::op::R))
+                     && sf.size() == 2)
+              g = sf[1];
+
+            if (!g.is_ff() && !g.is_tt()
+                && !already_known(g)
+                && formula_length(g) <= options_.profile_guard_max_length)
+              {
+                chosen = g;
+                found = true;
+                return true;
               }
             return false;
           });
@@ -892,12 +925,16 @@ namespace cola
         // For a recurrent strong-until / strong-release choice, persistence
         // of the left guard often determines whether the obligation collapses
         // to an eventuality after the commitment point.
-        if ((sf.is(spot::op::U) || sf.is(spot::op::M)) && sf.size() == 2)
+        if (sf.is(spot::op::U) && sf.size() == 2)
           add(sf[0], 85);
+        if (sf.is(spot::op::M) && sf.size() == 2)
+          add(sf[1], 85);
 
-        // For weak-until/release, the right side is the natural invariant-like
-        // guard.  Splitting on it is always sound even when it is not useful.
-        if ((sf.is(spot::op::W) || sf.is(spot::op::R)) && sf.size() == 2)
+        // W has the same persistent left guard as U.  R is the dual release
+        // form and its persistent guard is the right operand.
+        if (sf.is(spot::op::W) && sf.size() == 2)
+          add(sf[0], 75);
+        if (sf.is(spot::op::R) && sf.size() == 2)
           add(sf[1], 75);
 
         // Existing persistence/safety subformulas are useful fallback profile
@@ -996,11 +1033,13 @@ namespace cola
               {
                 if (sf.is(spot::op::G) && sf.size() == 1)
                   add(sf[0], 120);
-                if ((sf.is(spot::op::U) || sf.is(spot::op::M))
-                    && sf.size() == 2)
+                if (sf.is(spot::op::U) && sf.size() == 2)
                   add(sf[0], 105);
-                if ((sf.is(spot::op::W) || sf.is(spot::op::R))
-                    && sf.size() == 2)
+                if (sf.is(spot::op::M) && sf.size() == 2)
+                  add(sf[1], 105);
+                if (sf.is(spot::op::W) && sf.size() == 2)
+                  add(sf[0], 95);
+                if (sf.is(spot::op::R) && sf.size() == 2)
                   add(sf[1], 95);
                 if (sf != ann
                     && (sf.is_syntactic_persistence()
