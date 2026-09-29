@@ -64,6 +64,9 @@ namespace cola
         << "  recurrence rewrites: " << recurrence_rewrites << '\n'
         << "  recurrence splits: " << recurrence_splits << '\n'
         << "  flat-Until monitors: " << flat_until_monitors << '\n'
+        << "  Master profile bundles: " << master_profile_bundles << '\n'
+        << "  Master profile facts: " << master_profile_facts << '\n'
+        << "  profile-context rewrites: " << profile_context_rewrites << '\n'
         << "  annotated NA states: " << annotated_na_states << '\n'
         << "  Buchi states examined: " << buchi_states_examined << '\n'
         << "  largest NA SCC: " << max_na_scc_states << '\n';
@@ -139,6 +142,137 @@ namespace cola
     return f;
   }
 
+
+
+  bool
+  ltl2dela_translator::match_fg(spot::formula f, spot::formula& body) const
+  {
+    if (!f.is(spot::op::F) || f.size() != 1)
+      return false;
+    auto x = f[0];
+    if (!x.is(spot::op::G) || x.size() != 1)
+      return false;
+    body = x[0];
+    return true;
+  }
+
+  bool
+  ltl2dela_translator::match_gf_not(spot::formula f,
+                                    spot::formula& guard) const
+  {
+    spot::formula body;
+    if (!match_gf(f, body))
+      return false;
+    if (!body.is(spot::op::Not) || body.size() != 1)
+      return false;
+    guard = body[0];
+    return true;
+  }
+
+  void
+  ltl2dela_translator::add_profile_fact(
+    std::vector<profile_fact>& profile,
+    spot::formula guard,
+    bool stable) const
+  {
+    for (const auto& p: profile)
+      if (p.guard == guard && p.stable == stable)
+        return;
+    profile.push_back({guard, stable});
+  }
+
+  spot::formula
+  ltl2dela_translator::rewrite_recurrence_with_profile(
+    spot::formula in,
+    const std::vector<profile_fact>& profile) const
+  {
+    for (const auto& p: profile)
+      {
+        auto gg = spot::formula::G(p.guard);
+        if (in == gg)
+          return p.stable ? spot::formula::tt() : spot::formula::ff();
+
+        // Under FG(gamma), F(gamma) is eventually always true.
+        if (p.stable && in == spot::formula::F(p.guard))
+          return spot::formula::tt();
+
+        // Under GF(!gamma), every suffix contains a !gamma-position.
+        if (!p.stable
+            && in == spot::formula::F(spot::formula::Not(p.guard)))
+          return spot::formula::tt();
+      }
+
+    return in.map([&](spot::formula child)
+      {
+        return rewrite_recurrence_with_profile(child, profile);
+      });
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::compile_master_bundle(
+    spot::formula f,
+    unsigned depth,
+    const std::vector<spot::formula>& used,
+    bool& handled,
+    const std::vector<profile_fact>& inherited_profile)
+  {
+    handled = false;
+    if (!options_.use_master_profiles
+        || !f.is(spot::op::And)
+        || f.size() < 2)
+      return nullptr;
+
+    auto profile = inherited_profile;
+    unsigned recurrence_terms = 0;
+    unsigned facts_before = static_cast<unsigned>(profile.size());
+
+    // First collect the asymptotic facts so every conjunct is compiled under
+    // the same profile, independent of its syntactic position.
+    for (unsigned i = 0; i < f.size(); ++i)
+      {
+        spot::formula g;
+        if (match_fg(f[i], g))
+          add_profile_fact(profile, g, true);
+        else if (match_gf_not(f[i], g))
+          add_profile_fact(profile, g, false);
+
+        spot::formula body;
+        if (match_gf(f[i], body))
+          ++recurrence_terms;
+      }
+
+    unsigned new_facts =
+      static_cast<unsigned>(profile.size()) - facts_before;
+
+    // This is the exact post-commitment shape we can exploit already:
+    // conjunctions containing recurrence obligations and/or explicit
+    // asymptotic profile facts.  Splitting here is intentionally before
+    // Delta2 normalization.
+    if (recurrence_terms == 0 && new_facts == 0
+        && inherited_profile.empty())
+      return nullptr;
+
+    handled = true;
+    ++stats_.master_profile_bundles;
+    stats_.master_profile_facts += new_facts;
+
+    if (options_.verbose >= 2 && new_facts)
+      {
+        std::cerr << "ltl2dela: Master profile facts:";
+        for (unsigned i = facts_before; i < profile.size(); ++i)
+          std::cerr << ' ' << (profile[i].stable ? "FG(" : "GF!(")
+                    << profile[i].guard << ')';
+        std::cerr << '\n';
+      }
+
+    // Compile all obligations independently but under the same asymptotic
+    // context.  The conjunction with the explicit FG/GF profile monitors
+    // makes every conditional recurrence rewrite globally sound.
+    auto res = compile(f[0], depth, used, true, profile);
+    for (unsigned i = 1; i < f.size(); ++i)
+      res = compose(res, compile(f[i], depth, used, true, profile), false);
+    return res;
+  }
 
   bool
   ltl2dela_translator::match_gf(spot::formula f, spot::formula& body) const
@@ -270,7 +404,8 @@ namespace cola
     spot::formula f,
     unsigned depth,
     const std::vector<spot::formula>& used,
-    bool& handled)
+    bool& handled,
+    const std::vector<profile_fact>& profile)
   {
     handled = false;
     spot::formula body;
@@ -282,13 +417,25 @@ namespace cola
         return spot::formula::G(spot::formula::F(x));
       };
 
+    if (!profile.empty())
+      {
+        auto rewritten =
+          simplifier_.simplify(rewrite_recurrence_with_profile(body, profile));
+        if (rewritten != body)
+          {
+            handled = true;
+            ++stats_.profile_context_rewrites;
+            return compile(gf(rewritten), depth, used, false, profile);
+          }
+      }
+
     // GF X phi = GF phi; GF F phi = GF phi.
     if ((body.is(spot::op::X) || body.is(spot::op::F))
         && body.size() == 1)
       {
         handled = true;
         ++stats_.recurrence_rewrites;
-        return compile(gf(body[0]), depth, used, false);
+        return compile(gf(body[0]), depth, used, false, profile);
       }
 
     // GF(alpha U beta) = GF beta.
@@ -296,7 +443,7 @@ namespace cola
       {
         handled = true;
         ++stats_.recurrence_rewrites;
-        return compile(gf(body[1]), depth, used, false);
+        return compile(gf(body[1]), depth, used, false, profile);
       }
 
     // alpha M beta == beta U (alpha & beta), hence
@@ -306,7 +453,7 @@ namespace cola
         handled = true;
         ++stats_.recurrence_rewrites;
         return compile(gf(spot::formula::And({body[0], body[1]})),
-                       depth, used, false);
+                       depth, used, false, profile);
       }
 
     // GF distributes over finite disjunction.  This turns a repeated
@@ -316,9 +463,9 @@ namespace cola
       {
         handled = true;
         ++stats_.recurrence_splits;
-        auto res = compile(gf(body[0]), depth, used, false);
+        auto res = compile(gf(body[0]), depth, used, false, profile);
         for (unsigned i = 1; i < body.size(); ++i)
-          res = compose(res, compile(gf(body[i]), depth, used, false), true);
+          res = compose(res, compile(gf(body[i]), depth, used, false, profile), true);
         return res;
       }
 
@@ -367,13 +514,13 @@ namespace cola
                 auto r = rest.size() == 1
                   ? rest.front()
                   : spot::formula::And(rest);
-                res = compile(gf(r), depth, used, false);
+                res = compile(gf(r), depth, used, false, profile);
                 have = true;
               }
 
             for (auto x: future)
               {
-                auto next = compile(gf(x), depth, used, false);
+                auto next = compile(gf(x), depth, used, false, profile);
                 if (!have)
                   {
                     res = next;
@@ -744,7 +891,8 @@ namespace cola
     spot::formula f,
     unsigned depth,
     const std::vector<spot::formula>& used,
-    bool allow_boolean_split)
+    bool allow_boolean_split,
+    const std::vector<profile_fact>& profile)
   {
     // Preserve GF(mu)-style syntax long enough for exact structural
     // recurrence rules and small hand-built deterministic monitors.
@@ -752,7 +900,18 @@ namespace cola
     if (options_.use_recurrence_compiler)
       {
         bool handled = false;
-        auto special = compile_recurrence(f, depth, used, handled);
+        auto special = compile_recurrence(f, depth, used, handled, profile);
+        if (handled)
+          return special;
+      }
+
+    // Recognize the post-commitment Master-Theorem shape before Delta2
+    // normalization can obscure its individual recurrence obligations.
+    if (options_.use_master_profiles)
+      {
+        bool handled = false;
+        auto special =
+          compile_master_bundle(f, depth, used, handled, profile);
         if (handled)
           return special;
       }
@@ -768,9 +927,9 @@ namespace cola
         && f.size() > 1)
       {
         bool disjunction = f.is(spot::op::Or);
-        auto res = compile(f[0], depth, used, true);
+        auto res = compile(f[0], depth, used, true, profile);
         for (unsigned i = 1; i < f.size(); ++i)
-          res = compose(res, compile(f[i], depth, used, true), disjunction);
+          res = compose(res, compile(f[i], depth, used, true, profile), disjunction);
         return res;
       }
 
@@ -820,10 +979,15 @@ namespace cola
                         << " -> worst " << choice.worst_na_states
                         << ")\n";
 
+            auto left_profile = profile;
+            auto right_profile = profile;
+            add_profile_fact(left_profile, choice.sep.guard, true);
+            add_profile_fact(right_profile, choice.sep.guard, false);
+
             auto left = compile(branches.first, depth + 1,
-                                next_used, false);
+                                next_used, false, left_profile);
             auto right = compile(branches.second, depth + 1,
-                                 next_used, false);
+                                 next_used, false, right_profile);
             ++stats_.profile_leaves;
             return compose(left, right, true);
           }
@@ -847,6 +1011,8 @@ namespace cola
 
     stats_ = {};
     std::vector<spot::formula> used;
-    return compile(prepare(f), 0, used, true);
+    // Do not normalize to Delta2 here: compile() must see the original
+    // GF/profile syntax before deciding which structural compiler to use.
+    return compile(simplifier_.simplify(f), 0, used, true, {});
   }
 }
