@@ -50,28 +50,35 @@ Buchi determinization whenever possible.
 
 The current pipeline is:
 
-1. simplify the formula and use Spot's `to_delta2()` implementation of the
-   Esparza-Rubio-Sickert 2024 Delta2 normalization when the normalized result
-   stays within the configured growth bound;
-2. let Spot directly compile syntactically easy safety, guarantee, obligation,
-   recurrence, and persistence fragments to deterministic generic automata;
-3. for a residual formula, ask Spot for a small Buchi automaton;
-4. annotate hard Buchi states with `spot::match_states(aut, formula)`;
-5. inspect its SCCs with CoLA and, if it is an elevator automaton (all SCCs
-   deterministic or inherently weak), use CoLA's elevator determinizer;
-6. otherwise generate asymptotic separator candidates first from the matched
-   formulas of states in nondeterministic accepting SCCs, then from bodies of
-   syntactic `G` subformulas and recurrent `U/M/R/W` guards;
-7. refine the residual formula with the exhaustive profile split
-
-       phi = (phi & FG gamma) | (phi & GF !gamma)
-
-   and rank candidates by the number and size of nondeterministic accepting
-   SCCs in the two resulting Buchi automata;
-8. recursively translate the two profile branches and combine their
-   deterministic results with generic Emerson-Lei acceptance;
-9. if bounded profile refinement does not remove the hard SCCs, fall back to
-   Spot's direct deterministic generic translation of that residual formula.
+1. simplify the original formula, but deliberately preserve its recurrent
+   `GF(...)` structure;
+2. apply exact structural recurrence rules before any general automaton
+   construction, including
+   `GF X p = GF p`, `GF F p = GF p`, `GF(a U b) = GF b`,
+   `GF(a M b) = GF(a & b)`, `GF G p = FG p`, distribution over
+   disjunction, extraction of top-level `G`/`F` obligations from
+   conjunctions, and a two-state deterministic monitor for flat
+   `GF(lambda & (g U h))`;
+3. recognize explicit post-commitment bundles of the form
+   `S & GF(theta_1) & ...` together with `FG gamma` / `GF !gamma`
+   profile facts, and compile all conjuncts under the same asymptotic context;
+4. if a recurrent kernel still contains a nested `G gamma`, synthesize a
+   bounded pre-Buchi Y-profile split
+   `FG gamma | GF !gamma` before building an NBA;
+5. use the chosen profile context to simplify recurrent temporal guards.
+   For example, under `FG g`, late suffixes satisfy
+   `g U h = F h`, `a M g = F a`, `g W h = true`, and
+   `a R g = true`; under `GF !g`, weak-until/release reduce to their
+   strong counterparts;
+6. only after these structural steps, use Spot's `to_delta2()`
+   normalization when its growth stays within the configured bound;
+7. let Spot directly compile remaining syntactically easy fragments;
+8. for a genuinely residual formula, ask Spot for a small Buchi automaton,
+   annotate hard states with `match_states()`, and inspect its SCCs;
+9. if the BA is elevator, use CoLA's elevator determinizer; otherwise perform
+   SCC-scored profile refinement, and finally fall back to direct
+   deterministic formula translation if the bounded refinement budget is
+   exhausted.
 
 Because every profile split is a tautological partition of the language, the
 profile heuristic affects only automaton size, not correctness.  The fallback
@@ -98,7 +105,8 @@ make
 The tool writes HOA with deterministic generic acceptance.  Useful tuning options include `--profile-depth`, `--profile-budget`,
 `--profile-lookahead`, and `--guard-max-length`.  Delta2 normalization and
 formula annotations are enabled by default and can be disabled with
-`--no-delta2` and `--no-annotations`.
+`--no-delta2`, `--no-recurrence`, `--no-master-profiles`, and
+`--no-annotations`.
 
 Smoke tests are in:
 
