@@ -210,6 +210,26 @@ namespace cola
   }
 
 
+
+  spot::formula
+  ltl2dela_translator::rewrite_formula_with_profile(
+    spot::formula f,
+    const std::vector<profile_fact>& profile) const
+  {
+    spot::formula body;
+    if (match_gf(f, body))
+      {
+        auto r = rewrite_recurrence_with_profile(body, profile);
+        if (r != body)
+          return spot::formula::G(spot::formula::F(r));
+      }
+
+    return f.map([&](spot::formula child)
+      {
+        return rewrite_formula_with_profile(child, profile);
+      });
+  }
+
   spot::formula
   ltl2dela_translator::find_master_separator(
     spot::formula f,
@@ -239,7 +259,8 @@ namespace cola
             if (sf.is(spot::op::G) && sf.size() == 1)
               {
                 auto g = sf[0];
-                if (!already_known(g)
+                if (!g.is_tt() && !g.is_ff()
+                    && !already_known(g)
                     && formula_length(g) <= options_.profile_guard_max_length)
                   {
                     chosen = g;
@@ -1017,6 +1038,17 @@ namespace cola
     // Preserve GF(mu)-style syntax long enough for exact structural
     // recurrence rules and small hand-built deterministic monitors.
     f = simplifier_.simplify(f);
+
+    if (!profile.empty())
+      {
+        auto rewritten =
+          simplifier_.simplify(rewrite_formula_with_profile(f, profile));
+        if (rewritten != f)
+          {
+            ++stats_.profile_context_rewrites;
+            f = rewritten;
+          }
+      }
     if (options_.use_recurrence_compiler)
       {
         bool handled = false;
