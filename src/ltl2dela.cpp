@@ -166,14 +166,24 @@ namespace cola
     for (unsigned i = 0; i < body.size(); ++i)
       {
         auto x = body[i];
-        if (x.is(spot::op::U) && x.size() == 2
+        if ((x.is(spot::op::U) || x.is(spot::op::M))
+            && x.size() == 2
             && x[0].is_boolean() && x[1].is_boolean())
           {
             if (until >= 0)
               return false;
             until = static_cast<int>(i);
-            guard = x[0];
-            goal = x[1];
+            if (x.is(spot::op::U))
+              {
+                guard = x[0];
+                goal = x[1];
+              }
+            else
+              {
+                // alpha M beta == beta U (alpha & beta)
+                guard = x[1];
+                goal = spot::formula::And({x[0], x[1]});
+              }
           }
         else
           {
