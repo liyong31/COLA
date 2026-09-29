@@ -45,6 +45,7 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
+  --no-master-profiles     disable explicit Master-profile propagation
   --no-annotations        disable match_states() formula annotations
   --no-exact-languages    disable exact state-language containment
   --exact-scc-limit=N     exact containment only in DA SCCs of size <= N
@@ -159,6 +160,11 @@ int main(int argc, char** argv)
           if (a == "--no-recurrence")
             {
               opts.use_recurrence_compiler = false;
+              continue;
+            }
+          if (a == "--no-master-profiles")
+            {
+              opts.use_master_profiles = false;
               continue;
             }
           if (a == "--no-annotations")
