@@ -162,6 +162,9 @@ namespace cola
     spot::formula rewrite_recurrence_with_profile(
       spot::formula body,
       const std::vector<profile_fact>& profile) const;
+    spot::formula rewrite_formula_with_profile(
+      spot::formula f,
+      const std::vector<profile_fact>& profile) const;
     spot::formula find_master_separator(
       spot::formula f,
       const std::vector<spot::formula>& used,
