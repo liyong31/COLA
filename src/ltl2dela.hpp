@@ -26,6 +26,7 @@ namespace cola
     bool boolean_decomposition = true;
     bool use_profiles = true;
     bool use_delta2 = true;
+    bool use_recurrence_compiler = true;
     bool use_state_annotations = true;
     bool use_exact_state_languages = true;
     bool require_profile_progress = true;
@@ -61,6 +62,9 @@ namespace cola
     unsigned profile_leaves = 0;
     unsigned deterministic_fallbacks = 0;
     unsigned delta2_rewrites = 0;
+    unsigned recurrence_rewrites = 0;
+    unsigned recurrence_splits = 0;
+    unsigned flat_until_monitors = 0;
     unsigned annotated_na_states = 0;
     unsigned buchi_attempts = 0;
 
@@ -133,6 +137,25 @@ namespace cola
 
     spot::formula prepare(spot::formula f);
     bool is_direct_fragment(spot::formula f) const;
+
+    // Exact recurrence identities and small deterministic monitors are tried
+    // before Delta2 normalization, while the useful GF(mu) syntax is still
+    // visible.
+    spot::twa_graph_ptr compile_recurrence(
+      spot::formula f,
+      unsigned depth,
+      const std::vector<spot::formula>& used,
+      bool& handled);
+
+    bool match_gf(spot::formula f, spot::formula& body) const;
+    bool match_flat_until(spot::formula body,
+                          spot::formula& lambda,
+                          spot::formula& guard,
+                          spot::formula& goal) const;
+    spot::twa_graph_ptr make_flat_until_monitor(
+      spot::formula lambda,
+      spot::formula guard,
+      spot::formula goal);
 
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);
