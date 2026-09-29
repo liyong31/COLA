@@ -13,6 +13,8 @@
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/matchstates.hh>
+#include <spot/twa/formula2bdd.hh>
+#include <spot/twa/twagraph.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -59,6 +61,9 @@ namespace cola
         << "  profile leaves: " << profile_leaves << '\n'
         << "  deterministic fallbacks: " << deterministic_fallbacks << '\n'
         << "  Delta2 rewrites: " << delta2_rewrites << '\n'
+        << "  recurrence rewrites: " << recurrence_rewrites << '\n'
+        << "  recurrence splits: " << recurrence_splits << '\n'
+        << "  flat-Until monitors: " << flat_until_monitors << '\n'
         << "  annotated NA states: " << annotated_na_states << '\n'
         << "  Buchi states examined: " << buchi_states_examined << '\n'
         << "  largest NA SCC: " << max_na_scc_states << '\n';
@@ -132,6 +137,246 @@ namespace cola
           }
       }
     return f;
+  }
+
+
+  bool
+  ltl2dela_translator::match_gf(spot::formula f, spot::formula& body) const
+  {
+    if (!f.is(spot::op::G) || f.size() != 1)
+      return false;
+    auto x = f[0];
+    if (!x.is(spot::op::F) || x.size() != 1)
+      return false;
+    body = x[0];
+    return true;
+  }
+
+  bool
+  ltl2dela_translator::match_flat_until(spot::formula body,
+                                        spot::formula& lambda,
+                                        spot::formula& guard,
+                                        spot::formula& goal) const
+  {
+    if (!body.is(spot::op::And) || body.size() < 2)
+      return false;
+
+    int until = -1;
+    std::vector<spot::formula> local;
+    for (unsigned i = 0; i < body.size(); ++i)
+      {
+        auto x = body[i];
+        if (x.is(spot::op::U) && x.size() == 2
+            && x[0].is_boolean() && x[1].is_boolean())
+          {
+            if (until >= 0)
+              return false;
+            until = static_cast<int>(i);
+            guard = x[0];
+            goal = x[1];
+          }
+        else
+          {
+            if (!x.is_boolean())
+              return false;
+            local.push_back(x);
+          }
+      }
+
+    if (until < 0 || local.empty())
+      return false;
+
+    lambda = local.size() == 1
+      ? local.front()
+      : spot::formula::And(local);
+    return lambda.is_boolean();
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::make_flat_until_monitor(spot::formula lambda,
+                                                spot::formula guard,
+                                                spot::formula goal)
+  {
+    // Recognizes GF(lambda & (guard U goal)).
+    //
+    // State 0: no still-live witness started at a previous lambda-position.
+    // State 1: one such witness is pending and guard has held at every
+    //          position since it was started.
+    //
+    // On the current letter a witness succeeds iff
+    //   goal & (lambda | pending).
+    // If it does not succeed, the pending bit becomes
+    //   guard & (lambda | pending).
+    //
+    // This is deterministic and complete, and an accepting transition is
+    // taken exactly whenever a finite witness for lambda & (guard U goal)
+    // finishes.  Buchi acceptance therefore gives precisely GF of the body.
+    auto aut = spot::make_twa_graph(dict_);
+    aut->new_states(2);
+    aut->set_init_state(0);
+    aut->set_buchi();
+
+    bdd l = spot::formula_to_bdd(lambda, dict_, aut);
+    bdd g = spot::formula_to_bdd(guard, dict_, aut);
+    bdd h = spot::formula_to_bdd(goal, dict_, aut);
+    aut->register_aps_from_dict();
+
+    auto accepting_edge = [&](unsigned src, unsigned dst, bdd cond)
+      {
+        if (cond == bddfalse)
+          return;
+        unsigned e = aut->new_edge(src, dst, cond);
+        aut->edge_storage(e).acc.set(0);
+      };
+    auto plain_edge = [&](unsigned src, unsigned dst, bdd cond)
+      {
+        if (cond != bddfalse)
+          aut->new_edge(src, dst, cond);
+      };
+
+    // pending = 0
+    bdd success0 = h & l;
+    bdd wait0 = (-h) & g & l;
+    accepting_edge(0, 0, success0);
+    plain_edge(0, 1, wait0);
+    plain_edge(0, 0, -(success0 | wait0));
+
+    // pending = 1
+    bdd success1 = h;
+    bdd wait1 = (-h) & g;
+    accepting_edge(1, 0, success1);
+    plain_edge(1, 1, wait1);
+    plain_edge(1, 0, -(success1 | wait1));
+
+    aut->prop_universal(true);
+    aut->prop_complete(true);
+    aut->prop_state_acc(false);
+    aut->merge_edges();
+    return aut;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::compile_recurrence(
+    spot::formula f,
+    unsigned depth,
+    const std::vector<spot::formula>& used,
+    bool& handled)
+  {
+    handled = false;
+    spot::formula body;
+    if (!match_gf(f, body))
+      return nullptr;
+
+    auto gf = [](spot::formula x)
+      {
+        return spot::formula::G(spot::formula::F(x));
+      };
+
+    // GF X phi = GF phi; GF F phi = GF phi.
+    if ((body.is(spot::op::X) || body.is(spot::op::F))
+        && body.size() == 1)
+      {
+        handled = true;
+        ++stats_.recurrence_rewrites;
+        return compile(gf(body[0]), depth, used, false);
+      }
+
+    // GF(alpha U beta) = GF beta.
+    if (body.is(spot::op::U) && body.size() == 2)
+      {
+        handled = true;
+        ++stats_.recurrence_rewrites;
+        return compile(gf(body[1]), depth, used, false);
+      }
+
+    // alpha M beta == beta U (alpha & beta), hence
+    // GF(alpha M beta) = GF(alpha & beta).
+    if (body.is(spot::op::M) && body.size() == 2)
+      {
+        handled = true;
+        ++stats_.recurrence_rewrites;
+        return compile(gf(spot::formula::And({body[0], body[1]})),
+                       depth, used, false);
+      }
+
+    // GF distributes over finite disjunction.  This turns a repeated
+    // nondeterministic choice into one deterministic Emerson-Lei OR-product
+    // of independently compiled recurrence monitors.
+    if (body.is(spot::op::Or) && body.size() > 1)
+      {
+        handled = true;
+        ++stats_.recurrence_splits;
+        auto res = compile(gf(body[0]), depth, used, false);
+        for (unsigned i = 1; i < body.size(); ++i)
+          res = compose(res, compile(gf(body[i]), depth, used, false), true);
+        return res;
+      }
+
+    // Flat Until kernel:
+    //   GF(lambda & (g U h))
+    // with propositional lambda,g,h has a two-state deterministic
+    // transition-Buchi monitor.  Use it before generic translation.
+    spot::formula lambda;
+    spot::formula guard;
+    spot::formula goal;
+    if (match_flat_until(body, lambda, guard, goal))
+      {
+        handled = true;
+        ++stats_.flat_until_monitors;
+        return normalize_deterministic(
+          make_flat_until_monitor(lambda, guard, goal));
+      }
+
+    // GF(lambda & F beta) = GF lambda & GF beta.  More generally, if a
+    // conjunction contains several F-obligations, all of them can be peeled
+    // off at once.  The identity is exact because GF beta implies that from
+    // every position there is a future beta-position.
+    if (body.is(spot::op::And) && body.size() > 1)
+      {
+        std::vector<spot::formula> future;
+        std::vector<spot::formula> rest;
+        for (unsigned i = 0; i < body.size(); ++i)
+          {
+            auto x = body[i];
+            if (x.is(spot::op::F) && x.size() == 1)
+              future.push_back(x[0]);
+            else
+              rest.push_back(x);
+          }
+
+        if (!future.empty())
+          {
+            handled = true;
+            ++stats_.recurrence_splits;
+
+            spot::twa_graph_ptr res;
+            bool have = false;
+
+            if (!rest.empty())
+              {
+                auto r = rest.size() == 1
+                  ? rest.front()
+                  : spot::formula::And(rest);
+                res = compile(gf(r), depth, used, false);
+                have = true;
+              }
+
+            for (auto x: future)
+              {
+                auto next = compile(gf(x), depth, used, false);
+                if (!have)
+                  {
+                    res = next;
+                    have = true;
+                  }
+                else
+                  res = compose(res, next, false);
+              }
+            return res;
+          }
+      }
+
+    return nullptr;
   }
 
   bool
@@ -491,6 +736,18 @@ namespace cola
     const std::vector<spot::formula>& used,
     bool allow_boolean_split)
   {
+    // Preserve GF(mu)-style syntax long enough for exact structural
+    // recurrence rules and small hand-built deterministic monitors.
+    f = simplifier_.simplify(f);
+    if (options_.use_recurrence_compiler)
+      {
+        bool handled = false;
+        auto special = compile_recurrence(f, depth, used, handled);
+        if (handled)
+          return special;
+      }
+
+    // Only now apply optional Delta2 normalization.
     f = prepare(f);
 
     // Boolean decomposition is safe because the deterministic results are
