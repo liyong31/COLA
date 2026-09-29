@@ -156,3 +156,12 @@ compare_master master_w_guard 'GF((a W b) & c)'
 compare_master master_m_guard 'GF((a M b) | c)'
 compare_master master_r_guard 'GF((a R b) & c)'
 compare_master master_u_nested 'GF(c & ((a & d) U b))'
+
+# Exact EKS Y-advice: G/W/R are rewritten to mu-LTL once their
+# asymptotic profile is complete.
+compare_master advice_g       'GF(G a | b)'
+compare_master advice_w       'GF(a W b)'
+compare_master advice_r       'GF(a R b)'
+compare_master advice_gw      'GF(G a | (b W c))'
+compare_master advice_wr      'GF((a W b) & (c R d))'
+compare_master advice_multi   'GF((G a | (b W c)) & (d R e))'
