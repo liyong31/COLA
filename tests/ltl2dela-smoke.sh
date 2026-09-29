@@ -74,3 +74,4 @@ compare_recurrence gf_futures  'GF(a & F b & F c)'
 # Dedicated two-state flat-Until monitor.
 compare_recurrence flat_until1 'GF(c & (a U b))'
 compare_recurrence flat_until2 'GF((c | d) & ((a & e) U (b | f)))'
+compare_recurrence flat_mrelease 'GF(c & (a M b))'
