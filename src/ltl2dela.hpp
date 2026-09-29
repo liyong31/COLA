@@ -27,6 +27,7 @@ namespace cola
     bool use_profiles = true;
     bool use_delta2 = true;
     bool use_recurrence_compiler = true;
+    bool use_master_profiles = true;
     bool use_state_annotations = true;
     bool use_exact_state_languages = true;
     bool require_profile_progress = true;
@@ -65,6 +66,9 @@ namespace cola
     unsigned recurrence_rewrites = 0;
     unsigned recurrence_splits = 0;
     unsigned flat_until_monitors = 0;
+    unsigned master_profile_bundles = 0;
+    unsigned master_profile_facts = 0;
+    unsigned profile_context_rewrites = 0;
     unsigned annotated_na_states = 0;
     unsigned buchi_attempts = 0;
 
@@ -119,6 +123,14 @@ namespace cola
       unsigned priority = 0;
     };
 
+    struct profile_fact
+    {
+      spot::formula guard;
+      // true  => FG guard, so G guard is eventually permanently true.
+      // false => GF !guard, so G guard is false at every position.
+      bool stable = true;
+    };
+
     struct separator_eval
     {
       bool valid = false;
@@ -130,10 +142,28 @@ namespace cola
       unsigned guard_length = 0;
     };
 
-    spot::twa_graph_ptr compile(spot::formula f,
-                                unsigned depth,
-                                const std::vector<spot::formula>& used,
-                                bool allow_boolean_split);
+    spot::twa_graph_ptr compile(
+      spot::formula f,
+      unsigned depth,
+      const std::vector<spot::formula>& used,
+      bool allow_boolean_split,
+      const std::vector<profile_fact>& profile = {});
+
+    spot::twa_graph_ptr compile_master_bundle(
+      spot::formula f,
+      unsigned depth,
+      const std::vector<spot::formula>& used,
+      bool& handled,
+      const std::vector<profile_fact>& inherited_profile);
+
+    bool match_fg(spot::formula f, spot::formula& body) const;
+    bool match_gf_not(spot::formula f, spot::formula& guard) const;
+    spot::formula rewrite_recurrence_with_profile(
+      spot::formula body,
+      const std::vector<profile_fact>& profile) const;
+    void add_profile_fact(std::vector<profile_fact>& profile,
+                          spot::formula guard,
+                          bool stable) const;
 
     spot::formula prepare(spot::formula f);
     bool is_direct_fragment(spot::formula f) const;
@@ -145,7 +175,8 @@ namespace cola
       spot::formula f,
       unsigned depth,
       const std::vector<spot::formula>& used,
-      bool& handled);
+      bool& handled,
+      const std::vector<profile_fact>& profile);
 
     bool match_gf(spot::formula f, spot::formula& body) const;
     bool match_flat_until(spot::formula body,
