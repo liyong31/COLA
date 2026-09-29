@@ -174,6 +174,17 @@ namespace cola
       spot::formula f,
       const std::vector<spot::formula>& used,
       const std::vector<profile_fact>& profile) const;
+
+    void collect_nu_subformulas(
+      spot::formula f,
+      std::vector<spot::formula>& out) const;
+    bool nu_profile_value(
+      spot::formula nu,
+      const std::vector<profile_fact>& profile,
+      bool& stable) const;
+    spot::formula advice_mu(
+      spot::formula f,
+      const std::vector<spot::formula>& y) const;
     void add_profile_fact(std::vector<profile_fact>& profile,
                           spot::formula guard,
                           bool stable) const;
