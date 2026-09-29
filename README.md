@@ -252,3 +252,64 @@ union-cover checks.
 
 With verbose diagnostics enabled, CoLA reports for each active deterministic
 accepting SCC its visit count, maximum observed width, and exact-query usage.
+
+
+### Explicit Master-profile front-end
+
+The branch now performs a first explicit Master-Theorem-style pass before
+Delta2 normalization and before any Buchi construction.
+
+For conjunctions containing recurrence obligations and asymptotic profile
+facts, the translator keeps a shared profile context of facts of the form
+
+```
+FG gamma
+GF !gamma
+```
+
+and compiles the conjuncts independently under that same context.
+
+In addition, if a still-unresolved `G gamma` occurs inside a `GF`
+obligation, the translator can split immediately, before constructing any
+Buchi automaton:
+
+```
+phi = (phi & FG gamma) | (phi & GF !gamma)
+```
+
+The two branches carry the corresponding profile fact explicitly.  This is
+the concrete implementation of the delayed asymptotic commitment idea.
+
+The profile context is used conservatively.  For example, under `FG gamma`,
+an occurrence of `G gamma` inside the body of a `GF` obligation may be
+replaced by true, because the replacement is valid from some finite point
+onward and outer `GF` ignores that finite prefix.  Under `GF !gamma`,
+`G gamma` is false on every suffix.  The same reasoning allows
+`F gamma -> true` under `FG gamma` and `F !gamma -> true` under
+`GF !gamma`.
+
+These contextual rewrites are applied only inside recurrence bodies; the
+translator does not globally replace `G gamma` by true under `FG gamma`,
+which would be incorrect before the stabilization point.
+
+The Master front-end may be disabled for A/B experiments with:
+
+```
+--no-master-profiles
+```
+
+The smoke tests compare Master-enabled and Master-disabled translations for
+canonical and nested examples, including:
+
+```
+GF(a | G b)
+GF((a U c) | G b)
+GF((a & G b) | (c & G d))
+FG b & GF(a | G b)
+X GF(a | G b)
+F(c & GF(a | G b))
+```
+
+For the canonical example `GF(a | G b)`, the intended pre-Buchi behavior is
+now exactly the two asymptotic modes discussed in the design: a branch where
+`b` stabilizes forever, and a branch where `!b` occurs infinitely often.
