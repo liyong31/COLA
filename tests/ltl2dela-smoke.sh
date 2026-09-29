@@ -50,3 +50,27 @@ compare_exact exact_mixed '(GF(a | G b)) & G(c -> F d)'
 # differences between cold/narrow and hot/wide deterministic accepting SCCs.
 compare_exact adaptive_conj   '(GF(a | G b)) & (GF(c | G d)) & G(e -> F f)'
 compare_exact adaptive_until   'GF((a U b) & (c U d)) & G(e -> F g)'
+
+
+compare_recurrence()
+{
+  name=$1
+  formula=$2
+  "$LTLD" -f "$formula" -o "$TMP/$name-special.hoa"
+  "$LTLD" --no-recurrence -f "$formula" -o "$TMP/$name-generic.hoa"
+  autfilt -q "$TMP/$name-special.hoa"     --equivalent-to="$TMP/$name-generic.hoa" >/dev/null
+  autfilt --is-deterministic "$TMP/$name-special.hoa" >/dev/null
+}
+
+# Exact GF identities handled structurally before Delta2/Buchi.
+compare_recurrence gf_x        'GF X a'
+compare_recurrence gf_f        'GF F a'
+compare_recurrence gf_until    'GF(a U b)'
+compare_recurrence gf_mrelease 'GF(a M b)'
+compare_recurrence gf_or       'GF((a U b) | (c U d))'
+compare_recurrence gf_future   'GF(a & F b)'
+compare_recurrence gf_futures  'GF(a & F b & F c)'
+
+# Dedicated two-state flat-Until monitor.
+compare_recurrence flat_until1 'GF(c & (a U b))'
+compare_recurrence flat_until2 'GF((c | d) & ((a & e) U (b | f)))'
