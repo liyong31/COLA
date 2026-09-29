@@ -321,3 +321,12 @@ F(c & GF(a | G b))
 For the canonical example `GF(a | G b)`, the intended pre-Buchi behavior is
 now exactly the two asymptotic modes discussed in the design: a branch where
 `b` stabilizes forever, and a branch where `!b` occurs infinitely often.
+
+
+### Updated translation order
+
+The structural recurrence compiler and explicit Master-profile front-end now
+run before Delta2 normalization.  This preserves the `GF(mu)` syntax long
+enough for exact rewrites and asymptotic profile simplification.  Delta2 is
+used only after those passes, as an SCC-shaping normalization for the remaining
+residual formula.
