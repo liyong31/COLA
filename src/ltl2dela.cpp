@@ -495,6 +495,17 @@ namespace cola
         return compile(gf(body[0]), depth, used, false, profile);
       }
 
+    // GF(G phi) = FG phi.  This is the simplest exact Master-style
+    // commitment: infinitely many positions satisfying G phi are equivalent
+    // to one suffix from which phi holds forever.
+    if (body.is(spot::op::G) && body.size() == 1)
+      {
+        handled = true;
+        ++stats_.recurrence_rewrites;
+        auto fg = spot::formula::F(spot::formula::G(body[0]));
+        return compile(fg, depth, used, false, profile);
+      }
+
     // GF(alpha U beta) = GF beta.
     if (body.is(spot::op::U) && body.size() == 2)
       {
@@ -539,6 +550,55 @@ namespace cola
         ++stats_.flat_until_monitors;
         return normalize_deterministic(
           make_flat_until_monitor(lambda, guard, goal));
+      }
+
+    // GF(lambda & G beta) = GF lambda & FG beta.  More generally all
+    // top-level G-conjuncts can be factored out.  This is an exact
+    // post-commitment decomposition and directly materializes part of the
+    // Master-Theorem Y-profile without enumerating Y.
+    if (body.is(spot::op::And) && body.size() > 1)
+      {
+        std::vector<spot::formula> stable;
+        std::vector<spot::formula> rest;
+        for (unsigned i = 0; i < body.size(); ++i)
+          {
+            auto x = body[i];
+            if (x.is(spot::op::G) && x.size() == 1)
+              stable.push_back(x[0]);
+            else
+              rest.push_back(x);
+          }
+
+        if (!stable.empty())
+          {
+            handled = true;
+            ++stats_.recurrence_splits;
+            spot::twa_graph_ptr res;
+            bool have = false;
+
+            if (!rest.empty())
+              {
+                auto rr = rest.size() == 1
+                  ? rest.front()
+                  : spot::formula::And(rest);
+                res = compile(gf(rr), depth, used, false, profile);
+                have = true;
+              }
+
+            for (auto x: stable)
+              {
+                auto fg = spot::formula::F(spot::formula::G(x));
+                auto next = compile(fg, depth, used, false, profile);
+                if (!have)
+                  {
+                    res = next;
+                    have = true;
+                  }
+                else
+                  res = compose(res, next, false);
+              }
+            return res;
+          }
       }
 
     // GF(lambda & F beta) = GF lambda & GF beta.  More generally, if a
