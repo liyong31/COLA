@@ -124,3 +124,21 @@ compare_recurrence gf_or_g       'GF(a | G b)'
 compare_master master_nested_x 'X GF(a | G b)'
 compare_master master_nested_bool '(c | X GF(a | G b)) & GF d'
 compare_master master_nested_f 'F(c & GF(a | G b))'
+
+
+compare_profile()
+{
+  name=$1
+  formula=$2
+  "$LTLD" -f "$formula" -o "$TMP/$name-profile.hoa"
+  "$LTLD" --no-profiles -f "$formula" -o "$TMP/$name-noprofile.hoa"
+  autfilt -q "$TMP/$name-profile.hoa"     --equivalent-to="$TMP/$name-noprofile.hoa" >/dev/null
+  autfilt --is-deterministic "$TMP/$name-profile.hoa" >/dev/null
+}
+
+# Pre-Buchi syntactic Y-profile commitments.  These examples deliberately
+# leave a nested G below a recurrent context that the exact top-level GF
+# rewrites do not already eliminate.
+compare_profile y_nested1 'GF((a U b) & (c | G d))'
+compare_profile y_nested2 'GF((a U b) & (c | G(d | e)))'
+compare_profile y_nested3 'GF((a M b) & (c | G d))'
