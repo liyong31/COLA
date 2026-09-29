@@ -340,6 +340,81 @@ namespace cola
       });
   }
 
+
+  void
+  ltl2dela_translator::collect_nu_subformulas(
+    spot::formula f,
+    std::vector<spot::formula>& out) const
+  {
+    if (f.is(spot::op::G) || f.is(spot::op::W) || f.is(spot::op::R))
+      {
+        if (std::find(out.begin(), out.end(), f) == out.end())
+          out.push_back(f);
+      }
+    for (unsigned i = 0; i < f.size(); ++i)
+      collect_nu_subformulas(f[i], out);
+  }
+
+  bool
+  ltl2dela_translator::nu_profile_value(
+    spot::formula nu,
+    const std::vector<profile_fact>& profile,
+    bool& stable) const
+  {
+    for (const auto& p: profile)
+      {
+        if (p.guard == nu)
+          {
+            stable = p.stable;
+            return true;
+          }
+
+        // FG(G gamma) == FG gamma and GF !G gamma == GF !gamma.
+        if (nu.is(spot::op::G) && nu.size() == 1
+            && p.guard == nu[0])
+          {
+            stable = p.stable;
+            return true;
+          }
+      }
+    return false;
+  }
+
+  spot::formula
+  ltl2dela_translator::advice_mu(
+    spot::formula f,
+    const std::vector<spot::formula>& y) const
+  {
+    auto in_y = [&](spot::formula x)
+      {
+        return std::find(y.begin(), y.end(), x) != y.end();
+      };
+
+    if (f.is(spot::op::G) && f.size() == 1)
+      return in_y(f) ? spot::formula::tt() : spot::formula::ff();
+
+    if (f.is(spot::op::W) && f.size() == 2)
+      {
+        if (in_y(f))
+          return spot::formula::tt();
+        return spot::formula::U(advice_mu(f[0], y),
+                                advice_mu(f[1], y));
+      }
+
+    if (f.is(spot::op::R) && f.size() == 2)
+      {
+        if (in_y(f))
+          return spot::formula::tt();
+        return spot::formula::M(advice_mu(f[0], y),
+                                advice_mu(f[1], y));
+      }
+
+    return f.map([&](spot::formula child)
+      {
+        return advice_mu(child, y);
+      });
+  }
+
   spot::formula
   ltl2dela_translator::find_master_separator(
     spot::formula f,
@@ -362,6 +437,18 @@ namespace cola
     spot::formula gf_body;
     if (match_gf(f, gf_body))
       {
+        // First complete the exact Y-advice profile for all nu-subformulas.
+        std::vector<spot::formula> nus;
+        collect_nu_subformulas(gf_body, nus);
+        for (auto nu: nus)
+          {
+            bool stable = false;
+            if (!nu_profile_value(nu, profile, stable)
+                && !was_used(nu, used)
+                && formula_length(nu) <= options_.profile_guard_max_length)
+              return nu;
+          }
+
         // First prefer explicit G-obligations.
         gf_body.traverse([&](spot::formula sf)
           {
@@ -634,6 +721,41 @@ namespace cola
       {
         return spot::formula::G(spot::formula::F(x));
       };
+
+    // Exact Master-Theorem Y-advice.  Once every nu-subformula of the GF body
+    // has an asymptotic truth value, rewrite the body to mu-LTL exactly as in
+    // the EKS advice function.
+    {
+      std::vector<spot::formula> nus;
+      collect_nu_subformulas(body, nus);
+      if (!nus.empty())
+        {
+          bool complete = true;
+          std::vector<spot::formula> y;
+          for (auto nu: nus)
+            {
+              bool stable = false;
+              if (!nu_profile_value(nu, profile, stable))
+                {
+                  complete = false;
+                  break;
+                }
+              if (stable)
+                y.push_back(nu);
+            }
+
+          if (complete)
+            {
+              auto advised = simplifier_.simplify(advice_mu(body, y));
+              if (advised != body)
+                {
+                  handled = true;
+                  ++stats_.master_advice_rewrites;
+                  return compile(gf(advised), depth, used, false, profile);
+                }
+            }
+        }
+    }
 
     if (!profile.empty())
       {
