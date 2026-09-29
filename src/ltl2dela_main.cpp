@@ -44,6 +44,7 @@ Options:
   --guard-max-length=N    maximum printed length of a separator formula
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
+  --no-recurrence         disable structural GF recurrence compilation
   --no-annotations        disable match_states() formula annotations
   --no-exact-languages    disable exact state-language containment
   --exact-scc-limit=N     exact containment only in DA SCCs of size <= N
@@ -153,6 +154,11 @@ int main(int argc, char** argv)
           if (a == "--no-delta2")
             {
               opts.use_delta2 = false;
+              continue;
+            }
+          if (a == "--no-recurrence")
+            {
+              opts.use_recurrence_compiler = false;
               continue;
             }
           if (a == "--no-annotations")
