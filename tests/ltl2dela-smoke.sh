@@ -120,3 +120,7 @@ compare_recurrence gf_g          'GF G a'
 compare_recurrence gf_and_g      'GF(a & G b)'
 compare_recurrence gf_many_g     'GF(a & G b & G c)'
 compare_recurrence gf_or_g       'GF(a | G b)'
+
+compare_master master_nested_x 'X GF(a | G b)'
+compare_master master_nested_bool '(c | X GF(a | G b)) & GF d'
+compare_master master_nested_f 'F(c & GF(a | G b))'
