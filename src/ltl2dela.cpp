@@ -65,6 +65,7 @@ namespace cola
         << "  recurrence splits: " << recurrence_splits << '\n'
         << "  flat-Until monitors: " << flat_until_monitors << '\n'
         << "  Master profile bundles: " << master_profile_bundles << '\n'
+        << "  Master profile splits: " << master_profile_splits << '\n'
         << "  Master profile facts: " << master_profile_facts << '\n'
         << "  profile-context rewrites: " << profile_context_rewrites << '\n'
         << "  annotated NA states: " << annotated_na_states << '\n'
@@ -206,6 +207,60 @@ namespace cola
       {
         return rewrite_recurrence_with_profile(child, profile);
       });
+  }
+
+
+  spot::formula
+  ltl2dela_translator::find_master_separator(
+    spot::formula f,
+    const std::vector<spot::formula>& used,
+    const std::vector<profile_fact>& profile) const
+  {
+    spot::formula chosen;
+
+    auto already_known = [&](spot::formula g)
+      {
+        for (const auto& p: profile)
+          if (p.guard == g)
+            return true;
+        return was_used(g, used);
+      };
+
+    // Search only inside a GF obligation.  This is the exact place where the
+    // Master-Theorem advice is intended to simplify recurrent behavior.
+    spot::formula gf_body;
+    if (match_gf(f, gf_body))
+      {
+        gf_body.traverse([&](spot::formula sf)
+          {
+            if (chosen)
+              return true;
+            if (sf.is(spot::op::G) && sf.size() == 1)
+              {
+                auto g = sf[0];
+                if (!already_known(g)
+                    && formula_length(g) <= options_.profile_guard_max_length)
+                  {
+                    chosen = g;
+                    return true;
+                  }
+              }
+            return false;
+          });
+        if (chosen)
+          return chosen;
+      }
+
+    // Recurse structurally to find the first recurrent component containing a
+    // still-unresolved G-obligation.  The recursion is syntactic and bounded
+    // by the ordinary profile depth/budget in compile().
+    for (unsigned i = 0; i < f.size(); ++i)
+      {
+        auto g = find_master_separator(f[i], used, profile);
+        if (g)
+          return g;
+      }
+    return chosen;
   }
 
   spot::twa_graph_ptr
@@ -914,6 +969,43 @@ namespace cola
           compile_master_bundle(f, depth, used, handled, profile);
         if (handled)
           return special;
+      }
+
+    // Before building any Buchi automaton, perform the most direct
+    // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
+    // obligation, split the language into the exhaustive asymptotic modes
+    // FG(gamma) and GF(!gamma).  The profile facts are then available to the
+    // recurrence compiler in both branches.
+    if (options_.use_master_profiles
+        && options_.use_profiles
+        && depth < options_.profile_depth
+        && stats_.profile_splits < options_.profile_budget)
+      {
+        auto gamma = find_master_separator(f, used, profile);
+        if (gamma)
+          {
+            ++stats_.profile_splits;
+            ++stats_.master_profile_splits;
+
+            auto branches = profile_split(f, gamma);
+            auto next_used = used;
+            next_used.push_back(gamma);
+
+            auto left_profile = profile;
+            auto right_profile = profile;
+            add_profile_fact(left_profile, gamma, true);
+            add_profile_fact(right_profile, gamma, false);
+
+            if (options_.verbose >= 1)
+              std::cerr << "ltl2dela: pre-Buchi Master split on "
+                        << gamma << '\n';
+
+            auto left = compile(branches.first, depth + 1,
+                                next_used, false, left_profile);
+            auto right = compile(branches.second, depth + 1,
+                                 next_used, false, right_profile);
+            return compose(left, right, true);
+          }
       }
 
     // Only now apply optional Delta2 normalization.
