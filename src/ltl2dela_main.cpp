@@ -167,6 +167,11 @@ int main(int argc, char** argv)
               opts.use_master_profiles = false;
               continue;
             }
+          if (a == "--no-master-profiles")
+            {
+              opts.use_master_profiles = false;
+              continue;
+            }
           if (a == "--no-annotations")
             {
               opts.use_state_annotations = false;
