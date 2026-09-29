@@ -69,6 +69,7 @@ namespace cola
     unsigned master_profile_bundles = 0;
     unsigned master_profile_splits = 0;
     unsigned master_profile_facts = 0;
+    unsigned syntactic_profile_splits = 0;
     unsigned profile_context_rewrites = 0;
     unsigned annotated_na_states = 0;
     unsigned buchi_attempts = 0;
@@ -162,6 +163,10 @@ namespace cola
     spot::formula rewrite_recurrence_with_profile(
       spot::formula body,
       const std::vector<profile_fact>& profile) const;
+    bool choose_syntactic_profile(
+      spot::formula f,
+      const std::vector<spot::formula>& used,
+      spot::formula& guard) const;
     spot::formula rewrite_formula_with_profile(
       spot::formula f,
       const std::vector<profile_fact>& profile) const;
