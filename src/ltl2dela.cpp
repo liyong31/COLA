@@ -751,9 +751,12 @@ namespace cola
       spot::formula::G(
         spot::formula::F(spot::formula::Not(guard)));
 
+    // Keep the raw profile conjunct visible until compile() has had a chance
+    // to extract it as a Master-profile fact.  Delta2 normalization happens
+    // later, after structural compilation.
     return {
-      prepare(spot::formula::And({f, stable})),
-      prepare(spot::formula::And({f, recurring_not}))
+      simplifier_.simplify(spot::formula::And({f, stable})),
+      simplifier_.simplify(spot::formula::And({f, recurring_not}))
     };
   }
 
