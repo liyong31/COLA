@@ -142,3 +142,10 @@ compare_profile()
 compare_profile y_nested1 'GF((a U b) & (c | G d))'
 compare_profile y_nested2 'GF((a U b) & (c | G(d | e)))'
 compare_profile y_nested3 'GF((a M b) & (c | G d))'
+
+
+# Profile-context reductions of guarded temporal operators.
+compare_master master_u_fg  '(FG a) & GF(c & (a U b))'
+compare_master master_m_fg  '(FG b) & GF(c & (a M b))'
+compare_master master_w_gfn '(GF !a) & GF(c & (a W b))'
+compare_master master_r_gfn '(GF !b) & GF(c & (a R b))'
