@@ -216,7 +216,8 @@ namespace cola
     const std::vector<spot::formula>& used,
     const std::vector<profile_fact>& profile) const
   {
-    spot::formula chosen;
+    spot::formula chosen = spot::formula::ff();
+    bool found = false;
 
     auto already_known = [&](spot::formula g)
       {
@@ -233,7 +234,7 @@ namespace cola
       {
         gf_body.traverse([&](spot::formula sf)
           {
-            if (chosen)
+            if (found)
               return true;
             if (sf.is(spot::op::G) && sf.size() == 1)
               {
@@ -242,12 +243,13 @@ namespace cola
                     && formula_length(g) <= options_.profile_guard_max_length)
                   {
                     chosen = g;
+                    found = true;
                     return true;
                   }
               }
             return false;
           });
-        if (chosen)
+        if (found)
           return chosen;
       }
 
@@ -257,7 +259,7 @@ namespace cola
     for (unsigned i = 0; i < f.size(); ++i)
       {
         auto g = find_master_separator(f[i], used, profile);
-        if (g)
+        if (!g.is_ff())
           return g;
       }
     return chosen;
