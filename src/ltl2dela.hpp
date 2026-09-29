@@ -67,6 +67,7 @@ namespace cola
     unsigned recurrence_splits = 0;
     unsigned flat_until_monitors = 0;
     unsigned master_profile_bundles = 0;
+    unsigned master_profile_splits = 0;
     unsigned master_profile_facts = 0;
     unsigned profile_context_rewrites = 0;
     unsigned annotated_na_states = 0;
@@ -160,6 +161,10 @@ namespace cola
     bool match_gf_not(spot::formula f, spot::formula& guard) const;
     spot::formula rewrite_recurrence_with_profile(
       spot::formula body,
+      const std::vector<profile_fact>& profile) const;
+    spot::formula find_master_separator(
+      spot::formula f,
+      const std::vector<spot::formula>& used,
       const std::vector<profile_fact>& profile) const;
     void add_profile_fact(std::vector<profile_fact>& profile,
                           spot::formula guard,
