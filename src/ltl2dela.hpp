@@ -28,6 +28,10 @@ namespace cola
     bool use_delta2 = true;
     bool use_recurrence_compiler = true;
     bool use_master_profiles = true;
+    bool use_x_advice = true;
+    unsigned x_advice_max_mu = 3;
+    unsigned x_advice_state_limit = 256;
+    unsigned x_advice_work_limit = 4096;
     bool use_state_annotations = true;
     bool use_exact_state_languages = true;
     bool require_profile_progress = true;
@@ -58,6 +62,7 @@ namespace cola
     unsigned direct_formula_components = 0;
     unsigned deterministic_buchi_components = 0;
     unsigned elevator_components = 0;
+    unsigned elevator_validation_fallbacks = 0;
     unsigned hard_buchi_components = 0;
     unsigned profile_splits = 0;
     unsigned profile_leaves = 0;
@@ -66,6 +71,10 @@ namespace cola
     unsigned recurrence_rewrites = 0;
     unsigned recurrence_splits = 0;
     unsigned flat_until_monitors = 0;
+    unsigned master_advice_rewrites = 0;
+    unsigned x_advice_components = 0;
+    unsigned x_advice_profiles = 0;
+    unsigned x_advice_aborts = 0;
     unsigned master_profile_bundles = 0;
     unsigned master_profile_splits = 0;
     unsigned master_profile_facts = 0;
@@ -174,6 +183,14 @@ namespace cola
       spot::formula f,
       const std::vector<spot::formula>& used,
       const std::vector<profile_fact>& profile) const;
+
+    void collect_mu_subformulas(
+      spot::formula f, std::vector<spot::formula>& out) const;
+    spot::formula advice_nu(
+      spot::formula f, const std::vector<spot::formula>& x) const;
+    spot::twa_graph_ptr make_x_advice_monitor(
+      spot::formula f, const std::vector<spot::formula>& x);
+    spot::twa_graph_ptr compile_x_advice(spot::formula f);
 
     void collect_nu_subformulas(
       spot::formula f,

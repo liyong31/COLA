@@ -11,6 +11,7 @@
 #include <spot/twaalgos/product.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/isdet.hh>
+#include <spot/twaalgos/contains.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/matchstates.hh>
 #include <spot/twa/formula2bdd.hh>
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
@@ -28,6 +30,137 @@ namespace cola
 {
   namespace
   {
+    // Budget exhaustion abandons the entire construction, never a language
+    // branch.  It is deliberately distinct from logic/API errors.
+    struct x_advice_limit {};
+
+    // Symbolic af: a disjoint, complete BDD partition of letters, with one
+    // residual per region.  Boolean residuals are canonicalized modulo
+    // propositional equivalence, treating temporal formulas as opaque atoms.
+    // In particular, no temporal simplification may rename an X obligation.
+    class symbolic_after
+    {
+      using formula = spot::formula;
+      using partition = std::map<formula, bdd>;
+      spot::twa_graph_ptr owner_;
+      unsigned limit_;
+      std::map<formula, bdd> encoded_;
+      std::map<int, formula> atoms_;
+      std::map<int, formula> decoded_;
+      std::map<formula, partition> after_;
+
+      bdd encode(formula f)
+      {
+        if (f.is_tt()) return bddtrue;
+        if (f.is_ff()) return bddfalse;
+        auto old = encoded_.find(f);
+        if (old != encoded_.end()) return old->second;
+        if (encoded_.size() >= limit_) throw x_advice_limit{};
+        bdd res;
+        if (f.is(spot::op::And) || f.is(spot::op::Or))
+          {
+            bool conjunction = f.is(spot::op::And);
+            res = conjunction ? bdd(bddtrue) : bdd(bddfalse);
+            for (auto c: f)
+              res = conjunction ? res & encode(c) : res | encode(c);
+          }
+        else
+          {
+            int v = owner_->get_dict()->register_anonymous_variables(1, this);
+            atoms_.emplace(v, f);
+            res = bdd_ithvar(v);
+          }
+        encoded_.emplace(f, res);
+        return res;
+      }
+
+      formula decode(bdd b)
+      {
+        if (b == bddtrue) return formula::tt();
+        if (b == bddfalse) return formula::ff();
+        auto old = decoded_.find(b.id());
+        if (old != decoded_.end()) return old->second;
+        if (decoded_.size() >= limit_) throw x_advice_limit{};
+        // All skeletons are positive in their opaque atoms: low implies high.
+        // Thus low | (atom & high) is the Shannon expansion without introducing
+        // negated temporal operators into the NNF residual.
+        auto f = formula::Or({decode(bdd_low(b)),
+          formula::And({atoms_.at(bdd_var(b)), decode(bdd_high(b))})});
+        decoded_.emplace(b.id(), f);
+        return f;
+      }
+
+      void add(partition& out, formula f, bdd letters)
+      {
+        if (letters == bddfalse) return;
+        f = canonical(f);
+        auto it = out.find(f);
+        if (it == out.end()) out.emplace(f, letters);
+        else it->second |= letters;
+        if (out.size() > limit_) throw x_advice_limit{};
+      }
+
+      partition combine(const partition& a, const partition& b, bool is_and)
+      {
+        partition out;
+        for (const auto& x: a)
+          for (const auto& y: b)
+            {
+              auto letters = x.second & y.second;
+              if (letters == bddfalse) continue;
+              add(out, is_and ? formula::And({x.first, y.first})
+                              : formula::Or({x.first, y.first}), letters);
+            }
+        return out;
+      }
+
+    public:
+      symbolic_after(spot::twa_graph_ptr owner, unsigned limit)
+        : owner_(std::move(owner)), limit_(limit) {}
+      ~symbolic_after()
+      {
+        owner_->get_dict()->unregister_all_my_variables(this);
+      }
+      symbolic_after(const symbolic_after&) = delete;
+      symbolic_after& operator=(const symbolic_after&) = delete;
+
+      formula canonical(formula f) { return decode(encode(f)); }
+
+      const partition& after(formula f)
+      {
+        auto old = after_.find(f);
+        if (old != after_.end()) return old->second;
+        if (after_.size() >= limit_) throw x_advice_limit{};
+        partition out;
+        using op = spot::op;
+        if (f.is_boolean())
+          {
+            bdd letters = spot::formula_to_bdd(f, owner_->get_dict(), owner_);
+            add(out, formula::tt(), letters);
+            add(out, formula::ff(), !letters);
+          }
+        else if (f.is(op::X))
+          add(out, f[0], bddtrue);
+        else if (f.is(op::And) || f.is(op::Or))
+          {
+            bool is_and = f.is(op::And);
+            out.emplace(is_and ? formula::tt() : formula::ff(), bddtrue);
+            for (auto c: f) out = combine(out, after(c), is_and);
+          }
+        else if (f.is(op::F) || f.is(op::G))
+          out = combine(after(f[0]), {{f, bddtrue}}, f.is(op::G));
+        else if (f.is(op::U) || f.is(op::W))
+          out = combine(after(f[1]),
+                        combine(after(f[0]), {{f, bddtrue}}, true), false);
+        else if (f.is(op::M) || f.is(op::R))
+          out = combine(after(f[1]),
+                        combine(after(f[0]), {{f, bddtrue}}, false), true);
+        else
+          throw std::logic_error("symbolic af requires NNF LTL");
+        return after_.emplace(f, std::move(out)).first->second;
+      }
+    };
+
     static unsigned
     formula_length(spot::formula f)
     {
@@ -56,6 +189,7 @@ namespace cola
         << "  direct formula components: " << direct_formula_components << '\n'
         << "  Buchi attempts: " << buchi_attempts << '\n'
         << "  elevator components: " << elevator_components << '\n'
+        << "  elevator validation fallbacks: " << elevator_validation_fallbacks << '\n'
         << "  hard Buchi components: " << hard_buchi_components << '\n'
         << "  profile splits: " << profile_splits << '\n'
         << "  profile leaves: " << profile_leaves << '\n'
@@ -64,6 +198,10 @@ namespace cola
         << "  recurrence rewrites: " << recurrence_rewrites << '\n'
         << "  recurrence splits: " << recurrence_splits << '\n'
         << "  flat-Until monitors: " << flat_until_monitors << '\n'
+        << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
+        << "  X-advice components: " << x_advice_components << '\n'
+        << "  X-advice profiles: " << x_advice_profiles << '\n'
+        << "  X-advice budget fallbacks: " << x_advice_aborts << '\n'
         << "  Master profile bundles: " << master_profile_bundles << '\n'
         << "  Master profile splits: " << master_profile_splits << '\n'
         << "  Master profile facts: " << master_profile_facts << '\n'
@@ -353,6 +491,143 @@ namespace cola
       }
     for (unsigned i = 0; i < f.size(); ++i)
       collect_nu_subformulas(f[i], out);
+  }
+
+  void
+  ltl2dela_translator::collect_mu_subformulas(
+    spot::formula f, std::vector<spot::formula>& out) const
+  {
+    if (f.is(spot::op::F) || f.is(spot::op::U) || f.is(spot::op::M))
+      if (std::find(out.begin(), out.end(), f) == out.end())
+        out.push_back(f);
+    for (auto c: f) collect_mu_subformulas(c, out);
+  }
+
+  spot::formula
+  ltl2dela_translator::advice_nu(
+    spot::formula f, const std::vector<spot::formula>& x) const
+  {
+    using formula = spot::formula;
+    if (f.is(spot::op::F) || f.is(spot::op::U) || f.is(spot::op::M))
+      {
+        if (std::find(x.begin(), x.end(), f) == x.end())
+          return formula::ff();
+        if (f.is(spot::op::F)) return formula::tt();
+        auto a = advice_nu(f[0], x);
+        auto b = advice_nu(f[1], x);
+        return f.is(spot::op::U) ? formula::W(a, b) : formula::R(a, b);
+      }
+    return f.map([&](formula c) { return advice_nu(c, x); });
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::make_x_advice_monitor(
+    spot::formula f, const std::vector<spot::formula>& x)
+  {
+    auto aut = spot::make_twa_graph(dict_);
+    auto rejecting = aut->set_co_buchi();
+    symbolic_after af(aut, options_.x_advice_work_limit);
+    using state = std::pair<spot::formula, spot::formula>;
+    std::map<state, unsigned> numbers;
+    std::vector<state> states;
+    auto intern = [&](state s)
+      {
+        s.first = af.canonical(s.first);
+        s.second = af.canonical(s.second);
+        auto old = numbers.find(s);
+        if (old != numbers.end()) return old->second;
+        if (states.size() >= options_.x_advice_state_limit)
+          throw x_advice_limit{};
+        unsigned n = aut->new_state();
+        numbers.emplace(s, n);
+        states.push_back(s);
+        return n;
+      };
+    aut->set_init_state(intern({f, advice_nu(f, x)}));
+    for (unsigned src = 0; src < states.size(); ++src)
+      {
+        // Copy: intern() may reallocate states.  Maps in af retain references.
+        auto current = states[src];
+        bool reset = current.second.is_ff();
+        auto safety = reset ? advice_nu(current.first, x) : current.second;
+        const auto& main_steps = af.after(current.first);
+        const auto& safety_steps = af.after(safety);
+        for (const auto& a: main_steps)
+          for (const auto& b: safety_steps)
+            {
+              bdd letters = a.second & b.second;
+              if (letters == bddfalse) continue;
+              unsigned dst = intern({a.first, b.first});
+              aut->new_edge(src, dst, letters,
+                            reset ? rejecting : spot::acc_cond::mark_t{});
+            }
+      }
+    aut->register_aps_from_dict();
+    aut->merge_edges();
+    aut->prop_universal(true);
+    aut->prop_complete(true);
+    return aut;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::compile_x_advice(spot::formula f)
+  {
+    if (!options_.use_master_profiles || !options_.use_x_advice)
+      return nullptr;
+    // Keep identities of mu-subformulas throughout af and advice.  Only NNF
+    // conversion precedes collection; temporal simplification is forbidden
+    // inside the progression layer.
+    f = simplifier_.negative_normal_form(f);
+    std::vector<spot::formula> mus;
+    collect_mu_subformulas(f, mus);
+    if (mus.empty() || mus.size() > options_.x_advice_max_mu
+        || mus.size() >= std::numeric_limits<unsigned>::digits)
+      return nullptr;
+    try
+      {
+        spot::twa_graph_ptr result;
+        unsigned profiles = 1U << mus.size();
+        for (unsigned mask = 0; mask < profiles; ++mask)
+          {
+            std::vector<spot::formula> x;
+            std::vector<spot::formula> guards;
+            for (unsigned i = 0; i < mus.size(); ++i)
+              {
+                bool selected = mask & (1U << i);
+                if (selected) x.push_back(mus[i]);
+                // Exactly X = {mu : w |= GF mu}.  The negative branch is
+                // FG !mu, NOT GF !mu; eventual truth is not recurrence.
+                guards.push_back(selected
+                  ? spot::formula::G(spot::formula::F(mus[i]))
+                  : spot::formula::F(spot::formula::G(
+                      spot::formula::Not(mus[i]))));
+              }
+            auto monitor = make_x_advice_monitor(f, x);
+            // Existing generic translation checks the profile independently.
+            // Do not call compile(): that would recursively enumerate the
+            // very obligations used to certify this construction.
+            auto guard = translate_deterministic(spot::formula::And(guards));
+            auto fits_acceptance = [](const spot::twa_graph_ptr& a,
+                                      const spot::twa_graph_ptr& b)
+              {
+                return a->num_sets() + b->num_sets()
+                  <= spot::acc_cond::mark_t::max_accsets();
+              };
+            if (!fits_acceptance(monitor, guard)) throw x_advice_limit{};
+            auto branch = compose(monitor, guard, false);
+            if (result && !fits_acceptance(result, branch))
+              throw x_advice_limit{};
+            result = result ? compose(result, branch, true) : branch;
+          }
+        ++stats_.x_advice_components;
+        stats_.x_advice_profiles += profiles;
+        return result;
+      }
+    catch (const x_advice_limit&)
+      {
+        ++stats_.x_advice_aborts;
+        return nullptr;
+      }
   }
 
   bool
@@ -685,17 +960,17 @@ namespace cola
 
     // pending = 0
     bdd success0 = h & l;
-    bdd wait0 = (-h) & g & l;
+    bdd wait0 = (!h) & g & l;
     accepting_edge(0, 0, success0);
     plain_edge(0, 1, wait0);
-    plain_edge(0, 0, -(success0 | wait0));
+    plain_edge(0, 0, !(success0 | wait0));
 
     // pending = 1
     bdd success1 = h;
-    bdd wait1 = (-h) & g;
+    bdd wait1 = (!h) & g;
     accepting_edge(1, 0, success1);
     plain_edge(1, 1, wait1);
-    plain_edge(1, 0, -(success1 | wait1));
+    plain_edge(1, 0, !(success1 | wait1));
 
     aut->prop_universal(true);
     aut->prop_complete(true);
@@ -1336,6 +1611,13 @@ namespace cola
           return special;
       }
 
+    // Try the exact derivative construction before heuristic profile splits
+    // and Delta2 normalization can obscure the original mu obligations.
+    // Keep easy fragments on their existing specialized translation path.
+    if (!is_direct_fragment(f))
+      if (auto advised = compile_x_advice(f))
+        return advised;
+
     // Before building any Buchi automaton, perform the most direct
     // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
     // obligation, split the language into the exhaustive asymptotic modes
@@ -1440,11 +1722,19 @@ namespace cola
     if (h.elevator)
       {
         ++stats_.elevator_components;
-        if (options_.use_state_annotations)
-          return normalize_deterministic(
-            cola::determinize_televator(ba, cola_options_, f));
-        return normalize_deterministic(
-          cola::determinize_televator(ba, cola_options_));
+        auto result = normalize_deterministic(options_.use_state_annotations
+          ? cola::determinize_televator(ba, cola_options_, f)
+          : cola::determinize_televator(ba, cola_options_));
+        // The pre-existing elevator route fails language equivalence on some
+        // profile-generated residuals (see the smoke regression).  SCC shape
+        // alone does not certify the implementation's pruning.  Retain it
+        // only after an exact check against its source BA; otherwise use the
+        // generic formula translation.  Annotations never certify this gate.
+        if (spot::are_equivalent(result, ba))
+          return result;
+        ++stats_.elevator_validation_fallbacks;
+        ++stats_.deterministic_fallbacks;
+        return normalize_deterministic(translate_deterministic(f));
       }
 
     ++stats_.hard_buchi_components;

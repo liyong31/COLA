@@ -165,3 +165,53 @@ compare_master advice_r       'GF(a R b)'
 compare_master advice_gw      'GF(G a | (b W c))'
 compare_master advice_wr      'GF((a W b) & (c R d))'
 compare_master advice_multi   'GF((G a | (b W c)) & (d R e))'
+
+# Exercise X-advice without earlier recurrence/Delta2/profile rewrites hiding
+# the original F/U/M obligations.  Require actual use, not a vacuous comparison
+# of two generic fallbacks.  Also compare with an independent Spot translation.
+compare_x_advice()
+{
+  name=$1
+  formula=$2
+  "$LTLD" --no-delta2 --no-recurrence --no-profiles --no-boolean-split \
+    --stats -f "$formula" -o "$TMP/$name-x.hoa" 2>"$TMP/$name.stats"
+  grep -Eq 'X-advice components: [1-9][0-9]*' "$TMP/$name.stats"
+  "$LTLD" --no-delta2 --no-recurrence --no-profiles --no-boolean-split \
+    --no-x-advice -f "$formula" -o "$TMP/$name-generic.hoa"
+  ltl2tgba -D -G -f "$formula" >"$TMP/$name-spot.hoa"
+  autfilt -q --is-deterministic "$TMP/$name-x.hoa"
+  autfilt -q "$TMP/$name-x.hoa" --equivalent-to="$TMP/$name-generic.hoa"
+  autfilt -q "$TMP/$name-x.hoa" --equivalent-to="$TMP/$name-spot.hoa"
+}
+
+compare_x_advice x_f 'F(a & G(b | F c))'
+compare_x_advice x_u 'a U G(b | F c)'
+compare_x_advice x_m 'G(b | F c) M a'
+compare_x_advice x_next 'X(a U G(b | F c))'
+compare_x_advice x_negated '!(a R F(b & G c))'
+compare_x_advice x_w 'F(a & ((F b) W c))'
+compare_x_advice x_r 'F(a & (c R (F b)))'
+compare_x_advice x_shared '(a U G(b | F c)) | (d U G(b | F c))'
+
+# Running out of space must retain the complete original language, including
+# the case where some profiles have already been constructed successfully.
+for limit in '--x-advice-state-limit=0' '--x-advice-state-limit=2' \
+             '--x-advice-work-limit=0' '--x-advice-max-mu=0'; do
+  "$LTLD" --no-delta2 --no-recurrence --no-profiles --no-boolean-split \
+    "$limit" -f 'a U G(b | F c)' -o "$TMP/x-limited.hoa"
+  autfilt -q "$TMP/x-limited.hoa" --equivalent-to="$TMP/x_u-spot.hoa"
+done
+
+echo "ltl2dela X-advice equivalence tests passed"
+
+# This profile-generated residual exposed a pre-existing elevator language
+# mismatch, also with annotations and exact-language pruning disabled.  Check
+# the guarded fallback against an independent reference, not another COLA run.
+"$LTLD" --no-master-profiles -f 'GF((G a | (b W c)) & (d R e))' \
+  -o "$TMP/elevator-checked.hoa"
+ltl2tgba -D -G -f 'GF((G a | (b W c)) & (d R e))' \
+  >"$TMP/elevator-reference.hoa"
+autfilt -q "$TMP/elevator-checked.hoa" \
+  --equivalent-to="$TMP/elevator-reference.hoa"
+
+echo "ltl2dela complete smoke suite passed"

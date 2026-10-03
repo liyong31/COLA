@@ -368,3 +368,74 @@ af(phi,u)[X]_nu
 which requires a delayed formula derivative/progression layer. Spot exposes
 the ordinary LTL-to-TGBA translation but no documented public after-function,
 so this part will be implemented symbolically in CoLA rather than approximated.
+
+### Exact X-advice and symbolic progression
+
+Before the generic Büchi route, bounded residuals now use the X-advice
+construction of Esparza–Křetínský–Sickert (LICS 2018, Definition 5.5 and
+Section 6; <https://arxiv.org/abs/1805.00748>). This complements the existing
+Y-advice recurrence rules. It does not yet replace profile certification by
+the full mutually advised X/Y product of the Master Theorem.
+
+For an NNF residual `f`, collect its distinct `F`, `U`, and `M` subformulas.
+Enumerate all subsets `X` and check the exact profile
+
+```
+P_X = AND_{mu in X} GF mu  &  AND_{mu not in X} FG !mu.
+```
+
+Selected `F` formulas become true; selected `U` and `M` become `W` and `R`
+with recursively advised operands. Unselected least-fixed-point formulas
+become false. Other operators are mapped structurally. In particular, this
+transformation is **not** an unconditional equivalence of `f`.
+
+Each profile gets a deterministic co-Büchi monitor with states `(r, s)`.
+Initially these are `(f, f[X]_nu)`. The first component always progresses
+by one letter. The second progresses its safety obligation, except when it
+is false: then it restarts from `r[X]_nu` and progresses that formula on the
+same letter. Transitions out of false second components carry the rejecting
+mark; acceptance requires finitely many such transitions. This recognizes
+`exists i: w[i:] |= af(f, w[:i])[X]_nu`, including `i=0`.
+
+Why the restart is exact: a satisfied advised residual stays satisfied after
+progression and re-advice (EKS Lemma 6.1). A false safety obligation has a
+finite bad prefix, so the monitor eventually restarts; once a successful
+candidate exists, all later restart candidates succeed. Conversely, finitely
+many failures leave a surviving safety candidate. On the exact profile
+`P_X`, existence of such a candidate is equivalent to satisfaction of `f`:
+after the last occurrence of every unselected mu formula, advice preserves
+truth; selected mu formulas recur on every suffix and justify the converse.
+Intersecting each monitor with its independently translated `P_X`, and taking
+the union over **all** X, therefore preserves the original language.
+
+The one-letter after construction combines disjoint BDD letter partitions,
+without enumerating valuations. Equal residual regions are merged by BDD
+union. Residuals are canonical positive Boolean skeletons over opaque
+formula atoms. Only propositional equivalence is used here: temporal
+simplification could change subformula identities and invalidate X membership.
+BDD variables for the skeleton are private and are never output as APs.
+No formula annotation is used for pruning or for proving a profile.
+
+The defaults allow three mu subformulas, 256 states per monitor, and 4096
+entries per symbolic cache/partition. `--x-advice-max-mu=N`,
+`--x-advice-state-limit=N`, and `--x-advice-work-limit=N` control these limits;
+`--no-x-advice` disables the layer. Exceeding a limit abandons the **whole**
+profile construction and translates the original residual by the existing
+route; a partial union is never returned. Easy fragments retain their earlier
+direct translation priority. Profile guards currently use Spot's generic
+deterministic translation, so this is an exact construction, not a claim of
+an across-the-board performance improvement.
+
+The smoke suite checks focused X-advice cases against both the disabled-layer
+translation and independent `ltl2tgba -D -G` output, asserts the layer was
+actually exercised, and covers resource-limit fallback.
+
+Validation also exposed a pre-existing elevator translation mismatch for
+`GF((G a | (b W c)) & (d R e))` with `--no-master-profiles`. Disabling
+annotations or exact-language pruning did not remove it. The LTL front-end
+now checks elevator output for exact equivalence with its source Büchi
+automaton and uses the generic formula translation if the check fails.
+`--stats` reports these `elevator validation fallbacks`. This check has a
+runtime cost; it contains the existing error rather than claiming to repair
+the underlying elevator algorithm. The smoke suite includes an independent
+Spot-reference regression for this case.

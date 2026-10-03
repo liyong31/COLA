@@ -46,6 +46,10 @@ Options:
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
   --no-master-profiles     disable explicit Master-profile propagation
+  --no-x-advice           disable exact X-advice progression
+  --x-advice-max-mu=N     enumerate at most N mu-subformulas (default: 3)
+  --x-advice-state-limit=N  maximum states per X monitor (default: 256)
+  --x-advice-work-limit=N maximum symbolic entries per monitor (default: 4096)
   --no-annotations        disable match_states() formula annotations
   --no-exact-languages    disable exact state-language containment
   --exact-scc-limit=N     exact containment only in DA SCCs of size <= N
@@ -170,6 +174,29 @@ int main(int argc, char** argv)
           if (a == "--no-master-profiles")
             {
               opts.use_master_profiles = false;
+              continue;
+            }
+          if (a == "--no-x-advice")
+            {
+              opts.use_x_advice = false;
+              continue;
+            }
+          if (a.rfind("--x-advice-max-mu=", 0) == 0)
+            {
+              opts.x_advice_max_mu = parse_uint(
+                value_after("--x-advice-max-mu="), "--x-advice-max-mu");
+              continue;
+            }
+          if (a.rfind("--x-advice-state-limit=", 0) == 0)
+            {
+              opts.x_advice_state_limit = parse_uint(
+                value_after("--x-advice-state-limit="), "--x-advice-state-limit");
+              continue;
+            }
+          if (a.rfind("--x-advice-work-limit=", 0) == 0)
+            {
+              opts.x_advice_work_limit = parse_uint(
+                value_after("--x-advice-work-limit="), "--x-advice-work-limit");
               continue;
             }
           if (a == "--no-annotations")

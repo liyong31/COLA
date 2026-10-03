@@ -145,7 +145,7 @@ namespace cola
   struct
   {
     size_t
-    operator()(label &p1, label &p2) const noexcept
+    operator()(const label &p1, const label &p2) const noexcept
     {
       if (p1.second == p2.second)
       {
