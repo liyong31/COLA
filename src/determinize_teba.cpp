@@ -1715,9 +1715,12 @@ namespace cola
         for (unsigned j = 0; j < num_scc_i_states; j ++) {
           auto base = j * num_colours_plus_one;
           // std::cout << "shift " << base << " total " << color_bases[i] + base << std::endl;
-          auto scc_acceptance = aut_acc << color_bases[i] + base;
-          // now we need to add finitely many colours
-          scc_acceptance &= spot::acc_cond::acc_code::fin({base + num_colours_});
+          const auto rank_base = color_bases[i] + base;
+          auto scc_acceptance = aut_acc << rank_base;
+          // Each rank owns k source colours followed by its discontinuation
+          // colour, all in this SCC's block (as on the transitions above).
+          scc_acceptance &= spot::acc_cond::acc_code::fin(
+            {rank_base + num_colours_});
           // std::cout << "scc " << i << " acc="<< scc_acceptance << std::endl;
           // max_colors are all odd colors, the biggest one
           acceptance |= scc_acceptance;

@@ -54,3 +54,9 @@ cola_SOURCES = src/main.cpp
 
 ltl2dela_SOURCES = src/ltl2dela_main.cpp
 ltl2dela_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
+
+check_PROGRAMS = tests/elevator-acceptance
+tests_elevator_acceptance_SOURCES = tests/elevator-acceptance.cpp
+tests_elevator_acceptance_LDADD = $(ltl2dela_LDADD)
+TESTS = tests/elevator-acceptance
+EXTRA_DIST = tests/ltl2dela-smoke.sh

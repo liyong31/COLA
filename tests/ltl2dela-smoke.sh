@@ -207,11 +207,21 @@ echo "ltl2dela X-advice equivalence tests passed"
 # This profile-generated residual exposed a pre-existing elevator language
 # mismatch, also with annotations and exact-language pruning disabled.  Check
 # the guarded fallback against an independent reference, not another COLA run.
-"$LTLD" --no-master-profiles -f 'GF((G a | (b W c)) & (d R e))' \
-  -o "$TMP/elevator-checked.hoa"
 ltl2tgba -D -G -f 'GF((G a | (b W c)) & (d R e))' \
   >"$TMP/elevator-reference.hoa"
-autfilt -q "$TMP/elevator-checked.hoa" \
-  --equivalent-to="$TMP/elevator-reference.hoa"
+for mode in default no-annotations no-exact-languages neither; do
+  case "$mode" in
+    default) set -- ;;
+    no-annotations) set -- --no-annotations ;;
+    no-exact-languages) set -- --no-exact-languages ;;
+    neither) set -- --no-annotations --no-exact-languages ;;
+  esac
+  "$LTLD" --no-master-profiles "$@" \
+    -f 'GF((G a | (b W c)) & (d R e))' \
+    -o "$TMP/elevator-checked.hoa"
+  autfilt -q --is-deterministic "$TMP/elevator-checked.hoa"
+  autfilt -q "$TMP/elevator-checked.hoa" \
+    --equivalent-to="$TMP/elevator-reference.hoa"
+done
 
 echo "ltl2dela complete smoke suite passed"
