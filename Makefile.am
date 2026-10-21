@@ -46,6 +46,8 @@ src_libcola_la_SOURCES =			\
   src/optimizer.cpp				\
   src/ltl2dela.hpp				\
   src/ltl2dela.cpp				\
+  src/slaa_frontend.cpp                 \
+  src/slaa_frontend.hpp                 \
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
@@ -55,12 +57,18 @@ cola_SOURCES = src/main.cpp
 ltl2dela_SOURCES = src/ltl2dela_main.cpp
 ltl2dela_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 
-check_PROGRAMS = tests/elevator-acceptance tests/specialized-fragments
+check_PROGRAMS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator tests/tela-elevator-driver
 tests_elevator_acceptance_SOURCES = tests/elevator-acceptance.cpp
 tests_elevator_acceptance_LDADD = $(ltl2dela_LDADD)
 tests_specialized_fragments_SOURCES = tests/specialized-fragments.cpp
 tests_specialized_fragments_LDADD = $(ltl2dela_LDADD)
-TESTS = tests/elevator-acceptance tests/specialized-fragments
+tests_generic_elevator_SOURCES = tests/generic-elevator.cpp
+tests_generic_elevator_LDADD = $(ltl2dela_LDADD)
+tests_tela_elevator_driver_SOURCES = tests/tela-elevator-driver.cpp
+tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
+TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
+TESTS += tests/slaa-route.py
+TESTS_ENVIRONMENT = LTLD='$(abs_builddir)/ltl2dela'; export LTLD;
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
   tests/finite-witness-random-results.csv tests/finite-witness-large-results.csv
@@ -85,3 +93,8 @@ EXTRA_DIST += tests/diagnose-ltl-sizes.py tests/recheck-cola-fragments.py \
 EXTRA_DIST += tests/compare-cola-polarities.py tests/summarize-cola-polarities.py \
   tests/ltl-polarity-results.csv tests/ltl-polarity-results.json \
   tests/ltl-polarity-summary.md tests/ltl-polarity-probes.json
+
+EXTRA_DIST += tests/slaa-route.py
+EXTRA_DIST += tests/benchmark-slaa.py tests/summarize-slaa.py \
+  tests/ltl-slaa-results.csv tests/ltl-slaa-results.json tests/ltl-slaa-report.md \
+  tests/finite-witness-slaa-regressions.csv

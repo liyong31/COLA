@@ -1113,7 +1113,7 @@ namespace cola
           }
           else
           {
-            assert(false);
+            throw std::runtime_error("elevator successor has an unclassified SCC");
           }
         }
       }
@@ -1546,7 +1546,6 @@ namespace cola
                           true         // stutter inv
                       });
       if (aut_->prop_complete().is_true()) {
-          std::cout << "complete automaton " << res_->prop_complete() << std::endl;
           res_->prop_complete(true);
       }
       // Generate bdd supports and compatible options for each state.

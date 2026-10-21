@@ -189,6 +189,35 @@ implemented finite-witness construction are unchanged. HOA intermediates are
 in `build-local/polarity-comparison/`. CSV/manifest and reproduction scripts
 are committed. PR #2 remains draft.
 
+## Subsequent SLAA/TELA milestone
+
+The first milestone of the revised architecture is implemented. Read
+`tests/ltl-slaa-report.md`. The opt-in `--slaa-tool=PATH` invokes the pinned
+LTL3TELA executable as an isolated process with `-D0 -b0 -n0 -l0 -t0 -p2`.
+The resulting generic TELA must be elevator and source-equivalent. Native
+ELA determinisation preserves shifted acceptance and is independently checked.
+Failures retain the established residual route; direct monitors keep priority.
+No LTL3TELA source is vendored. Simulation and stutter shortcuts are disabled
+on this generic boundary; exact-language preorder/union pruning remains.
+
+- Fixed unresolved Fin-SCC acceptance causing a backend assertion on
+  SomenziB00 line 23: determine unknown acceptance before SCC classification.
+  Added a three-state rejecting-Fin regression; removed an HOA debug print.
+- All 454 default/integrated literature outputs pass. Defaults match the
+  prior 227 state counts. Optional SLAA improves one (five to four states)
+  and ties 226; common-222 total is 1035 versus default 1036.
+- Raw boundary: 170 successes, including 35 genuinely nondeterministic TELA
+  inputs; 55 non-elevator inputs, one frontend timeout (Liberouter line 45)
+  and one frontend SIGSEGV (Somenzi line 11) are recorded separately.
+- `make check`: eight historical, 17 fragment, 22 generic acceptance and
+  15 frontend admission/fallback fixtures pass. Full smoke and 387 seeded/
+  scaling finite-witness outputs pass. Raw artifacts: `build-local/slaa-comparison/`.
+
+This remains a first milestone: no new SLAA dealternation rules, SCC-local
+semi-determinisation, rank-pressure profile scoring, acceptance compaction or
+online polarity portfolio. The optional frontend's deadline/output/input-state
+limits do not bound native construction or language checking. Keep PR #2 draft.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

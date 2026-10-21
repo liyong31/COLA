@@ -112,6 +112,28 @@ COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
 alone has severe regressions and three timeouts on the full corpus; this is
 an experimental comparison, not a change to translator defaults.
 
+The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
+candidate that preserves generic acceptance and uses COLA's native elevator
+determiniser. Configure the pinned LTL3TELA executable explicitly:
+
+```sh
+./build-local/ltl2dela \
+  --slaa-tool="$PWD/build-local/external/ltl3tela-master/ltl3tela" \
+  --stats -f 'F!a & F!b & (F(!a & FG!c) | F(!b & FGc))'
+```
+
+This example improves from five complete states to four. All 227 integrated
+literature outputs pass equivalence, with no state-count regressions. The
+external front end runs as an isolated POSIX process with a five-second
+deadline and an 8 MiB output cap; `--slaa-timeout-ms=N` and
+`--slaa-state-limit=N` (default 256) control admission. Zero budgets skip the
+candidate. Native determinisation and language checks have no hard resource
+bound. Non-elevator inputs and failed attempts retain the existing fallback;
+direct recurrence, GF/FG and optional finite-witness monitors keep priority.
+The tool is an optional runtime dependency, with no additional build dependency.
+This first milestone does not yet implement new elevator-aware dealternation
+rules or local SCC semi-determinisation.
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

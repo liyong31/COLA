@@ -17,6 +17,7 @@
 #include <spot/twa/bdddict.hh>
 
 #include <iosfwd>
+#include <string>
 #include <vector>
 
 namespace cola
@@ -32,6 +33,10 @@ namespace cola
     unsigned dba_state_limit = 512;
     unsigned dba_cycle_limit = 4096;
     unsigned dba_input_limit = 64;
+    // Optional isolated LTL3TELA SLAA -> generic TELA front-end.
+    std::string slaa_tool;
+    unsigned slaa_timeout_ms = 5000;
+    unsigned slaa_state_limit = 256;
     // Optional Spot LTLf reset construction; limits abandon the whole attempt.
     bool use_finite_witness = false;
     unsigned finite_witness_state_limit = 256;
@@ -92,6 +97,13 @@ namespace cola
     unsigned dba_fallbacks = 0;
     unsigned guarded_conjunctions = 0;
     unsigned acceptance_limit_fallbacks = 0;
+    unsigned slaa_attempts = 0;
+    unsigned slaa_failures = 0;
+    unsigned slaa_non_elevator = 0;
+    unsigned slaa_validation_failures = 0;
+    unsigned slaa_backend_attempts = 0;
+    unsigned slaa_candidates = 0;
+    unsigned slaa_components = 0;
     unsigned master_advice_rewrites = 0;
     unsigned x_advice_components = 0;
     unsigned x_advice_profiles = 0;
@@ -123,6 +135,9 @@ namespace cola
   /// If bounded profile refinement cannot remove all nondeterministic
   /// accepting SCCs, translation falls back to Spot's deterministic generic
   /// LTL translation for that residual only.  Therefore the procedure is total.
+  /// An explicitly configured SLAA front end can supply an elevator TELA
+  /// candidate before the residual NBA route. Both semantic boundaries are
+  /// checked; direct monitors retain priority and all failures keep fallback.
   class ltl2dela_translator
   {
   public:
@@ -258,6 +273,7 @@ namespace cola
 
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);
+    spot::twa_graph_ptr try_slaa(spot::formula f);
     spot::twa_graph_ptr normalize_deterministic(spot::twa_graph_ptr aut);
 
     spot::twa_graph_ptr compose(const spot::twa_graph_ptr& left,

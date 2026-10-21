@@ -3,6 +3,7 @@
 // Profile-guided LTL -> deterministic Emerson-Lei translation.
 
 #include "ltl2dela.hpp"
+#include "slaa_frontend.hpp"
 
 #include <spot/tl/print.hh>
 #include <spot/twaalgos/ltlf2dfa.hh>
@@ -246,6 +247,13 @@ namespace cola
         << "  DBA attempts without result: " << dba_fallbacks << '\n'
         << "  guarded conjunctions retained: " << guarded_conjunctions << '\n'
         << "  acceptance-limit fallbacks: " << acceptance_limit_fallbacks << '\n'
+        << "  SLAA attempts: " << slaa_attempts << '\n'
+        << "  SLAA frontend failures: " << slaa_failures << '\n'
+        << "  SLAA non-elevator candidates: " << slaa_non_elevator << '\n'
+        << "  SLAA validation failures: " << slaa_validation_failures << '\n'
+        << "  SLAA backend attempts: " << slaa_backend_attempts << '\n'
+        << "  SLAA candidates: " << slaa_candidates << '\n'
+        << "  SLAA components: " << slaa_components << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1439,6 +1447,10 @@ namespace cola
         if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
+        auto slaa = try_slaa(f);
+        if (slaa && no_larger(slaa, direct)
+            && (!dba || no_larger(slaa, dba)))
+          { ++stats_.slaa_components; return slaa; }
         if (dba && no_larger(dba, direct))
           {
             ++stats_.dba_components;
@@ -1507,6 +1519,47 @@ namespace cola
     trans.set_level(spot::postprocessor::High);
     auto high = trans.run(f);
     return no_larger(low, high) ? low : high;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_slaa(spot::formula f)
+  {
+    if (options_.slaa_tool.empty() || !options_.slaa_timeout_ms
+        || !options_.slaa_state_limit) return nullptr;
+    ++stats_.slaa_attempts;
+    try
+      {
+        auto tela = slaa_frontend(f, dict_, options_.slaa_tool,
+                                 options_.slaa_timeout_ms, options_.slaa_state_limit);
+        if (!tela) { ++stats_.slaa_failures; return nullptr; }
+        if (!cola::is_elevator_automaton(tela))
+          { ++stats_.slaa_non_elevator; return nullptr; }
+        // Certify both boundaries. In particular, a deterministic but wrong
+        // frontend result must not bypass validation.
+        if (!spot::are_equivalent(tela, f))
+          { ++stats_.slaa_validation_failures; return nullptr; }
+        auto generic_options = cola_options_;
+        // The existing delayed simulation is a Buchi-specific algorithm.
+        // Neither it nor the optional simulation preprocessing certifies
+        // pruning for arbitrary Fin/Inf acceptance on this new boundary.
+        generic_options.set(USE_SIMULATION, 0);
+        generic_options.set(USE_DELAYED_SIMULATION, 0);
+        generic_options.set(USE_STUTTER, 0);
+        if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
+        auto result = spot::is_deterministic(tela) ? tela
+          : cola::determinize_televator(tela, generic_options);
+        if (!spot::is_deterministic(result) || !spot::are_equivalent(result, tela))
+          { ++stats_.slaa_validation_failures; return nullptr; }
+        ++stats_.slaa_candidates;
+        return normalize_deterministic(result);
+      }
+    catch (const std::runtime_error&)
+      {
+        // An optional candidate (including acceptance-capacity exhaustion)
+        // never replaces or discards any branch of the residual language.
+        ++stats_.slaa_failures;
+        return nullptr;
+      }
   }
 
   spot::twa_graph_ptr
@@ -2002,13 +2055,23 @@ namespace cola
         return res;
       }
 
+    // Explicit direct monitors have already run. A generic-acceptance
+    // residual can now avoid the NBA intermediate. Known syntactic classes
+    // still compare against their established deterministic construction.
+    auto slaa = try_slaa(f);
+
     // Spot first: exploit its specialized translations for known easy
     // fragments instead of forcing them through Buchi.
     if (is_direct_fragment(f))
       {
         ++stats_.direct_formula_components;
-        return normalize_deterministic(translate_deterministic(f));
+        auto direct = normalize_deterministic(translate_deterministic(f));
+        if (slaa && no_larger(slaa, direct))
+          { ++stats_.slaa_components; return slaa; }
+        return direct;
       }
+
+    if (slaa) { ++stats_.slaa_components; return slaa; }
 
     // Try the small-Buchi route.  We only use CoLA's local elevator
     // determinizer if the generated SCC structure is certified suitable.

@@ -28,8 +28,8 @@ R"(Usage:
   ltl2dela [OPTIONS] -F FILE
 
 Translate LTL to a deterministic automaton with generic (Emerson-Lei)
-acceptance.  The translator first exploits Spot's easy deterministic
-fragments, then tries a Buchi automaton and CoLA's elevator-SCC
+acceptance.  The translator first exploits easy deterministic monitors,
+optionally tries an SLAA-derived elevator TELA, then a Buchi automaton and CoLA's elevator-SCC
 construction.  Hard residuals are refined with asymptotic profiles
 FG(gamma) / GF(!gamma) before falling back to direct deterministic
 formula translation.
@@ -49,6 +49,9 @@ Options:
   --no-dba                disable checked weak/transition-Buchi attempts
   --dba-state-limit=N     maximum states in bounded DBA attempts (default: 512)
   --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
+  --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
+  --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
+  --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
   --finite-witness       enable bounded LTLf reset monitors (default: off)
   --finite-witness-state-limit=N  maximum reset states (default: 256)
   --finite-witness-work-limit=N   maximum MTBDD visits (default: 16384)
@@ -181,6 +184,23 @@ int main(int argc, char** argv)
           if (a == "--no-dba")
             {
               opts.use_dba = false;
+              continue;
+            }
+          if (a.rfind("--slaa-tool=", 0) == 0)
+            {
+              opts.slaa_tool = value_after("--slaa-tool=");
+              continue;
+            }
+          if (a.rfind("--slaa-timeout-ms=", 0) == 0)
+            {
+              opts.slaa_timeout_ms = parse_uint(value_after("--slaa-timeout-ms="),
+                                               "--slaa-timeout-ms");
+              continue;
+            }
+          if (a.rfind("--slaa-state-limit=", 0) == 0)
+            {
+              opts.slaa_state_limit = parse_uint(value_after("--slaa-state-limit="),
+                                                "--slaa-state-limit");
               continue;
             }
           if (a.rfind("--dba-state-limit=", 0) == 0)
