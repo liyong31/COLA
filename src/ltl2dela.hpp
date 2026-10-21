@@ -27,6 +27,10 @@ namespace cola
     bool use_profiles = true;
     bool use_delta2 = true;
     bool use_recurrence_compiler = true;
+    // Optional Spot LTLf reset construction; limits abandon the whole attempt.
+    bool use_finite_witness = false;
+    unsigned finite_witness_state_limit = 256;
+    unsigned finite_witness_work_limit = 16384;
     bool use_master_profiles = true;
     bool use_x_advice = true;
     unsigned x_advice_max_mu = 3;
@@ -71,6 +75,9 @@ namespace cola
     unsigned recurrence_rewrites = 0;
     unsigned recurrence_splits = 0;
     unsigned flat_until_monitors = 0;
+    unsigned finite_witness_monitors = 0;
+    unsigned finite_witness_duals = 0;
+    unsigned finite_witness_aborts = 0;
     unsigned master_advice_rewrites = 0;
     unsigned x_advice_components = 0;
     unsigned x_advice_profiles = 0;
@@ -228,6 +235,10 @@ namespace cola
       spot::formula lambda,
       spot::formula guard,
       spot::formula goal);
+
+    spot::twa_graph_ptr compile_finite_witness(spot::formula f);
+    spot::twa_graph_ptr make_finite_witness_monitor(spot::formula body,
+                                                 bool persistence);
 
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);

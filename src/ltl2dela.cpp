@@ -5,6 +5,7 @@
 #include "ltl2dela.hpp"
 
 #include <spot/tl/print.hh>
+#include <spot/twaalgos/ltlf2dfa.hh>
 #include <spot/tl/delta2.hh>
 #include <spot/twaalgos/translate.hh>
 #include <spot/twaalgos/postproc.hh>
@@ -198,6 +199,9 @@ namespace cola
         << "  recurrence rewrites: " << recurrence_rewrites << '\n'
         << "  recurrence splits: " << recurrence_splits << '\n'
         << "  flat-Until monitors: " << flat_until_monitors << '\n'
+        << "  finite-witness monitors: " << finite_witness_monitors << '\n'
+        << "  finite-witness duals: " << finite_witness_duals << '\n'
+        << "  finite-witness aborts: " << finite_witness_aborts << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1211,6 +1215,129 @@ namespace cola
     return nullptr;
   }
 
+  namespace
+  {
+    struct finite_witness_limit {};
+
+    // Convert only after infinite-word NNF.  Never apply the ordinary LTL
+    // simplifier afterwards: X tt and strong_X tt differ on finite traces.
+    spot::formula strong_finite_next(spot::formula f)
+    {
+      if (f.is(spot::op::X))
+        return spot::formula::strong_X(strong_finite_next(f[0]));
+      return f.map(strong_finite_next);
+    }
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::make_finite_witness_monitor(spot::formula body,
+                                                 bool persistence)
+  {
+    try
+      {
+        if (!options_.finite_witness_state_limit
+            || !options_.finite_witness_work_limit)
+          throw finite_witness_limit{};
+        auto aut = spot::make_twa_graph(dict_);
+        body.traverse([&](spot::formula x) {
+          if (x.is(spot::op::ap)) aut->register_ap(x);
+          return false;
+        });
+        auto initial = spot::formula::F(strong_finite_next(body));
+        // Spot's terminal has both a continuation formula and a may-stop bit.
+        // The latter, not the continuation's infinite-word truth value, says
+        // whether the finite prefix just consumed is accepted.
+        spot::ltlf_translator trans(dict_);
+        std::map<spot::formula, unsigned> ids;
+        std::vector<spot::formula> pending;
+        auto state = [&](spot::formula f) -> unsigned {
+          auto old = ids.find(f);
+          if (old != ids.end()) return old->second;
+          if (pending.size() >= options_.finite_witness_state_limit)
+            throw finite_witness_limit{};
+          unsigned id = aut->new_state();
+          ids.emplace(f, id);
+          pending.push_back(f);
+          return id;
+        };
+        state(initial);
+        aut->set_init_state(0);
+        aut->set_acceptance(1, persistence ? spot::acc_cond::acc_code::cobuchi()
+                                           : spot::acc_cond::acc_code::buchi());
+        unsigned work = 0;
+        for (unsigned src = 0; src < pending.size(); ++src)
+          {
+            bdd root = trans.ltlf_to_mtbdd(pending[src]);
+            std::vector<std::pair<bdd, bdd>> todo{{root, bddtrue}};
+            while (!todo.empty())
+              {
+                if (++work > options_.finite_witness_work_limit)
+                  throw finite_witness_limit{};
+                auto node = todo.back();
+                todo.pop_back();
+                bdd b = node.first;
+                bdd guard = node.second;
+                if (b == bddtrue || b == bddfalse || bdd_is_terminal(b))
+                  {
+                    auto leaf = trans.leaf_to_formula(b.id(),
+                      bdd_is_terminal(b) ? bdd_get_terminal(b) : 0);
+                    // Accepting destinations are redirected immediately; no
+                    // letter is consumed twice and no pending witness survives.
+                    unsigned dst = leaf.second ? 0 : state(leaf.first);
+                    aut->new_edge(src, dst, guard,
+                      leaf.second ? spot::acc_cond::mark_t{0}
+                                  : spot::acc_cond::mark_t{});
+                  }
+                else
+                  {
+                    bdd var = bdd_ithvar(bdd_var(b));
+                    todo.emplace_back(bdd_low(b), guard & !var);
+                    todo.emplace_back(bdd_high(b), guard & var);
+                  }
+              }
+          }
+        aut->prop_universal(true);
+        aut->prop_complete(true);
+        aut->prop_state_acc(false);
+        aut->merge_edges();
+        ++stats_.finite_witness_monitors;
+        if (persistence) ++stats_.finite_witness_duals;
+        return aut;
+      }
+    catch (const finite_witness_limit&)
+      {
+        ++stats_.finite_witness_aborts;
+        return nullptr;
+      }
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::compile_finite_witness(spot::formula f)
+  {
+    spot::formula body;
+    bool persistence = false;
+    if (!match_gf(f, body))
+      {
+        if (!match_fg(f, body)) return nullptr;
+        persistence = true;
+        body = spot::formula::Not(body);
+      }
+    body = simplifier_.negative_normal_form(body);
+    // Keep propositional recurrence/persistence on Spot's one-state path.
+    if (body.is_boolean() || !body.is_syntactic_guarantee()) return nullptr;
+    // The dual should retain the existing flat monitor as a fast path too.
+    spot::formula lambda, guard, goal;
+    if (persistence && options_.use_recurrence_compiler
+        && match_flat_until(body, lambda, guard, goal))
+      {
+        auto aut = make_flat_until_monitor(lambda, guard, goal);
+        aut->set_acceptance(1, spot::acc_cond::acc_code::cobuchi());
+        ++stats_.flat_until_monitors;
+        return aut;
+      }
+    return make_finite_witness_monitor(body, persistence);
+  }
+
   bool
   ltl2dela_translator::is_direct_fragment(spot::formula f) const
   {
@@ -1599,6 +1726,10 @@ namespace cola
         if (handled)
           return special;
       }
+
+    if (options_.use_finite_witness)
+      if (auto witness = compile_finite_witness(f))
+        return normalize_deterministic(witness);
 
     // Recognize the post-commitment Master-Theorem shape before Delta2
     // normalization can obscure its individual recurrence obligations.

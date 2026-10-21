@@ -45,6 +45,9 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
+  --finite-witness       enable bounded LTLf reset monitors (default: off)
+  --finite-witness-state-limit=N  maximum reset states (default: 256)
+  --finite-witness-work-limit=N   maximum MTBDD visits (default: 16384)
   --no-master-profiles     disable explicit Master-profile propagation
   --no-x-advice           disable exact X-advice progression
   --x-advice-max-mu=N     enumerate at most N mu-subformulas (default: 3)
@@ -174,6 +177,25 @@ int main(int argc, char** argv)
           if (a == "--no-master-profiles")
             {
               opts.use_master_profiles = false;
+              continue;
+            }
+          if (a == "--finite-witness")
+            {
+              opts.use_finite_witness = true;
+              continue;
+            }
+          if (a.rfind("--finite-witness-state-limit=", 0) == 0)
+            {
+              opts.finite_witness_state_limit = parse_uint(
+                value_after("--finite-witness-state-limit="),
+                "--finite-witness-state-limit");
+              continue;
+            }
+          if (a.rfind("--finite-witness-work-limit=", 0) == 0)
+            {
+              opts.finite_witness_work_limit = parse_uint(
+                value_after("--finite-witness-work-limit="),
+                "--finite-witness-work-limit");
               continue;
             }
           if (a == "--no-x-advice")

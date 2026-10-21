@@ -439,3 +439,57 @@ automaton and uses the generic formula translation if the check fails.
 runtime cost; it contains the existing error rather than claiming to repair
 the underlying elevator algorithm. The smoke suite includes an independent
 Spot-reference regression for this case.
+
+### Optional finite-witness reset translation
+
+With Spot **2.14 or newer**, `--finite-witness` enables a direct deterministic
+path for `GF mu`, where `mu` is syntactic co-safety (NNF with X, F, U, M), and
+for its dual `FG nu`, where `nu` is syntactic safety. The option defaults to
+off. Existing recurrence identities and the flat-until monitor take priority;
+propositional recurrence and persistence retain their existing one-state path.
+
+```sh
+./ltl2dela --finite-witness --stats -f 'GF(a & X((b U c) & (d M e)))'
+./ltl2dela --finite-witness -f 'FG(!a | X X !b)'
+python3 tests/finite-witness.py --csv reset-results.csv --stress 10
+```
+
+The implementation explores the finite-word DFA for `F mu` using Spot's
+`ltlf_translator::ltlf_to_mtbdd()`. Infinite-trace `X` is converted recursively
+to `strong_X` **after** infinite-word negation normalisation. No infinite-word
+simplification is applied to the converted formula. Spot's MTBDD terminal
+contains a continuation formula and a finite acceptance (`may_stop`) bit.
+An accepting transition emits colour 0 and returns to the initial state;
+otherwise it follows the continuation. This is the reachable reset graph,
+so accepting DFA destinations need not be materialised. The initial state is
+never treated as accepting without consuming a letter. For persistence, the
+monitor is built for `F !nu` and uses `Fin(0)` instead of `Inf(0)`.
+
+Each emission witnesses a nonempty segment containing a suffix satisfying
+`mu` under strong finite-trace semantics. Infinitely many disjoint marked
+segments imply `GF mu`; conversely, recurrence supplies another finite witness
+after every reset. Complementing this deterministic, complete monitor proves
+the persistence construction. Correlated obligations remain in a single DFA:
+we never distribute GF over an arbitrary conjunction.
+
+`--finite-witness-state-limit=N` (default 256) bounds explored reset states;
+`--finite-witness-work-limit=N` (default 16384) bounds MTBDD node visits while
+extracting guarded transitions. Exceeding either limit discards the entire
+attempt and resumes the established translator. Zero disables attempts by
+immediate fallback. These limits do **not** bound the time or memory inside
+one call to Spot's symbolic derivative routine. They are practical exploration
+budgets, not hard resource isolation. A timeout is still appropriate for
+untrusted or very large input formulas.
+
+`--stats` reports completed finite-witness monitors, persistence duals, and
+aborted attempts. `--no-recurrence` disables existing structural fast paths
+but does not disable the separately enabled finite-witness path. Tests compare
+the optional path, the unchanged default, and independent `ltl2tgba -D -G`
+translations using language equivalence, including both budget fallbacks.
+Timing measurements are medians of fresh processes and include startup and
+HOA output; state counts are after each tool's normal post-processing.
+
+Spot references: [finite-trace translation tutorial](https://spot.lre.epita.fr/ipynb/ltlf2dfa.html),
+[`ltlf2dfa.hh` API](https://spot.lre.epita.fr/doxygen/ltlf2dfa_8hh_source.html).
+The construction follows the finite-witness section of
+[`factored.tex`](https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex).
