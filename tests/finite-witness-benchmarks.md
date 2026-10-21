@@ -1,5 +1,9 @@
 # Finite-witness local validation and benchmarks
 
+These measurements precede the [specialized fragment-routing changes](ltl-routing-diagnosis.md).
+The new `finite-witness-specialized-*.csv` files record the updated binary;
+the historical default-path timings below should not be applied to it.
+
 21 October 2026; continuation of `finite-witness-reset` from `fbaee65`.
 The existing finite-witness construction is preserved and remains opt-in.
 

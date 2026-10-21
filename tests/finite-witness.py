@@ -91,7 +91,7 @@ def main():
     def save_results():
         if args.csv:
             with open(args.csv, 'w', newline='') as f:
-                writer = csv.writer(f)
+                writer = csv.writer(f, lineterminator='\n')
                 writer.writerow(['case', 'formula', 'mode', 'states', 'edges',
                                  'colours', 'median_ms', 'status',
                                  'witness_monitors', 'witness_duals', 'witness_aborts'])

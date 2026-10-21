@@ -50,39 +50,60 @@ Buchi determinization whenever possible.
 
 The current pipeline is:
 
-1. simplify the original formula, but deliberately preserve its recurrent
-   `GF(...)` structure;
-2. apply exact structural recurrence rules before any general automaton
+1. recognize Boolean combinations of propositional `GF`/`FG` predicates
+   before simplification can hide their one-state Emerson-Lei structure;
+2. simplify the remaining formula while preserving recurrent structure, then
+   apply exact structural recurrence rules before any general automaton
    construction, including
    `GF X p = GF p`, `GF F p = GF p`, `GF(a U b) = GF b`,
    `GF(a M b) = GF(a & b)`, `GF G p = FG p`, distribution over
    disjunction, extraction of top-level `G`/`F` obligations from
    conjunctions, and a two-state deterministic monitor for flat
    `GF(lambda & (g U h))`;
-3. recognize explicit post-commitment bundles of the form
+3. use specialized `GF(co-safety)` DBA and `FG(safety)` DCA constructions,
+   retaining the optional finite-witness path when enabled; known easy
+   fragments reach their direct translator before heuristic profiles, with
+   bounded checked DBA candidates competing on complete automaton size;
+4. recognize explicit post-commitment bundles of the form
    `S & GF(theta_1) & ...` together with `FG gamma` / `GF !gamma`
    profile facts, and compile all conjuncts under the same asymptotic context;
-4. if a recurrent kernel still contains a nested `G gamma`, synthesize a
+5. if a recurrent kernel still contains a nested `G gamma`, synthesize a
    bounded pre-Buchi Y-profile split
    `FG gamma | GF !gamma` before building an NBA;
-5. use the chosen profile context to simplify recurrent temporal guards.
+6. use the chosen profile context to simplify recurrent temporal guards.
    For example, under `FG g`, late suffixes satisfy
    `g U h = F h`, `a M g = F a`, `g W h = true`, and
    `a R g = true`; under `GF !g`, weak-until/release reduce to their
    strong counterparts;
-6. only after these structural steps, use Spot's `to_delta2()`
+7. only after these structural steps, use Spot's `to_delta2()`
    normalization when its growth stays within the configured bound;
-7. let Spot directly compile remaining syntactically easy fragments;
-8. for a genuinely residual formula, ask Spot for a small Buchi automaton,
-   annotate hard states with `match_states()`, and inspect its SCCs;
-9. if the BA is elevator, use CoLA's elevator determinizer; otherwise perform
-   SCC-scored profile refinement, and finally fall back to direct
-   deterministic formula translation if the bounded refinement budget is
-   exhausted.
+8. retain safety constraints with other conjuncts rather than translating
+   unconstrained components first; for generic deterministic residuals,
+   compare Spot's Low and High results instead of assuming High is smaller;
+9. for a genuinely residual formula, ask Spot for a small Buchi automaton,
+   try bounded, language-checked weak/transition-Buchi constructions, and
+   inspect its SCCs;
+10. if the remaining BA is elevator, use CoLA's checked elevator determinizer;
+    otherwise annotate hard states with `match_states()` and perform
+    SCC-scored profile refinement, finally falling back to direct
+    deterministic formula translation when refinement is exhausted.
 
 Because every profile split is a tautological partition of the language, the
-profile heuristic affects only automaton size, not correctness.  The fallback
-makes the translator total.
+profile heuristic affects only automaton size, not correctness. Fallbacks
+retain the entire source/residual language, including when a profile product
+exhausts the installed acceptance-set capacity.
+
+The default DBA attempt accepts at most 64 input BA states and bounds its
+constructed graphs/products to 512 states and TBA cycles to 4096 per SCC.
+Use `--no-specialized`, `--no-dba`, `--dba-state-limit=N`, and
+`--dba-cycle-limit=N` for routing ablations; zero budgets skip DBA attempts.
+The checks are sound but do not decide DBA recognizability for every LTL
+formula, and do not impose a whole-process time/memory limit.
+
+The [routing diagnosis and updated experiments](tests/ltl-routing-diagnosis.md)
+explain the former shared timeouts, LTL3TELA's polarity/composition gains,
+and the resulting GF/FG/DBA policy. All 454 updated COLA literature outputs
+pass determinism and equivalence; both former timeouts now complete.
 
 ### Build
 
@@ -498,7 +519,8 @@ regressions and unexpected command failures still fail the run. An `ok` CSV
 row has passed determinism and independent Spot language equivalence checks.
 
 For a broader comparison against DELAG, LTL3TELA and OWL SLM21, see the
-[OWL literature size experiment](tests/ltl-size-comparison.md). It retains
+[original OWL literature size experiment](tests/ltl-size-comparison.md) and
+[updated fragment-routing results](tests/ltl-fragment-summary.md). They retain
 the corpus, per-formula results, tool versions, common-cohort and paired
 size rankings, and explicit failure statuses.
 

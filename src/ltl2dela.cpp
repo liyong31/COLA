@@ -13,12 +13,17 @@
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/gfguarantee.hh>
+#include <spot/twaalgos/minimize.hh>
+#include <spot/twaalgos/degen.hh>
+#include <spot/twaalgos/complete.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/matchstates.hh>
 #include <spot/twa/formula2bdd.hh>
 #include <spot/twa/twagraph.hh>
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -181,6 +186,36 @@ namespace cola
       ob << b;
       return oa.str() < ob.str();
     }
+
+    bool boolean_gf_fg(spot::formula f)
+    {
+      if (f.is_tt() || f.is_ff()) return true;
+      if (f.is(spot::op::And) || f.is(spot::op::Or))
+        {
+          for (auto c: f) if (!boolean_gf_fg(c)) return false;
+          return true;
+        }
+      if (f.is(spot::op::Not)) return boolean_gf_fg(f[0]);
+      return ((f.is(spot::op::G) && f[0].is(spot::op::F))
+              || (f.is(spot::op::F) && f[0].is(spot::op::G)))
+        && f[0][0].is_boolean();
+    }
+
+    bool guarded_conjunction(spot::formula f)
+    {
+      if (!f.is(spot::op::And)) return false;
+      bool safety = false, other = false;
+      for (auto c: f) (c.is_syntactic_safety() ? safety : other) = true;
+      return safety && other;
+    }
+
+    bool no_larger(const spot::twa_graph_ptr& left,
+                   const spot::twa_graph_ptr& right)
+    {
+      auto l = spot::complete(left), r = spot::complete(right);
+      return std::make_tuple(l->num_states(), l->num_sets(), l->num_edges())
+          <= std::make_tuple(r->num_states(), r->num_sets(), r->num_edges());
+    }
   }
 
   void
@@ -202,6 +237,15 @@ namespace cola
         << "  finite-witness monitors: " << finite_witness_monitors << '\n'
         << "  finite-witness duals: " << finite_witness_duals << '\n'
         << "  finite-witness aborts: " << finite_witness_aborts << '\n'
+        << "  Boolean GF/FG components: " << boolean_gf_fg_components << '\n'
+        << "  specialized GF components: " << specialized_gf_components << '\n'
+        << "  specialized FG components: " << specialized_fg_components << '\n'
+        << "  DBA attempts: " << dba_attempts << '\n'
+        << "  DBA components: " << dba_components << '\n'
+        << "  DBA candidates constructed: " << dba_candidates << '\n'
+        << "  DBA attempts without result: " << dba_fallbacks << '\n'
+        << "  guarded conjunctions retained: " << guarded_conjunctions << '\n'
+        << "  acceptance-limit fallbacks: " << acceptance_limit_fallbacks << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1352,13 +1396,117 @@ namespace cola
   }
 
   spot::twa_graph_ptr
+  ltl2dela_translator::compile_specialized(spot::formula f)
+  {
+    // Boolean combinations of GF/FG over propositional predicates admit
+    // one-state Emerson-Lei monitors.  Compile them together before profile
+    // commitments turn FG predicates into multi-state products.
+    if (!f.is_boolean() && boolean_gf_fg(f))
+      {
+        spot::option_map om;
+        om.set("gf-guarantee", 1);
+        spot::translator trans(dict_, &om);
+        trans.set_type(spot::postprocessor::Generic);
+        trans.set_pref(spot::postprocessor::Deterministic);
+        trans.set_level(spot::postprocessor::Low);
+        ++stats_.boolean_gf_fg_components;
+        return normalize_deterministic(trans.run(f));
+      }
+
+    spot::formula body;
+    if (match_gf(f, body) && body.is_syntactic_guarantee())
+      if (auto aut = spot::gf_guarantee_to_ba_maybe(f, dict_, true, false))
+        {
+          ++stats_.specialized_gf_components;
+          return normalize_deterministic(aut);
+        }
+    if (match_fg(f, body) && body.is_syntactic_safety())
+      if (auto aut = spot::fg_safety_to_dca_maybe(f, dict_, false))
+        {
+          ++stats_.specialized_fg_components;
+          return normalize_deterministic(aut);
+        }
+
+    // Syntactic recurrence is sufficient for DBA recognizability, but does
+    // not exhaust it.  Other residuals get the same checked attempt after
+    // their small BA is available, below.
+    if (is_direct_fragment(f) && !match_gf(f, body) && !match_fg(f, body))
+      {
+        spot::twa_graph_ptr dba;
+        if (options_.use_dba && f.is_syntactic_recurrence()
+            && !f.is_syntactic_obligation())
+          dba = try_dba(f, translate_buchi(f));
+        if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
+        ++stats_.direct_formula_components;
+        auto direct = normalize_deterministic(translate_deterministic(f));
+        if (dba && no_larger(dba, direct))
+          {
+            ++stats_.dba_components;
+            return dba;
+          }
+        return direct;
+      }
+    return nullptr;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_dba(spot::formula f, spot::twa_graph_ptr ba)
+  {
+    if (!options_.use_dba || !options_.dba_state_limit
+        || !options_.dba_cycle_limit || ba->num_states() > options_.dba_input_limit
+        || ba->num_states() > options_.dba_state_limit)
+      return nullptr;
+    ++stats_.dba_attempts;
+    auto accept = [&](spot::twa_graph_ptr aut)
+      {
+        ++stats_.dba_candidates;
+        return normalize_deterministic(aut);
+      };
+    if (spot::is_deterministic(ba)) return accept(ba);
+
+    // Bound the subset graph AND the follow-up products in the weak-DBA
+    // attempt.  Spot's default deterministic preference does not apply its
+    // ordinary wdba-det-max bound.
+    spot::output_aborter aborter(options_.dba_state_limit);
+    auto weak = spot::minimize_obligation(ba, f, nullptr, false, &aborter);
+    if (weak && spot::is_deterministic(weak)) return accept(weak);
+
+    // A bounded semantic attempt also covers DBA languages outside the
+    // syntactically recognized recurrence fragment.  The checked API rejects
+    // inequivalent acceptance assignments; an unchecked powerset is unsound.
+    if (!ba->acc().is_buchi()) ba = spot::degeneralize_tba(ba);
+    if (ba->num_states() <= options_.dba_input_limit
+        && ba->num_states() <= options_.dba_state_limit)
+      {
+        unsigned factor = options_.dba_state_limit / ba->num_states();
+        auto det = spot::tba_determinize_check(ba, factor,
+                                             options_.dba_cycle_limit, f);
+        if (det && spot::is_deterministic(det)) return accept(det);
+      }
+    ++stats_.dba_fallbacks;
+    return nullptr;
+  }
+
+  spot::twa_graph_ptr
   ltl2dela_translator::translate_deterministic(spot::formula f)
   {
-    spot::translator trans(dict_);
+    // COLA decides which Boolean components may be separated.  Preserve
+    // safety guards in the residual handed to Spot: splitting them away can
+    // make a tiny constrained BA have an enormous intermediate powerset.
+    spot::option_map om;
+    om.set("ltl-split", guarded_conjunction(f) ? 0 : 1);
+    om.set("gf-guarantee", 1);
+    spot::translator trans(dict_, &om);
     trans.set_type(spot::postprocessor::Generic);
     trans.set_pref(spot::postprocessor::Deterministic);
+    // More optimization is not a monotone size improvement: on literature
+    // examples Low yields 8/50 states where High yields 20/65.  Retain both
+    // candidates and compare complete reachable sizes, then marks and edges.
     trans.set_level(spot::postprocessor::Low);
-    return trans.run(f);
+    auto low = trans.run(f);
+    trans.set_level(spot::postprocessor::High);
+    auto high = trans.run(f);
+    return no_larger(low, high) ? low : high;
   }
 
   spot::twa_graph_ptr
@@ -1705,6 +1853,11 @@ namespace cola
     bool allow_boolean_split,
     const std::vector<profile_fact>& profile)
   {
+    // Basic simplification can fold Boolean GF/FG combinations into G/F
+    // bodies, hiding this fragment before its one-state route sees it.
+    if (options_.use_specialized_fragments && !f.is_boolean()
+        && boolean_gf_fg(f))
+      return compile_specialized(f);
     // Preserve GF(mu)-style syntax long enough for exact structural
     // recurrence rules and small hand-built deterministic monitors.
     f = simplifier_.simplify(f);
@@ -1730,6 +1883,9 @@ namespace cola
     if (options_.use_finite_witness)
       if (auto witness = compile_finite_witness(f))
         return normalize_deterministic(witness);
+
+    if (options_.use_specialized_fragments)
+      if (auto special = compile_specialized(f)) return special;
 
     // Recognize the post-commitment Master-Theorem shape before Delta2
     // normalization can obscure its individual recurrence obligations.
@@ -1760,7 +1916,7 @@ namespace cola
         && stats_.profile_splits < options_.profile_budget)
       {
         auto gamma = find_master_separator(f, used, profile);
-        if (gamma)
+        if (!gamma.is_ff())
           {
             ++stats_.profile_splits;
             ++stats_.master_profile_splits;
@@ -1824,10 +1980,18 @@ namespace cola
     // Only now apply optional Delta2 normalization.
     f = prepare(f);
 
+    // Retain safety constraints with the other conjuncts.  Their labels
+    // prune impossible histories during translation; a later product cannot
+    // recover the time/memory spent exploring unconstrained components.
+    bool retain_guard = options_.use_specialized_fragments
+      && guarded_conjunction(f);
+    if (retain_guard) ++stats_.guarded_conjunctions;
+
     // Boolean decomposition is safe because the deterministic results are
     // combined directly with Emerson-Lei acceptance instead of first forcing
     // their conjunction/disjunction through a monolithic Buchi automaton.
     if (allow_boolean_split && options_.boolean_decomposition
+        && !retain_guard
         && (f.is(spot::op::And) || f.is(spot::op::Or))
         && f.size() > 1)
       {
@@ -1849,6 +2013,11 @@ namespace cola
     // Try the small-Buchi route.  We only use CoLA's local elevator
     // determinizer if the generated SCC structure is certified suitable.
     auto ba = translate_buchi(f);
+    if (auto dba = try_dba(f, ba))
+      {
+        ++stats_.dba_components;
+        return dba;
+      }
     auto h = analyze(ba);
     if (h.elevator)
       {
@@ -1926,6 +2095,20 @@ namespace cola
     std::vector<spot::formula> used;
     // Do not normalize to Delta2 here: compile() must see the original
     // GF/profile syntax before deciding which structural compiler to use.
-    return compile(simplifier_.simplify(f), 0, used, true, {});
+    try
+      {
+        return compile(f, 0, used, true, {});
+      }
+    catch (const std::runtime_error& e)
+      {
+        // A profile product can exceed the installed acceptance-set limit
+        // even when the whole formula has a small deterministic translation.
+        // Abandon every partial branch and translate the original formula.
+        if (std::string(e.what()).find("Too many acceptance sets used.") != 0)
+          throw;
+        ++stats_.acceptance_limit_fallbacks;
+        ++stats_.deterministic_fallbacks;
+        return normalize_deterministic(translate_deterministic(f));
+      }
   }
 }

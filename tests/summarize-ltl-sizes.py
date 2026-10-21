@@ -26,9 +26,17 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('csv', type=Path)
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--overlay', type=Path,
+                    help='replace matching case/tool rows with a later campaign')
     args = ap.parse_args()
     with args.csv.open() as source:
         rows = list(csv.DictReader(source))
+    if args.overlay:
+        replacements = list(csv.DictReader(args.overlay.open()))
+        overlay = {(r['case'], r['tool']): r for r in replacements}
+        assert len(overlay) == len(replacements), 'Duplicate overlay row'
+        assert set(overlay) <= {(r['case'], r['tool']) for r in rows}, 'Unknown overlay row'
+        rows = [overlay.get((r['case'], r['tool']), r) for r in rows]
     cases = defaultdict(dict)
     for row in rows:
         assert row['tool'] not in cases[row['case']], 'Duplicate case/tool row'
@@ -45,6 +53,9 @@ def main():
              'All main size comparisons use the same '
              'common cohort. Automata are completed and unreachable states removed; '
              'no common minimisation is applied.', '', '## Outcomes', '']
+    if args.overlay:
+        lines[2:2] = [f'Updated rows: `{args.overlay.name}`; other tool outputs are reused '
+                      'from the original campaign.', '']
     statuses = sorted({r['status'] for r in rows})
     lines += [table(['Tool'] + statuses,
                     [[label] + [sum(r['tool'] == tool and r['status'] == status for r in rows)

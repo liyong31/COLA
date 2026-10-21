@@ -55,10 +55,12 @@ cola_SOURCES = src/main.cpp
 ltl2dela_SOURCES = src/ltl2dela_main.cpp
 ltl2dela_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 
-check_PROGRAMS = tests/elevator-acceptance
+check_PROGRAMS = tests/elevator-acceptance tests/specialized-fragments
 tests_elevator_acceptance_SOURCES = tests/elevator-acceptance.cpp
 tests_elevator_acceptance_LDADD = $(ltl2dela_LDADD)
-TESTS = tests/elevator-acceptance
+tests_specialized_fragments_SOURCES = tests/specialized-fragments.cpp
+tests_specialized_fragments_LDADD = $(ltl2dela_LDADD)
+TESTS = tests/elevator-acceptance tests/specialized-fragments
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
   tests/finite-witness-random-results.csv tests/finite-witness-large-results.csv
@@ -71,3 +73,11 @@ EXTRA_DIST += tests/compare-ltl-sizes.py tests/summarize-ltl-sizes.py \
   tests/ltl-size-corpus/Liberouter04.ltl tests/ltl-size-corpus/Parametrised.ltl \
   tests/ltl-size-corpus/Parametrised-Hardness.ltl tests/ltl-size-corpus/Pelanek07.ltl \
   tests/ltl-size-corpus/SickertEJK16.ltl tests/ltl-size-corpus/SomenziB00.ltl
+
+EXTRA_DIST += tests/diagnose-ltl-sizes.py tests/recheck-cola-fragments.py \
+  tests/ltl-routing-diagnosis.md tests/ltl-size-ablations.csv \
+  tests/ltl-timeout-probes.json tests/ltl-fragment-results.csv \
+  tests/ltl-fragment-summary.md tests/ltl-fragment-environment.json \
+  tests/finite-witness-specialized-results.csv \
+  tests/finite-witness-specialized-large-results.csv \
+  tests/finite-witness-specialized-random-results.csv

@@ -45,6 +45,10 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
+  --no-specialized        disable early GF/FG and fragment routing
+  --no-dba                disable checked weak/transition-Buchi attempts
+  --dba-state-limit=N     maximum states in bounded DBA attempts (default: 512)
+  --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
   --finite-witness       enable bounded LTLf reset monitors (default: off)
   --finite-witness-state-limit=N  maximum reset states (default: 256)
   --finite-witness-work-limit=N   maximum MTBDD visits (default: 16384)
@@ -169,9 +173,26 @@ int main(int argc, char** argv)
               opts.use_recurrence_compiler = false;
               continue;
             }
-          if (a == "--no-master-profiles")
+          if (a == "--no-specialized")
             {
-              opts.use_master_profiles = false;
+              opts.use_specialized_fragments = false;
+              continue;
+            }
+          if (a == "--no-dba")
+            {
+              opts.use_dba = false;
+              continue;
+            }
+          if (a.rfind("--dba-state-limit=", 0) == 0)
+            {
+              opts.dba_state_limit = parse_uint(value_after("--dba-state-limit="),
+                                                "--dba-state-limit");
+              continue;
+            }
+          if (a.rfind("--dba-cycle-limit=", 0) == 0)
+            {
+              opts.dba_cycle_limit = parse_uint(value_after("--dba-cycle-limit="),
+                                                "--dba-cycle-limit");
               continue;
             }
           if (a == "--no-master-profiles")

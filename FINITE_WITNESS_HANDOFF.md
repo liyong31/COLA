@@ -142,6 +142,37 @@ formula runs actually complete reset monitors. No construction changes were
 made for this experiment. Consult the report for the matched-cohort caveat
 and explicit alternate-reference checks when Spot times out.
 
+## Subsequent GF/FG/DBA routing continuation
+
+The user's requested timeout/size diagnosis and specialized routing are
+implemented. Read `tests/ltl-routing-diagnosis.md` first for the current state.
+The finite-witness construction is preserved and remains optional.
+
+- Boolean GF/FG is recognized before simplification; GF co-safety and FG
+  safety use specialized endpoints before heuristic profiles.
+- Checked weak/transition-Buchi candidates use 64 input states, 512 constructed
+  states and 4096 cycles per SCC by default. Generic alternatives can be
+  smaller even for DBA languages, so known-fragment candidates compete.
+- Safety constraints stay attached to other conjuncts. Generic Low/High
+  candidates are compared on complete size. Bogus splits on false are fixed;
+  acceptance-capacity failure abandons the whole attempt, not language branches.
+- All 454 new literature outputs passed; both timeouts are gone. Default
+  COLA improves 15 prior successes and ties 210, with no state regressions.
+  The matched 222-formula state total is 1036, versus old COLA 1337, Spot 1058
+  and LTL3TELA 991. See `ltl-fragment-results.csv` and `ltl-fragment-summary.md`.
+- `make check` (eight raw elevator and 17 new fragment fixtures), complete
+  smoke suite, both five-repeat kernel campaigns (87 outputs each), seeded
+  regressions (351 outputs plus 585 fallback checks), and 77 LTL3TELA ablations
+  passed. New CSVs have the `finite-witness-specialized-` prefix.
+- LTL3TELA's eleven wins depend mainly on polarity/composition: disabling
+  complement worsens eight, disabling splitting worsens two (one overlap),
+  and removing U/G merging retains the wins. More optimization alone is not
+  enough: Spot Low can be smaller than High.
+
+Keep PR #2 in draft. No merge is authorized. Raw diagnostics and old/new
+reference artifacts remain in `build-local/size-diagnosis/`,
+`build-local/owl-comparison/`, and `build-local/fragment-comparison/`.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

@@ -1,5 +1,10 @@
 # Deterministic automaton sizes on OWL's literature collection
 
+This is the historical comparison at commit `c809a2e`, before the subsequent
+[GF/FG/DBA routing changes](ltl-routing-diagnosis.md). The
+[updated matched comparison](ltl-fragment-summary.md) retains these reference
+tool outputs and reruns both COLA modes.
+
 Experiments performed locally on 21 October 2026. The aim is to compare the
 sizes of deterministic automata for the same LTL formula, allowing general
 Emerson–Lei acceptance rather than forcing every output into parity form.
