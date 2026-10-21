@@ -1,0 +1,11 @@
+{
+  "cola_commit": "a3c9a9bfba7a721c972a025e193f697057ae73d7",
+  "timeout_seconds_per_command": 30,
+  "method": "translate !phi; complete; complement acceptance only; verify against phi reference",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "8891b00eb3fdaf7dc01b3a48caf55f923e367e8349b3c3f3d1c12bae7fd84db0",
+    "build-local/src/.libs/libcola.0.dylib": "d65689200cadd5c3014506e68f2e2575d509abd271a000549f58b617428928e0",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "tests/ltl-size-results.csv": "6fd47b19425745ddbf6ad2e02bf22597ddf8399a32f92cb48cad57de63532c04"
+  }
+}

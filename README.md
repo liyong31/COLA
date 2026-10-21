@@ -105,6 +105,13 @@ explain the former shared timeouts, LTL3TELA's polarity/composition gains,
 and the resulting GF/FG/DBA policy. All 454 updated COLA literature outputs
 pass determinism and equivalence; both former timeouts now complete.
 
+The [COLA polarity experiment](tests/ltl-polarity-summary.md) also translates
+negated formulas and complements the completed deterministic results back.
+On the common 222-formula cohort, selecting the smaller polarity reduces
+COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
+alone has severe regressions and three timeouts on the full corpus; this is
+an experimental comparison, not a change to translator defaults.
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

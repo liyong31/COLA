@@ -173,6 +173,22 @@ Keep PR #2 in draft. No merge is authorized. Raw diagnostics and old/new
 reference artifacts remain in `build-local/size-diagnosis/`,
 `build-local/owl-comparison/`, and `build-local/fragment-comparison/`.
 
+## Subsequent polarity experiment
+
+The user's COLA-neg experiment is complete; see `tests/ltl-polarity-summary.md`.
+Translate `!phi`, complete its deterministic graph, then complement acceptance
+in a separate command. All 224 completed outputs are equivalent to the original
+positive-language references. Three negative translations time out at 30 seconds
+(Parametrised-Hardness lines 2, 4, 6); ordinary COLA completes all three.
+Among the 224 verified pairs, negative translation is smaller on 11, tied on
+206, and larger on seven. On the common 222-formula external-tool cohort,
+COLA totals 1036 states, COLA-neg 4016, and selecting the smaller polarity 993,
+versus LTL3TELA 991. Keep both candidates rather than forcing negation.
+This is a reproducible external experiment; translator defaults and the
+implemented finite-witness construction are unchanged. HOA intermediates are
+in `build-local/polarity-comparison/`. CSV/manifest and reproduction scripts
+are committed. PR #2 remains draft.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

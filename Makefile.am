@@ -81,3 +81,7 @@ EXTRA_DIST += tests/diagnose-ltl-sizes.py tests/recheck-cola-fragments.py \
   tests/finite-witness-specialized-results.csv \
   tests/finite-witness-specialized-large-results.csv \
   tests/finite-witness-specialized-random-results.csv
+
+EXTRA_DIST += tests/compare-cola-polarities.py tests/summarize-cola-polarities.py \
+  tests/ltl-polarity-results.csv tests/ltl-polarity-results.json \
+  tests/ltl-polarity-summary.md tests/ltl-polarity-probes.json
