@@ -134,6 +134,18 @@ The tool is an optional runtime dependency, with no additional build dependency.
 This first milestone does not yet implement new elevator-aware dealternation
 rules or local SCC semi-determinisation.
 
+Add `--slaa-portfolio` to try both SLAA polarities and compare eligible
+X-advice/elevator results with alternative constructions. Negative results
+are completed before acceptance is complemented and checked against the
+original language. On 222 matched literature formulas, this mode totals
+985 states versus positive SLAA mode 1035 and LTL3TELA 991; all 681 outputs
+from the three COLA modes pass equivalence. See the
+[SLAA shape and winner diagnosis](tests/ltl-slaa-shape-diagnosis.md) for the
+80 full-tool ablations and 300 SLAA experiments. Extra U/G/initial-state
+variants did not improve the best native result across both polarities in
+this grid, so they are not enabled by default. The frontend deadline applies
+to each polarity attempt; native construction and checking remain unbounded.
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

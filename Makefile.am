@@ -98,3 +98,10 @@ EXTRA_DIST += tests/slaa-route.py
 EXTRA_DIST += tests/benchmark-slaa.py tests/summarize-slaa.py \
   tests/ltl-slaa-results.csv tests/ltl-slaa-results.json tests/ltl-slaa-report.md \
   tests/finite-witness-slaa-regressions.csv
+
+EXTRA_DIST += tests/diagnose-slaa-shapes.py tests/summarize-slaa-shapes.py \
+  tests/ltl-slaa-shapes.csv tests/ltl-slaa-shapes.json \
+  tests/ltl-slaa-winner-ablations.csv tests/ltl-slaa-scc-probes.json \
+  tests/ltl-slaa-shape-diagnosis.md tests/ltl-slaa-portfolio-results.csv \
+  tests/ltl-slaa-portfolio-results.json \
+  tests/finite-witness-slaa-portfolio-regressions.csv

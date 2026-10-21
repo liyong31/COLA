@@ -50,6 +50,7 @@ Options:
   --dba-state-limit=N     maximum states in bounded DBA attempts (default: 512)
   --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
   --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
+  --slaa-portfolio        try both SLAA polarities and competing residual paths
   --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
   --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
   --finite-witness       enable bounded LTLf reset monitors (default: off)
@@ -189,6 +190,11 @@ int main(int argc, char** argv)
           if (a.rfind("--slaa-tool=", 0) == 0)
             {
               opts.slaa_tool = value_after("--slaa-tool=");
+              continue;
+            }
+          if (a == "--slaa-portfolio")
+            {
+              opts.slaa_portfolio = true;
               continue;
             }
           if (a.rfind("--slaa-timeout-ms=", 0) == 0)

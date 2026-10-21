@@ -35,6 +35,7 @@ namespace cola
     unsigned dba_input_limit = 64;
     // Optional isolated LTL3TELA SLAA -> generic TELA front-end.
     std::string slaa_tool;
+    bool slaa_portfolio = false;
     unsigned slaa_timeout_ms = 5000;
     unsigned slaa_state_limit = 256;
     // Optional Spot LTLf reset construction; limits abandon the whole attempt.
@@ -104,6 +105,12 @@ namespace cola
     unsigned slaa_backend_attempts = 0;
     unsigned slaa_candidates = 0;
     unsigned slaa_components = 0;
+    unsigned slaa_negative_attempts = 0;
+    unsigned slaa_negative_candidates = 0;
+    unsigned slaa_negative_components = 0;
+    unsigned slaa_formula_candidates = 0;
+    unsigned slaa_formula_components = 0;
+    unsigned slaa_formula_failures = 0;
     unsigned master_advice_rewrites = 0;
     unsigned x_advice_components = 0;
     unsigned x_advice_profiles = 0;
@@ -273,7 +280,7 @@ namespace cola
 
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);
-    spot::twa_graph_ptr try_slaa(spot::formula f);
+    spot::twa_graph_ptr try_slaa(spot::formula f, bool& negative);
     spot::twa_graph_ptr normalize_deterministic(spot::twa_graph_ptr aut);
 
     spot::twa_graph_ptr compose(const spot::twa_graph_ptr& left,

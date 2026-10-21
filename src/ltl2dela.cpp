@@ -254,6 +254,12 @@ namespace cola
         << "  SLAA backend attempts: " << slaa_backend_attempts << '\n'
         << "  SLAA candidates: " << slaa_candidates << '\n'
         << "  SLAA components: " << slaa_components << '\n'
+        << "  SLAA negative attempts: " << slaa_negative_attempts << '\n'
+        << "  SLAA negative candidates: " << slaa_negative_candidates << '\n'
+        << "  SLAA negative components: " << slaa_negative_components << '\n'
+        << "  SLAA formula candidates: " << slaa_formula_candidates << '\n'
+        << "  SLAA formula components: " << slaa_formula_components << '\n'
+        << "  SLAA formula failures: " << slaa_formula_failures << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1447,10 +1453,15 @@ namespace cola
         if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
-        auto slaa = try_slaa(f);
+        bool negative = false;
+        auto slaa = try_slaa(f, negative);
         if (slaa && no_larger(slaa, direct)
             && (!dba || no_larger(slaa, dba)))
-          { ++stats_.slaa_components; return slaa; }
+          {
+            ++stats_.slaa_components;
+            if (negative) ++stats_.slaa_negative_components;
+            return slaa;
+          }
         if (dba && no_larger(dba, direct))
           {
             ++stats_.dba_components;
@@ -1522,44 +1533,70 @@ namespace cola
   }
 
   spot::twa_graph_ptr
-  ltl2dela_translator::try_slaa(spot::formula f)
+  ltl2dela_translator::try_slaa(spot::formula f, bool& negative)
   {
+    negative = false;
     if (options_.slaa_tool.empty() || !options_.slaa_timeout_ms
         || !options_.slaa_state_limit) return nullptr;
-    ++stats_.slaa_attempts;
-    try
+    auto candidate = [&](bool negate) -> spot::twa_graph_ptr
       {
-        auto tela = slaa_frontend(f, dict_, options_.slaa_tool,
-                                 options_.slaa_timeout_ms, options_.slaa_state_limit);
-        if (!tela) { ++stats_.slaa_failures; return nullptr; }
-        if (!cola::is_elevator_automaton(tela))
-          { ++stats_.slaa_non_elevator; return nullptr; }
-        // Certify both boundaries. In particular, a deterministic but wrong
-        // frontend result must not bypass validation.
-        if (!spot::are_equivalent(tela, f))
-          { ++stats_.slaa_validation_failures; return nullptr; }
-        auto generic_options = cola_options_;
-        // The existing delayed simulation is a Buchi-specific algorithm.
-        // Neither it nor the optional simulation preprocessing certifies
-        // pruning for arbitrary Fin/Inf acceptance on this new boundary.
-        generic_options.set(USE_SIMULATION, 0);
-        generic_options.set(USE_DELAYED_SIMULATION, 0);
-        generic_options.set(USE_STUTTER, 0);
-        if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
-        auto result = spot::is_deterministic(tela) ? tela
-          : cola::determinize_televator(tela, generic_options);
-        if (!spot::is_deterministic(result) || !spot::are_equivalent(result, tela))
-          { ++stats_.slaa_validation_failures; return nullptr; }
-        ++stats_.slaa_candidates;
-        return normalize_deterministic(result);
-      }
-    catch (const std::runtime_error&)
-      {
-        // An optional candidate (including acceptance-capacity exhaustion)
-        // never replaces or discards any branch of the residual language.
-        ++stats_.slaa_failures;
-        return nullptr;
-      }
+        ++stats_.slaa_attempts;
+        if (negate) ++stats_.slaa_negative_attempts;
+        try
+          {
+            auto source = negate ? spot::formula::Not(f) : f;
+            auto tela = slaa_frontend(source, dict_, options_.slaa_tool,
+                                     options_.slaa_timeout_ms, options_.slaa_state_limit);
+            if (!tela) { ++stats_.slaa_failures; return nullptr; }
+            if (!cola::is_elevator_automaton(tela))
+              { ++stats_.slaa_non_elevator; return nullptr; }
+            // Certify both boundaries. In particular, a deterministic but wrong
+            // frontend result must not bypass validation.
+            if (!spot::are_equivalent(tela, source))
+              { ++stats_.slaa_validation_failures; return nullptr; }
+            auto generic_options = cola_options_;
+            // The existing delayed simulation is a Buchi-specific algorithm.
+            // Neither it nor the optional simulation preprocessing certifies
+            // pruning for arbitrary Fin/Inf acceptance on this new boundary.
+            generic_options.set(USE_SIMULATION, 0);
+            generic_options.set(USE_DELAYED_SIMULATION, 0);
+            generic_options.set(USE_STUTTER, 0);
+            if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
+            auto result = spot::is_deterministic(tela) ? tela
+              : cola::determinize_televator(tela, generic_options);
+            if (!spot::is_deterministic(result) || !spot::are_equivalent(result, tela))
+              { ++stats_.slaa_validation_failures; return nullptr; }
+            result = normalize_deterministic(result);
+            if (negate)
+              {
+                // Missing transitions reject the negative language. They must
+                // reach a rejecting sink BEFORE acceptance is complemented.
+                result = spot::complete(result);
+                result->set_acceptance(result->num_sets(),
+                                       result->acc().get_acceptance().complement());
+                if (!spot::are_equivalent(result, f))
+                  { ++stats_.slaa_validation_failures; return nullptr; }
+                ++stats_.slaa_negative_candidates;
+              }
+            ++stats_.slaa_candidates;
+            return result;
+          }
+        catch (const std::runtime_error&)
+          {
+            // An optional candidate (including acceptance-capacity exhaustion)
+            // never replaces or discards any branch of the residual language.
+            ++stats_.slaa_failures;
+            return nullptr;
+          }
+      };
+    auto positive = candidate(false);
+    if (!options_.slaa_portfolio) return positive;
+    auto dual = candidate(true);
+    // Exact size ties retain positive polarity; never lose an available
+    // positive result because the additional attempt fails or is larger.
+    if (dual && (!positive || (no_larger(dual, positive) && !no_larger(positive, dual))))
+      { negative = true; return dual; }
+    return positive;
   }
 
   spot::twa_graph_ptr
@@ -1956,7 +1993,22 @@ namespace cola
     // Keep easy fragments on their existing specialized translation path.
     if (!is_direct_fragment(f))
       if (auto advised = compile_x_advice(f))
-        return advised;
+        {
+          // A successful derivative construction is not a size certificate.
+          // In portfolio mode let an independently checked SLAA compete.
+          if (options_.slaa_portfolio)
+            {
+              bool negative = false;
+              auto slaa = try_slaa(f, negative);
+              if (slaa && no_larger(slaa, advised))
+                {
+                  ++stats_.slaa_components;
+                  if (negative) ++stats_.slaa_negative_components;
+                  return slaa;
+                }
+            }
+          return advised;
+        }
 
     // Before building any Buchi automaton, perform the most direct
     // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
@@ -2058,7 +2110,8 @@ namespace cola
     // Explicit direct monitors have already run. A generic-acceptance
     // residual can now avoid the NBA intermediate. Known syntactic classes
     // still compare against their established deterministic construction.
-    auto slaa = try_slaa(f);
+    bool negative = false;
+    auto slaa = try_slaa(f, negative);
 
     // Spot first: exploit its specialized translations for known easy
     // fragments instead of forcing them through Buchi.
@@ -2067,11 +2120,20 @@ namespace cola
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
         if (slaa && no_larger(slaa, direct))
-          { ++stats_.slaa_components; return slaa; }
+          {
+            ++stats_.slaa_components;
+            if (negative) ++stats_.slaa_negative_components;
+            return slaa;
+          }
         return direct;
       }
 
-    if (slaa) { ++stats_.slaa_components; return slaa; }
+    if (slaa)
+      {
+        ++stats_.slaa_components;
+        if (negative) ++stats_.slaa_negative_components;
+        return slaa;
+      }
 
     // Try the small-Buchi route.  We only use CoLA's local elevator
     // determinizer if the generated SCC structure is certified suitable.
@@ -2094,7 +2156,24 @@ namespace cola
         // only after an exact check against its source BA; otherwise use the
         // generic formula translation.  Annotations never certify this gate.
         if (spot::are_equivalent(result, ba))
-          return result;
+          {
+            // An elevator certificate establishes applicability, not minimal
+            // size. Dwyer 50 is 12 via this BA but 11 via formula translation.
+            if (options_.slaa_portfolio && !options_.slaa_tool.empty()
+                && options_.slaa_timeout_ms && options_.slaa_state_limit)
+              {
+                ++stats_.slaa_formula_candidates;
+                try
+                  {
+                    auto direct = normalize_deterministic(translate_deterministic(f));
+                    if (no_larger(direct, result))
+                      { ++stats_.slaa_formula_components; return direct; }
+                  }
+                catch (const std::runtime_error&)
+                  { ++stats_.slaa_formula_failures; }
+              }
+            return result;
+          }
         ++stats_.elevator_validation_fallbacks;
         ++stats_.deterministic_fallbacks;
         return normalize_deterministic(translate_deterministic(f));

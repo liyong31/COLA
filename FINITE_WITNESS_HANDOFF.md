@@ -218,6 +218,37 @@ semi-determinisation, rank-pressure profile scoring, acceptance compaction or
 online polarity portfolio. The optional frontend's deadline/output/input-state
 limits do not bound native construction or language checking. Keep PR #2 draft.
 
+## Subsequent SLAA shape diagnosis and online portfolio
+
+Read `tests/ltl-slaa-shape-diagnosis.md`. All 80 winner ablations and 300
+shape/polarity experiments are retained. Six of the ten LTL3TELA wins over
+positive SLAA COLA select negation, one selects Spot, and one depends on
+composition. None of the extra shape variants improves the best native
+result across both baseline polarities. Smaller intermediate counts do not
+imply easier determinisation; protect acceptance-aware transition dominance.
+
+The opt-in `--slaa-portfolio` tries both SLAA polarities, completes before
+acceptance complement, validates the positive language, and retains the
+smaller checked result. It also lets X-advice compete with these candidates
+and compares the surviving elevator BA result with formula translation.
+This fixes early size commitments on Pelanek 7 (9 -> 5) and Dwyer 50
+(12 -> 11). Native SCC pruning makes Parametrised 15 ten states, versus
+LTL3TELA eleven. Direct monitors and existing defaults are unchanged.
+
+All 681 outputs on 227 formulas pass. Versus default: 15 smaller, 212 ties,
+no larger. Common-222 totals: default 1036, positive SLAA 1035, portfolio 985,
+LTL3TELA 991. Pairwise against LTL3TELA: six smaller, 216 ties, none larger.
+The 22 frontend checks and all other make-check fixtures pass. Running the
+finite-witness suite with the new portfolio enabled passes all 387 measured
+outputs and 585 fallback/bypass checks. HOA artifacts are under
+`build-local/slaa-shapes/` and `build-local/slaa-portfolio-comparison/`.
+
+The user's next requested investigation is the TACAS 2017 LTL -> LDBA -> DPA
+construction and OWL optimizations, keeping generalized Buchi acceptance
+and feeding LDGBA to the native Emerson-Lei elevator determiniser. OWL 21.0
+supports `ltl2ldgba -t SEJK16` and `-t EKS20`. Preserve this completed SLAA
+work while adding and measuring that additional residual route.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

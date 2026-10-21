@@ -15,6 +15,8 @@ def main():
     ap.add_argument('--ltl3tela', default='build-local/external/ltl3tela-master/ltl3tela')
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-size-ablations.csv'))
     ap.add_argument('--timeout', type=float, default=12)
+    ap.add_argument('--updated-cola', type=Path,
+                    help='select wins over cola_slaa rows in this CSV instead of Spot')
     args = ap.parse_args()
     spec = importlib.util.spec_from_file_location('comparison',
                                                 Path(__file__).with_name('compare-ltl-sizes.py'))
@@ -26,6 +28,12 @@ def main():
     wins = [g for g in groups.values() if g['ltl3tela']['status'] == 'ok'
             and g['spot']['status'] == 'reference'
             and int(g['ltl3tela']['states']) < int(g['spot']['states'])]
+    if args.updated_cola:
+        with args.updated_cola.open() as source:
+            updated = {r['case']: r for r in csv.DictReader(source) if r['tool'] == 'cola_slaa'}
+        wins = [g for c, g in groups.items() if g['ltl3tela']['status'] == 'ok'
+                and updated[c]['status'] == 'ok'
+                and int(g['ltl3tela']['states']) < int(updated[c]['states'])]
     configurations = {
         'full': ['-D1', '-x1'],
         'slaa_only': ['-D1', '-b0', '-x1'],
@@ -35,6 +43,10 @@ def main():
         'no_split': ['-D1', '-l0', '-x1'],
         'no_merging': ['-D1', '-b0', '-c0', '-F0', '-G0', '-x1'],
     }
+    if args.updated_cola:
+        # Separate merging from the historical ablation's simultaneous
+        # removal of the Spot/SPOTELA portfolio (notably on Dwyer 50).
+        configurations['no_merging_keep_portfolio'] = ['-D1', '-c0', '-F0', '-G0', '-x1']
     fields = ['case', 'sources', 'formula', 'variant', 'status', 'states', 'edges',
               'colours', 'elapsed_ms', 'winner', 'spot_states', 'default_ltl3tela_states']
     rows = []
@@ -83,8 +95,8 @@ def main():
             temporary.replace(args.csv)
         print(original['sources'], [(r['variant'], r['status'], r['states'])
                                      for r in rows if r['case'] == case], flush=True)
-    assert len(wins) == 11, len(wins)
-    print('All eleven measured LTL3TELA wins ablated.', flush=True)
+    assert len(wins) == (10 if args.updated_cola else 11), len(wins)
+    print('All', len(wins), 'selected LTL3TELA wins ablated.', flush=True)
 
 
 if __name__ == '__main__':

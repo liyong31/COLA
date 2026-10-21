@@ -61,6 +61,22 @@ def main():
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'finite-witness monitors': 1},
               ['--finite-witness'], text='GF(a & X X b)')
         check(correct, {'SLAA frontend failures': 1}, ['--slaa-tool=' + str(directory / 'missing')])
+        check(correct, {'SLAA attempts': 2, 'SLAA negative candidates': 1}, ['--slaa-portfolio'])
+        # Failure of either polarity must retain the other valid candidate.
+        check("if sys.argv[-1].startswith('!'): raise SystemExit(7)\n" + correct,
+              {'SLAA frontend failures': 1, 'SLAA candidates': 1, 'SLAA negative candidates': 0},
+              ['--slaa-portfolio'])
+        check("if not sys.argv[-1].startswith('!'): raise SystemExit(7)\n" + correct,
+              {'SLAA frontend failures': 1, 'SLAA negative candidates': 1,
+               'SLAA negative components': 1}, ['--slaa-portfolio'])
+        # G !a is a partial one-state negative automaton for F a. Acceptance
+        # complement without completion would incorrectly lose words with a.
+        check(correct, {'SLAA negative candidates': 1}, ['--slaa-portfolio'], text='F a')
+        check(correct, {'SLAA attempts': 0}, ['--slaa-portfolio', '--slaa-timeout-ms=0'])
+        check('raise SystemExit(7)', {'SLAA attempts': 0, 'Boolean GF/FG components': 1},
+              ['--slaa-portfolio'], text='GF a')
+        check('raise SystemExit(7)', {'SLAA attempts': 0, 'finite-witness monitors': 1},
+              ['--slaa-portfolio', '--finite-witness'], text='GF(a & X X b)')
     print(checked, 'SLAA admission/fallback semantic regressions passed')
 
 

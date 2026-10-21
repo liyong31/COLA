@@ -7,10 +7,12 @@
 #include <spot/twaalgos/isdet.hh>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 int main(int argc, char** argv)
 {
-  if (argc != 3) return 1;
+  if (argc != 3 && argc != 4) return 1;
+  if (argc == 4 && std::string(argv[3]) != "--integrated") return 1;
   try
     {
       auto dict = spot::make_bdd_dict();
@@ -20,6 +22,19 @@ int main(int argc, char** argv)
           || formula.format_errors(std::cerr)) return 1;
       auto input = parsed->aut;
       if (!input->is_existential() || input->num_states() > 256) return 5;
+      spot::scc_info si(input, spot::scc_info_options::ALL);
+      auto types = cola::get_scc_types(si);
+      unsigned hard = 0, weak = 0, deterministic_sccs = 0;
+      for (auto t : types)
+        {
+          if (t & SCC_WEAK_TYPE) ++weak;
+          else if (t & SCC_INSIDE_DET_TYPE) ++deterministic_sccs;
+          else ++hard;
+        }
+      std::cerr << "input-sccs: " << si.scc_count()
+                << "\ninput-weak-sccs: " << weak
+                << "\ninput-deterministic-sccs: " << deterministic_sccs
+                << "\ninput-hard-sccs: " << hard << '\n';
       if (!spot::are_equivalent(input, formula.f)) return 3;
       std::cerr << "input-equivalent: 1\n";
       if (!cola::is_elevator_automaton(input)) return 2;
@@ -30,6 +45,9 @@ int main(int argc, char** argv)
       options.set(USE_DELAYED_SIMULATION, 0);
       options.set(USE_STUTTER, 0);
       options.set(USE_EXACT_STATE_LANGUAGES, 1);
+      // Historical raw measurements used only the options above. The new
+      // shape ablation can also match the integrated boundary's SCC pruning.
+      options.set(USE_SCC_INFO, argc == 4 ? 1 : 0);
       auto output = deterministic ? input : cola::determinize_televator(input, options);
       spot::print_hoa(std::cout, output);
       if (!spot::is_deterministic(output) || !spot::are_equivalent(input, output)) return 4;

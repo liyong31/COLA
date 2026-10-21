@@ -17,6 +17,9 @@ def main():
     ap.add_argument('--driver', default='build-local/tests/.libs/tela-elevator-driver')
     ap.add_argument('--artifacts', type=Path, default=Path('build-local/slaa-comparison'))
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-slaa-results.csv'))
+    ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
+                    'cola_slaa_portfolio', 'tela_elevator'],
+                    default=['cola_current', 'cola_slaa', 'tela_elevator'])
     args = ap.parse_args()
     spec = importlib.util.spec_from_file_location('comparison',
         Path(__file__).with_name('compare-ltl-sizes.py'))
@@ -26,7 +29,9 @@ def main():
     with open('tests/ltl-fragment-results.csv') as source:
         baseline = [r for r in csv.DictReader(source) if r['tool'] == 'cola']
     routes = ['SLAA attempts', 'SLAA frontend failures', 'SLAA non-elevator candidates',
-              'SLAA validation failures', 'SLAA backend attempts', 'SLAA candidates', 'SLAA components']
+              'SLAA validation failures', 'SLAA backend attempts', 'SLAA candidates', 'SLAA components',
+              'SLAA negative attempts', 'SLAA negative candidates', 'SLAA negative components',
+              'SLAA formula candidates', 'SLAA formula components', 'SLAA formula failures']
     fields = ['case', 'sources', 'formula', 'tool', 'status', 'states', 'edges', 'colours',
               'elapsed_ms', 'old_states', 'input_states', 'input_colours', 'input_deterministic',
               'input_equivalent', 'detail'] + routes
@@ -35,13 +40,15 @@ def main():
     for index, previous in enumerate(baseline, 1):
         directory = args.artifacts / previous['case']
         directory.mkdir(exist_ok=True)
-        for mode in ['cola_current', 'cola_slaa', 'tela_elevator']:
+        for mode in args.modes:
             row = dict.fromkeys(fields, '')
             row.update({key: previous[key] for key in ['case', 'sources', 'formula']})
             row.update(tool=mode, old_states=previous['states'], status='ok')
             output, stderr = directory / (mode + '.hoa'), directory / (mode + '.stderr')
             command = [args.ltld, '--stats']
-            if mode == 'cola_slaa': command += ['--slaa-tool=' + str(args.tool.resolve())]
+            if mode in ['cola_slaa', 'cola_slaa_portfolio']:
+                command += ['--slaa-tool=' + str(args.tool.resolve())]
+            if mode == 'cola_slaa_portfolio': command += ['--slaa-portfolio']
             command += ['-f', row['formula']]
             try:
                 if mode == 'tela_elevator':
@@ -79,7 +86,7 @@ def main():
                 metrics = directory / (mode + '.stats')
                 code, _ = comparison.execute(['autfilt', str(output), '--complete',
                     '--remove-unreachable-states', '--stats=%s,%e,%a,%d,%p'], metrics,
-                    metrics.with_suffix('.stderr'), 30, env)
+                    metrics.with_name(metrics.name + '.stderr'), 30, env)
                 if code: raise ValueError('output metrics failed')
                 states, edges, colours, deterministic, total = map(int, metrics.read_text().strip().split(','))
                 if deterministic != 1 or total != 1: raise ValueError('output not deterministic/complete')
@@ -101,7 +108,8 @@ def main():
                 writer.writeheader()
                 writer.writerows(rows)
             temporary.replace(args.csv)
-        print(index, previous['sources'], [(r['tool'], r['status'], r['states']) for r in rows[-3:]], flush=True)
+        print(index, previous['sources'], [(r['tool'], r['status'], r['states'])
+                                         for r in rows[-len(args.modes):]], flush=True)
     paths = [Path(args.ltld), Path(args.driver), args.tool,
              Path('build-local/src/.libs/libcola.0.dylib'), Path('tests/ltl-fragment-results.csv')]
     # Hash measured sources, not unrelated documentation being edited while
@@ -115,12 +123,13 @@ def main():
                 'environment': 'tests/ltl-fragment-environment.json',
                 'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                 'frontend_flags': ['-D0', '-b0', '-n0', '-l0', '-t0', '-p2'],
+                'modes': args.modes,
                 'frontend_timeout_seconds': 5, 'integrated_input_state_limit': 256,
                 'outer_timeout_seconds': 30,
                 'raw_driver_codes': {'2': 'non-elevator', '3': 'frontend-inequivalent',
                     '4': 'backend-inequivalent', '5': 'input-budget', '6': 'backend-error'}}
     args.csv.with_suffix('.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    assert len(rows) == 681
+    assert len(rows) == len(baseline) * len(args.modes)
     assert all(r['status'] == 'ok' for r in rows if r['tool'] != 'tela_elevator')
     assert not any(r['status'] in {'backend-inequivalent', 'validation-failed'} for r in rows)
 
