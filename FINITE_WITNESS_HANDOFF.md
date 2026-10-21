@@ -2,6 +2,7 @@
 
 Updated 21 October 2026. Branch: `finite-witness-reset`.
 Base: `ltl2dela` at `07960fadd371985ceaf676be8157e78bed380db0`.
+Draft PR: https://github.com/liyong31/COLA/pull/2 (retain draft; do not merge).
 
 ## Goal and current status
 
@@ -9,8 +10,10 @@ Continue the existing implementation; do not start again from scratch.
 The user requested an optional direct LTL-to-DELA path based on the
 finite-witness construction in `liyong31/ltl2dela-scc-decomp/factored.tex`
 (introduced in commit `3c2b42f`). Finish validation and benchmarking locally.
-The patch is implemented, but the complete regression and performance
-campaign is **unfinished**. Do not describe this checkpoint as fully tested.
+The patch and requested local regression/benchmark campaigns are complete.
+See `tests/finite-witness-benchmarks.md` and the three committed result CSVs
+for commands, measured results, routing evidence and resource limitations.
+The feature remains optional and off by default.
 
 The construction recognises `GF mu` for syntactic co-safety mu by exploring
 the finite-word DFA for `F mu` and resetting to its initial state on each
@@ -36,7 +39,7 @@ For `FG nu` with syntactic safety nu, use the monitor for `GF !nu` and `Fin(0)`.
   families, and CSV measurements checkpointed after each completed case.
 - README explains the construction, semantics, budgets and commands.
 
-## Checks actually completed before the interruption
+## Historical checks before the interruption
 
 Using Spot 2.14.5 and GCC 13 on Linux:
 
@@ -52,7 +55,8 @@ Using Spot 2.14.5 and GCC 13 on Linux:
   No reliable timing measurements have been retained.
 - The existing smoke suite and full Python suite were started, but their
   temporary logs disappeared after a session interruption. Their completion
-  has NOT been established; rerun them.
+  was not established at that checkpoint; the completed local runs below
+  supersede this historical status.
 
 ## Local build
 
@@ -85,43 +89,44 @@ encountered a gnulib `wctype_t` configure-detection problem; a retry supplied
 gl_cv_type_wctype_t=yes`. That retry was not yet validated at this checkpoint;
 do not blindly impose those platform-specific settings on the user's machine.
 
-## Remaining work, in order
+## Completed local continuation (21 October 2026)
 
-1. Build locally; fix any compile/runtime errors in the patch.
-2. Run existing regressions:
+- Built natively on this Apple M3 MacBook Air with Apple Clang 17,
+  C++17/O2 and the existing Spot 2.14.1 installation in `/usr/local`.
+  Replaced one GNU-only `bits/stdc++.h` include with standard headers.
+  No change to the finite-witness algorithm was required.
+- Built in `build-local/` to avoid the case-insensitive `cola`/`COLA/`
+  executable/directory collision. The nested checkout is untouched.
+  The report gives reproducible configure and dynamic-library settings.
+- `make check` and the complete smoke suite passed.
+- Default budget, five repeats, stress 10: all required regressions passed;
+  79 equivalent deterministic outputs, seven installed acceptance-capacity
+  failures and one 30-second baseline scaling timeout.
+- Seeded run, one repeat: 17 fixed cases plus 50 kernels and their 50 duals;
+  all 351 measured outputs passed. Each formula also passed five independent
+  fallback/fast-path-bypass checks (585 additional outputs).
+- Larger budget, five repeats, stress 10: state budget 4096, work budget
+  unchanged at 16384; the 512-state and 1024-state X-window monitors completed
+  and passed independent equivalence. There are 81 successful outputs, five
+  baseline capacity failures and one baseline timeout. See the CSV for all rows.
+- Budget abort assertions now allow multiple retries by profile exploration;
+  they require positive aborts and zero completed monitors. The CLI preserves
+  routing statistics when fallback translation raises an exception.
+- Scaling capacity errors are recorded explicitly. Unexpected failures and
+  all required-case failures remain fatal. No resource-limited output is
+  described as a completed reset monitor.
 
-   ```sh
-   make check
-   sh tests/ltl2dela-smoke.sh
-   ```
+The default reset path completes X-window depths through eight; at nine and
+ten it falls back, after which the existing translator hits this installed
+Spot build's 32-acceptance-set limit. Increasing the reset state budget to
+4096 completes both cases. Direct Spot completes all reference cases.
+At correlated-until width five the baseline times out, while reset and Spot
+both complete and pass equivalence. DFA state growth remains exponential;
+budgets still do not bound time/memory inside a derivative call.
 
-3. Run the new regressions and comparison, with Spot's tools on PATH:
-
-   ```sh
-   python3 tests/finite-witness.py --repeats 5 --stress 10 \
-     --csv tests/finite-witness-results.csv
-   python3 tests/finite-witness.py --repeats 1 --random-cases 50 \
-     --csv tests/finite-witness-random-results.csv
-   ```
-
-   These compare the default COLA path, `--finite-witness`, and independent
-   `ltl2tgba --deterministic --generic`, using `autfilt --equivalent-to`.
-   The random run adds 50 kernels and their 50 duals (seed 20261020).
-   Timings are fresh-process medians including startup and HOA output.
-   Required fixed-case timeouts are failures. Scaling timeouts are recorded.
-
-4. Examine DFA growth on `GF(a & X^k b)` and correlated-until width families.
-   Compare default limits with an increased state budget using
-   `--state-limit=4096`; inspect `--stats` to distinguish completed monitors
-   from budget fallback. Do not claim an output came from the reset path if
-   that attempt was abandoned. The script's work limit remains the default.
-5. Report state/edge counts and median times, gains and regressions, the
-   consequences of budget exhaustion, and when existing COLA or direct Spot
-   should be preferred. Small startup-dominated timing differences should not
-   be overinterpreted. Keep the feature optional unless broader evidence
-   supports changing its default.
-6. Commit test results and fixes to this branch and update its draft PR (or
-   create a PR targeting `ltl2dela` if one is absent). Do not merge automatically.
+Continue from these results if expanding coverage. There is no outstanding
+failure in the required local regressions. Broader LTL/version coverage would
+be needed before considering a change to the default. Keep PR #2 in draft.
 
 ## Sources
 

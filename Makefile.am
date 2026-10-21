@@ -59,4 +59,6 @@ check_PROGRAMS = tests/elevator-acceptance
 tests_elevator_acceptance_SOURCES = tests/elevator-acceptance.cpp
 tests_elevator_acceptance_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance
-EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py
+EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
+  tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
+  tests/finite-witness-random-results.csv tests/finite-witness-large-results.csv

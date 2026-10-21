@@ -8,6 +8,7 @@ import argparse
 import csv
 import os
 import random
+import re
 from pathlib import Path
 import statistics
 import subprocess
@@ -35,9 +36,25 @@ CASES = [
 ]
 
 
+class CommandFailure(RuntimeError):
+    def __init__(self, cmd, result):
+        self.stderr = result.stderr
+        super().__init__(f'Command failed ({result.returncode}): {cmd!r}\n'
+                         + result.stderr)
+
+
+def routing_stats(stderr):
+    return [int(match.group(1)) if (match := re.search(
+        r'finite-witness ' + key + r': (\d+)', stderr)) else ''
+        for key in ['monitors', 'duals', 'aborts']]
+
+
 def run(cmd, timeout, **kw):
-    return subprocess.run(cmd, check=True, text=True, timeout=timeout,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kw)
+    result = subprocess.run(cmd, text=True, timeout=timeout,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kw)
+    if result.returncode:
+        raise CommandFailure(cmd, result)
+    return result
 
 
 def main():
@@ -52,6 +69,8 @@ def main():
                     help='additional seeded nested co-safety kernels and duals')
     ap.add_argument('--timeout', type=float, default=30)
     args = ap.parse_args()
+    if args.repeats < 1 or args.state_limit < 0 or args.timeout <= 0:
+        ap.error('repeats and timeout must be positive; state-limit must be nonnegative')
     cases = CASES + [(f'window_{k}', 'GF(a & ' + 'X '*k + 'b)')
                      for k in range(3, args.stress+1)]
     cases += [(f'until_width_{k}', 'GF(t & ' + ' & '.join(
@@ -74,11 +93,13 @@ def main():
             with open(args.csv, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['case', 'formula', 'mode', 'states', 'edges',
-                                 'colours', 'median_ms', 'status'])
+                                 'colours', 'median_ms', 'status',
+                                 'witness_monitors', 'witness_duals', 'witness_aborts'])
                 writer.writerows(rows)
 
     with tempfile.TemporaryDirectory() as tmp:
         for name, formula in cases:
+            scaling = name.startswith(('window_', 'until_width_'))
             ref = Path(tmp)/'spot.hoa'
             paths = {}
             for mode, command in [
@@ -88,7 +109,13 @@ def main():
                 ('spot', ['ltl2tgba', '--deterministic', '--generic'])]:
                 path = Path(tmp)/(mode+'.hoa')
                 elapsed = []
+                routing = ['', '', '']
                 try:
+                    if mode == 'reset':
+                        # Diagnostics are outside the timed runs.  Do this
+                        # first to retain abort counts even if fallback fails.
+                        stats = run(command + ['--stats', '-f', formula], args.timeout)
+                        routing = routing_stats(stats.stderr)
                     for _ in range(args.repeats):
                         start = time.perf_counter()
                         result = run(command + ['-f', formula], args.timeout)
@@ -101,25 +128,40 @@ def main():
                     run(['autfilt', '-q', '--is-deterministic', str(path)], args.timeout)
                     paths[mode] = path
                     rows.append([name, formula, mode, states, edges, colours,
-                                 round(statistics.median(elapsed), 3), 'ok'])
+                                 round(statistics.median(elapsed), 3), 'translated'] + routing)
                 except subprocess.TimeoutExpired:
-                    rows.append([name, formula, mode, '', '', '', '', 'timeout'])
-            if name in {c[0] for c in CASES} and len(paths) != 3:
+                    rows.append([name, formula, mode, '', '', '', '', 'timeout'] + routing)
+                except CommandFailure as error:
+                    # This is an installed Spot capacity bound, not an
+                    # equivalence failure.  Required regressions still fail.
+                    if not scaling or 'Too many acceptance sets used.' not in error.stderr:
+                        raise
+                    if mode == 'reset':
+                        routing = routing_stats(error.stderr)
+                    rows.append([name, formula, mode, '', '', '', '',
+                                 'acceptance-limit'] + routing)
+                save_results()
+            if not scaling and len(paths) != 3:
                 raise RuntimeError('Required regression timed out: ' + name)
+            if paths and 'spot' not in paths:
+                raise RuntimeError('No independent reference for: ' + name)
             for mode, path in paths.items():
                 if 'spot' in paths:
                     run(['autfilt', '-q', str(path), '--equivalent-to='+str(ref)],
                         args.timeout)
-            if 'spot' in paths and not name.startswith(('window_', 'until_width_')):
+                    next(r for r in rows if r[0] == name and r[2] == mode)[7] = 'ok'
+            if 'spot' in paths and not scaling:
                 # Both budget fallbacks and bypassing fast paths preserve language.
-                for option in ['--finite-witness-state-limit=1',
+                for option in ['--finite-witness-state-limit=0',
+                               '--finite-witness-work-limit=0',
+                               '--finite-witness-state-limit=1',
                                '--finite-witness-work-limit=1',
                                '--no-recurrence']:
                     result = run([args.ltld, '--finite-witness', option, '-f', formula],
                                  args.timeout)
                     fallback = Path(tmp)/'fallback.hoa'
                     fallback.write_text(result.stdout)
-                    run(['autfilt', '-q', str(fallback),
+                    run(['autfilt', '-q', '--is-deterministic', str(fallback),
                          '--equivalent-to='+str(ref)], args.timeout)
             print(name, ':', ', '.join(f'{r[2]}={r[3]} states/{r[6]} ms ({r[7]})'
                                        for r in rows if r[0] == name), flush=True)
@@ -132,12 +174,21 @@ def main():
             result = run([args.ltld, '--finite-witness', '--stats', '-f', formula],
                          args.timeout)
             assert expected in result.stderr, (name, result.stderr)
-        result = run([args.ltld, '--finite-witness', '--finite-witness-work-limit=1',
-                      '--stats', '-f', 'GF(a & X X b)'], args.timeout)
-        assert 'finite-witness aborts: 1' in result.stderr, result.stderr
+        for option in ['--finite-witness-state-limit=0',
+                       '--finite-witness-work-limit=0',
+                       '--finite-witness-state-limit=1',
+                       '--finite-witness-work-limit=1']:
+            result = run([args.ltld, '--finite-witness', option,
+                          '--stats', '-f', 'GF(a & X X b)'], args.timeout)
+            monitors, duals, aborts = routing_stats(result.stderr)
+            # Existing profile exploration can retry the bounded construction
+            # on multiple residuals; every abandoned attempt is counted.
+            assert aborts >= 1 and monitors == 0 and duals == 0, result.stderr
     save_results()
     print('Finite-witness equivalence and routing regressions passed; '
-          + str(sum(r[-1] == 'timeout' for r in rows)) + ' timed-out benchmark runs.')
+          + str(sum(r[7] == 'timeout' for r in rows)) + ' timed-out benchmark runs; '
+          + str(sum(r[7] == 'acceptance-limit' for r in rows))
+          + ' benchmark runs exceeded the installed acceptance-set limit.')
 
 
 if __name__ == '__main__':

@@ -359,7 +359,19 @@ int main(int argc, char** argv)
       for (const auto& text: input)
         {
           auto f = parse(text);
-          auto aut = translator.run(f);
+          spot::twa_graph_ptr aut;
+          try
+            {
+              aut = translator.run(f);
+            }
+          catch (const std::exception&)
+            {
+              // Preserve routing diagnostics if a fallback hits a resource
+              // limit in the established translator.
+              if (show_stats || opts.verbose)
+                translator.stats().print(std::cerr);
+              throw;
+            }
 
           if (!first)
             *out << '\n';

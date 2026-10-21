@@ -489,6 +489,14 @@ translations using language equivalence, including both budget fallbacks.
 Timing measurements are medians of fresh processes and include startup and
 HOA output; state counts are after each tool's normal post-processing.
 
+The completed [local validation and benchmark report](tests/finite-witness-benchmarks.md)
+includes the fixed and seeded equivalence campaigns, default and increased
+state budgets, and CSV measurements. The driver records completed monitors,
+duals and aborted attempts separately. Scaling cases that exceed the installed
+Spot acceptance-set capacity are recorded as `acceptance-limit`; required
+regressions and unexpected command failures still fail the run. An `ok` CSV
+row has passed determinism and independent Spot language equivalence checks.
+
 Spot references: [finite-trace translation tutorial](https://spot.lre.epita.fr/ipynb/ltlf2dfa.html),
 [`ltlf2dfa.hh` API](https://spot.lre.epita.fr/doxygen/ltlf2dfa_8hh_source.html).
 The construction follows the finite-witness section of

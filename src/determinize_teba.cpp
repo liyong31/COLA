@@ -23,7 +23,13 @@
 #include <map>
 #include <set>
 #include <bitset>
-#include <bits/stdc++.h>
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
