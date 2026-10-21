@@ -128,6 +128,20 @@ Continue from these results if expanding coverage. There is no outstanding
 failure in the required local regressions. Broader LTL/version coverage would
 be needed before considering a change to the default. Keep PR #2 in draft.
 
+## Broader OWL literature comparison
+
+The subsequent requested six-configuration size experiment is recorded in
+`tests/ltl-size-comparison.md`, with the complete input corpus, CSV, summary,
+versions and reproducible drivers. It covers 227 distinct formula strings
+(237 source entries). On 222 common successful formulas, LTL3TELA has the
+smallest-state output most often, followed by Spot; LTL3TELA also has four
+timeouts and one repeatable crash in this local configuration. OWL and DELAG
+complete all inputs. Reset mode improves no paired state counts over default
+COLA on this collection and worsens one (three to four states); only seven
+formula runs actually complete reset monitors. No construction changes were
+made for this experiment. Consult the report for the matched-cohort caveat
+and explicit alternate-reference checks when Spot times out.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

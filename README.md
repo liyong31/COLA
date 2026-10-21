@@ -497,6 +497,11 @@ Spot acceptance-set capacity are recorded as `acceptance-limit`; required
 regressions and unexpected command failures still fail the run. An `ok` CSV
 row has passed determinism and independent Spot language equivalence checks.
 
+For a broader comparison against DELAG, LTL3TELA and OWL SLM21, see the
+[OWL literature size experiment](tests/ltl-size-comparison.md). It retains
+the corpus, per-formula results, tool versions, common-cohort and paired
+size rankings, and explicit failure statuses.
+
 Spot references: [finite-trace translation tutorial](https://spot.lre.epita.fr/ipynb/ltlf2dfa.html),
 [`ltlf2dfa.hh` API](https://spot.lre.epita.fr/doxygen/ltlf2dfa_8hh_source.html).
 The construction follows the finite-witness section of

@@ -62,3 +62,12 @@ TESTS = tests/elevator-acceptance
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
   tests/finite-witness-random-results.csv tests/finite-witness-large-results.csv
+
+EXTRA_DIST += tests/compare-ltl-sizes.py tests/summarize-ltl-sizes.py \
+  tests/ltl-size-comparison.md tests/ltl-size-summary.md \
+  tests/ltl-size-results.csv tests/ltl-size-environment.json \
+  tests/ltl3tela-clang.patch tests/ltl-size-corpus/README.md \
+  tests/ltl-size-corpus/DwyerAC98.ltl tests/ltl-size-corpus/EtessamiH00.ltl \
+  tests/ltl-size-corpus/Liberouter04.ltl tests/ltl-size-corpus/Parametrised.ltl \
+  tests/ltl-size-corpus/Parametrised-Hardness.ltl tests/ltl-size-corpus/Pelanek07.ltl \
+  tests/ltl-size-corpus/SickertEJK16.ltl tests/ltl-size-corpus/SomenziB00.ltl
