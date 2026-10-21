@@ -11,8 +11,12 @@
 
 int main(int argc, char** argv)
 {
-  if (argc != 3 && argc != 4) return 1;
-  if (argc == 4 && std::string(argv[3]) != "--integrated") return 1;
+  if (argc < 3 || argc > 5) return 1;
+  bool integrated = false, compact = false;
+  for (int i = 3; i < argc; ++i)
+    if (std::string(argv[i]) == "--integrated") integrated = true;
+    else if (std::string(argv[i]) == "--compact-ranks") compact = true;
+    else return 1;
   try
     {
       auto dict = spot::make_bdd_dict();
@@ -47,7 +51,8 @@ int main(int argc, char** argv)
       options.set(USE_EXACT_STATE_LANGUAGES, 1);
       // Historical raw measurements used only the options above. The new
       // shape ablation can also match the integrated boundary's SCC pruning.
-      options.set(USE_SCC_INFO, argc == 4 ? 1 : 0);
+      options.set(USE_SCC_INFO, integrated);
+      options.set(USE_OBSERVED_RANKS, compact);
       auto output = deterministic ? input : cola::determinize_televator(input, options);
       spot::print_hoa(std::cout, output);
       if (!spot::is_deterministic(output) || !spot::are_equivalent(input, output)) return 4;

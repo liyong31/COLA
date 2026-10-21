@@ -17,6 +17,7 @@
 #include <spot/twa/bdddict.hh>
 
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,11 @@ namespace cola
     bool slaa_portfolio = false;
     unsigned slaa_timeout_ms = 5000;
     unsigned slaa_state_limit = 256;
+    std::string ldgba_tool;
+    std::string ldgba_construction = "both";
+    unsigned ldgba_timeout_ms = 5000;
+    unsigned ldgba_state_limit = 256;
+    unsigned ldgba_attempt_limit = 8;
     // Optional Spot LTLf reset construction; limits abandon the whole attempt.
     bool use_finite_witness = false;
     unsigned finite_witness_state_limit = 256;
@@ -111,6 +117,15 @@ namespace cola
     unsigned slaa_formula_candidates = 0;
     unsigned slaa_formula_components = 0;
     unsigned slaa_formula_failures = 0;
+    unsigned ldgba_attempts = 0;
+    unsigned ldgba_failures = 0;
+    unsigned ldgba_rejected = 0;
+    unsigned ldgba_backend_attempts = 0;
+    unsigned ldgba_validation_failures = 0;
+    unsigned ldgba_candidates = 0;
+    unsigned ldgba_components = 0;
+    unsigned ldgba_cache_hits = 0;
+    unsigned ldgba_budget_skips = 0;
     unsigned master_advice_rewrites = 0;
     unsigned x_advice_components = 0;
     unsigned x_advice_profiles = 0;
@@ -281,6 +296,7 @@ namespace cola
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);
     spot::twa_graph_ptr try_slaa(spot::formula f, bool& negative);
+    spot::twa_graph_ptr try_ldgba(spot::formula f);
     spot::twa_graph_ptr normalize_deterministic(spot::twa_graph_ptr aut);
 
     spot::twa_graph_ptr compose(const spot::twa_graph_ptr& left,
@@ -317,5 +333,6 @@ namespace cola
     spot::tl_simplifier simplifier_;
     spot::option_map cola_options_;
     ltl2dela_stats stats_;
+    std::map<spot::formula, spot::twa_graph_ptr> ldgba_cache_;
   };
 }

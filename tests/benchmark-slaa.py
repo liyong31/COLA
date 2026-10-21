@@ -15,10 +15,11 @@ def main():
     ap.add_argument('--tool', type=Path, required=True)
     ap.add_argument('--ltld', default='build-local/.libs/ltl2dela')
     ap.add_argument('--driver', default='build-local/tests/.libs/tela-elevator-driver')
+    ap.add_argument('--owl', type=Path, default=Path('build-local/external/owl-21.0/bin/owl'))
     ap.add_argument('--artifacts', type=Path, default=Path('build-local/slaa-comparison'))
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-slaa-results.csv'))
     ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
-                    'cola_slaa_portfolio', 'tela_elevator'],
+                    'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'tela_elevator'],
                     default=['cola_current', 'cola_slaa', 'tela_elevator'])
     args = ap.parse_args()
     spec = importlib.util.spec_from_file_location('comparison',
@@ -31,7 +32,10 @@ def main():
     routes = ['SLAA attempts', 'SLAA frontend failures', 'SLAA non-elevator candidates',
               'SLAA validation failures', 'SLAA backend attempts', 'SLAA candidates', 'SLAA components',
               'SLAA negative attempts', 'SLAA negative candidates', 'SLAA negative components',
-              'SLAA formula candidates', 'SLAA formula components', 'SLAA formula failures']
+              'SLAA formula candidates', 'SLAA formula components', 'SLAA formula failures',
+              'LDGBA attempts', 'LDGBA frontend/construction failures', 'LDGBA rejected candidates',
+              'LDGBA backend attempts', 'LDGBA validation failures', 'LDGBA candidates', 'LDGBA components',
+              'LDGBA cache hits', 'LDGBA budget skips']
     fields = ['case', 'sources', 'formula', 'tool', 'status', 'states', 'edges', 'colours',
               'elapsed_ms', 'old_states', 'input_states', 'input_colours', 'input_deterministic',
               'input_equivalent', 'detail'] + routes
@@ -46,9 +50,11 @@ def main():
             row.update(tool=mode, old_states=previous['states'], status='ok')
             output, stderr = directory / (mode + '.hoa'), directory / (mode + '.stderr')
             command = [args.ltld, '--stats']
-            if mode in ['cola_slaa', 'cola_slaa_portfolio']:
+            if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined']:
                 command += ['--slaa-tool=' + str(args.tool.resolve())]
-            if mode == 'cola_slaa_portfolio': command += ['--slaa-portfolio']
+            if mode in ['cola_slaa_portfolio', 'cola_combined']: command += ['--slaa-portfolio']
+            if mode in ['cola_ldgba', 'cola_combined']:
+                command += ['--ldgba-tool=' + str(args.owl.resolve())]
             command += ['-f', row['formula']]
             try:
                 if mode == 'tela_elevator':
@@ -112,6 +118,7 @@ def main():
                                          for r in rows[-len(args.modes):]], flush=True)
     paths = [Path(args.ltld), Path(args.driver), args.tool,
              Path('build-local/src/.libs/libcola.0.dylib'), Path('tests/ltl-fragment-results.csv')]
+    if any(m in ['cola_ldgba', 'cola_combined'] for m in args.modes): paths.append(args.owl)
     # Hash measured sources, not unrelated documentation being edited while
     # the campaign runs. Build metadata and reports do not affect the route.
     paths += [Path(p) for p in subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()

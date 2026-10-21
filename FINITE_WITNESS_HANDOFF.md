@@ -243,11 +243,59 @@ finite-witness suite with the new portfolio enabled passes all 387 measured
 outputs and 585 fallback/bypass checks. HOA artifacts are under
 `build-local/slaa-shapes/` and `build-local/slaa-portfolio-comparison/`.
 
-The user's next requested investigation is the TACAS 2017 LTL -> LDBA -> DPA
-construction and OWL optimizations, keeping generalized Buchi acceptance
-and feeding LDGBA to the native Emerson-Lei elevator determiniser. OWL 21.0
-supports `ltl2ldgba -t SEJK16` and `-t EKS20`. Preserve this completed SLAA
-work while adding and measuring that additional residual route.
+## Subsequent TACAS/OWL LDGBA route
+
+The additional route is implemented and measured. Read `tests/ltl-ldgba-report.md`.
+The TACAS 2017 paper (Esparza/Kretinsky/Raskin/Sickert) and OWL source were
+checked. A standard LDGBA has rejecting weak prefix SCCs and closed deterministic
+accepting SCCs, hence is elevator. Keep generalized Buchi acceptance and use
+native shifted Emerson-Lei acceptance; do not degeneralise or pass through DPA.
+Paper-level semantic annotations and complexity guarantees do not automatically
+transfer through unannotated HOA.
+
+- `--ldgba-tool=PATH` invokes OWL 21.0 `ltl2ldgba -t SEJK16|EKS20` with formula/
+  acceptance simplification and `--skip-translation-portfolio`. Default tries
+  both algorithms and compares final completed states/marks/edges, keeping
+  established results on exact ties. Combine with `--slaa-portfolio` as desired.
+  Direct recurrence, GF/FG and finite-witness monitors retain priority.
+- Every input must be generalized Buchi, certified elevator and source-equivalent.
+  Every native result is checked for determinism and input equivalence. Existing
+  bounded exact SCC-local preorder/union pruning remains; simulation/stutter
+  shortcuts stay disabled at this boundary. Failed optional attempts fall back.
+- Acceptance allocation can use maximum observed rank widths after exploration.
+  Always-absent ranks have false Fin(discontinued) and may be omitted. This is
+  enabled only for the new route. Dwyer 45's two algorithm inputs change from
+  capacity failures to checked 276/28-state results. Spot still limits marks to 32.
+- The first integrated campaign timed out on Dwyer 55 because profile refinement
+  repeatedly invoked OWL. Per-formula caching (including failed attempts) and
+  `--ldgba-attempt-limit=8` fix it: controlled reproduction 4.4 seconds, eight
+  calls, 18 cache hits. Budget/cache reset for each batch input. Frontend defaults
+  are five seconds per call, 8 MiB output, 256 input states; zero budgets skip.
+  Native construction, parsing and exact language checking remain unbounded.
+- All 908 outputs across default, SLAA portfolio, LDGBA and combined modes pass.
+  Common-222 totals: 1036, 985, 998, **984** respectively. Combined versus default:
+  15 smaller/212 ties/no larger. Combined versus LTL3TELA: seven smaller/215 ties/
+  no larger. The new additional win is Dwyer 46: default 6, SLAA 4, LDGBA 3.
+- 1135 raw comparisons cover both generalized and ordinary Buchi frontends plus
+  OWL's TACAS DPA route. Preserving generalized acceptance is smaller on 19 SEJK16
+  and 29 EKS20 joint successes, never larger. Somenzi 21 gives four versus eight.
+  Raw GBA is not uniformly better than OWL DPA; use it alongside direct monitors.
+  Genuine raw timeouts/capacity outcomes remain explicit in the CSV.
+- 60 targeted controls compare formula/acceptance simplification, OWL portfolio
+  and full/observed rank allocation. On these six formulas disabling simplifiers
+  gives no size gains. OWL portfolio improves some SEJK16 outcomes but loses the
+  EKS20 three-state result on Dwyer 46. Do not pick only by intermediate size.
+- `make check`: eight historical, 17 specialized, 47 generic, 22 SLAA and 24 LDGBA
+  checks pass. Complete smoke, 387 combined-mode finite-witness outputs and 585
+  budget/bypass checks pass without timeout or capacity failure. CSV timing is
+  single-repeat with concurrent campaigns, not a runtime ranking.
+
+Artifacts: `build-local/ldgba-comparison/`, `build-local/ldgba-integrated/`,
+`build-local/ldgba-optimizations/`. Source/binary hashes are in CSV companion
+JSON manifests. Optional tools are runtime dependencies; no source is vendored.
+Keep PR #2 draft. Existing SLAA/finite-witness work is preserved; custom SLAA
+rewrites, annotated semantic jump/ranking optimization and SCC-local
+elevatorization remain future work.
 
 ## Sources
 

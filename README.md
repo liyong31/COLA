@@ -146,6 +146,34 @@ variants did not improve the best native result across both polarities in
 this grid, so they are not enabled by default. The frontend deadline applies
 to each polarity attempt; native construction and checking remain unbounded.
 
+The [LDGBA route and TACAS/OWL experiments](tests/ltl-ldgba-report.md) add
+another optional residual candidate:
+
+```sh
+./build-local/ltl2dela \
+  --ldgba-tool="$PWD/build-local/external/owl-21.0/bin/owl" \
+  --slaa-tool="$PWD/build-local/external/ltl3tela-master/ltl3tela" \
+  --slaa-portfolio --stats -f 'G(!a | F(b & XF c))'
+```
+
+OWL constructs a limit-deterministic generalized Büchi automaton; COLA
+certifies its elevator structure and language, then uses its native
+Emerson–Lei determiniser with the generalized acceptance retained.
+`--ldgba-construction=SEJK16|EKS20|both` selects the algorithms (default both).
+The route compares final completed sizes, keeps established results on ties,
+and preserves direct-monitor priority. The combined portfolio totals 984
+states on the same 222-formula cohort, versus SLAA portfolio 985 and
+LTL3TELA 991. All 908 outputs across four COLA modes pass equivalence.
+
+The frontend has a five-second per-call deadline, an 8 MiB output cap and
+256-state input limit (`--ldgba-timeout-ms` and `--ldgba-state-limit`).
+`--ldgba-attempt-limit=8` bounds calls across one input formula; cached
+residual results avoid repeated profile work. Zero time, state or attempt
+budget skips this route. Native construction and language checks remain
+unbounded. Observed rank widths reduce acceptance allocation at this
+boundary; this Spot build’s acceptance capacity can still reject candidates.
+See the report for 1135 raw GBA/BA/DPA comparisons and 60 optimization controls.
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

@@ -12,4 +12,10 @@ namespace cola
   spot::twa_graph_ptr slaa_frontend(spot::formula f, spot::bdd_dict_ptr dict,
                                   const std::string& tool,
                                   unsigned timeout_ms, unsigned state_limit);
+  // OWL's optimized generalized-Buchi LTL-to-limit-deterministic frontend.
+  // Bypass its easy-fragment portfolio; COLA already handles those directly.
+  spot::twa_graph_ptr owl_ldgba_frontend(spot::formula f, spot::bdd_dict_ptr dict,
+                                       const std::string& tool,
+                                       const std::string& construction,
+                                       unsigned timeout_ms, unsigned state_limit);
 }

@@ -260,6 +260,15 @@ namespace cola
         << "  SLAA formula candidates: " << slaa_formula_candidates << '\n'
         << "  SLAA formula components: " << slaa_formula_components << '\n'
         << "  SLAA formula failures: " << slaa_formula_failures << '\n'
+        << "  LDGBA attempts: " << ldgba_attempts << '\n'
+        << "  LDGBA frontend/construction failures: " << ldgba_failures << '\n'
+        << "  LDGBA rejected candidates: " << ldgba_rejected << '\n'
+        << "  LDGBA backend attempts: " << ldgba_backend_attempts << '\n'
+        << "  LDGBA validation failures: " << ldgba_validation_failures << '\n'
+        << "  LDGBA candidates: " << ldgba_candidates << '\n'
+        << "  LDGBA components: " << ldgba_components << '\n'
+        << "  LDGBA cache hits: " << ldgba_cache_hits << '\n'
+        << "  LDGBA budget skips: " << ldgba_budget_skips << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1453,8 +1462,14 @@ namespace cola
         if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
+        // Pure obligations keep their existing direct construction. More
+        // general recurrence/persistence languages may have a cheaper DGBA.
+        auto ldgba = f.is_syntactic_obligation() ? nullptr : try_ldgba(f);
         bool negative = false;
         auto slaa = try_slaa(f, negative);
+        if (ldgba && no_larger(ldgba, direct) && !no_larger(direct, ldgba)
+            && (!dba || !no_larger(dba, ldgba)) && (!slaa || !no_larger(slaa, ldgba)))
+          { ++stats_.ldgba_components; return ldgba; }
         if (slaa && no_larger(slaa, direct)
             && (!dba || no_larger(slaa, dba)))
           {
@@ -1597,6 +1612,54 @@ namespace cola
     if (dual && (!positive || (no_larger(dual, positive) && !no_larger(positive, dual))))
       { negative = true; return dual; }
     return positive;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_ldgba(spot::formula f)
+  {
+    if (options_.ldgba_tool.empty() || !options_.ldgba_timeout_ms
+        || !options_.ldgba_state_limit || !options_.ldgba_attempt_limit) return nullptr;
+    auto cached = ldgba_cache_.find(f);
+    if (cached != ldgba_cache_.end())
+      { ++stats_.ldgba_cache_hits; return cached->second; }
+    spot::twa_graph_ptr best;
+    for (const std::string construction : {"SEJK16", "EKS20"})
+      {
+        if (options_.ldgba_construction != "both"
+            && options_.ldgba_construction != construction) continue;
+        if (stats_.ldgba_attempts >= options_.ldgba_attempt_limit)
+          { ++stats_.ldgba_budget_skips; break; }
+        ++stats_.ldgba_attempts;
+        try
+          {
+            auto input = owl_ldgba_frontend(f, dict_, options_.ldgba_tool, construction,
+                                           options_.ldgba_timeout_ms, options_.ldgba_state_limit);
+            if (!input) { ++stats_.ldgba_failures; continue; }
+            if (!input->acc().is_generalized_buchi() || !cola::is_elevator_automaton(input))
+              { ++stats_.ldgba_rejected; continue; }
+            if (!spot::are_equivalent(input, f))
+              { ++stats_.ldgba_validation_failures; continue; }
+            auto om = cola_options_;
+            om.set(USE_SIMULATION, 0);
+            om.set(USE_DELAYED_SIMULATION, 0);
+            om.set(USE_STUTTER, 0);
+            om.set(USE_OBSERVED_RANKS, 1);
+            bool deterministic = spot::is_deterministic(input);
+            if (!deterministic) ++stats_.ldgba_backend_attempts;
+            auto result = deterministic ? input : cola::determinize_televator(input, om);
+            result = normalize_deterministic(result);
+            if (!spot::is_deterministic(result) || !spot::are_equivalent(result, input))
+              { ++stats_.ldgba_validation_failures; continue; }
+            ++stats_.ldgba_candidates;
+            if (!best || (no_larger(result, best) && !no_larger(best, result))) best = result;
+          }
+        catch (const std::runtime_error&)
+          { ++stats_.ldgba_failures; }
+      }
+    // Cache failed attempts too: profile refinement often revisits the same
+    // residual without changing its language. Reset this cache for each run.
+    ldgba_cache_.emplace(f, best);
+    return best;
   }
 
   spot::twa_graph_ptr
@@ -1977,6 +2040,16 @@ namespace cola
     if (options_.use_specialized_fragments)
       if (auto special = compile_specialized(f)) return special;
 
+    auto ldgba = try_ldgba(f);
+    auto finish = [&](spot::twa_graph_ptr result)
+      {
+        // Keep the established residual construction on exact ties. A
+        // successful LDGBA is a candidate, not a minimality certificate.
+        if (ldgba && no_larger(ldgba, result) && !no_larger(result, ldgba))
+          { ++stats_.ldgba_components; return ldgba; }
+        return result;
+      };
+
     // Recognize the post-commitment Master-Theorem shape before Delta2
     // normalization can obscure its individual recurrence obligations.
     if (options_.use_master_profiles)
@@ -1985,7 +2058,7 @@ namespace cola
         auto special =
           compile_master_bundle(f, depth, used, handled, profile);
         if (handled)
-          return special;
+          return finish(special);
       }
 
     // Try the exact derivative construction before heuristic profile splits
@@ -2004,10 +2077,10 @@ namespace cola
                 {
                   ++stats_.slaa_components;
                   if (negative) ++stats_.slaa_negative_components;
-                  return slaa;
+                  return finish(slaa);
                 }
             }
-          return advised;
+          return finish(advised);
         }
 
     // Before building any Buchi automaton, perform the most direct
@@ -2043,7 +2116,7 @@ namespace cola
                                 next_used, false, left_profile);
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
@@ -2078,7 +2151,7 @@ namespace cola
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
             ++stats_.profile_leaves;
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
@@ -2104,7 +2177,7 @@ namespace cola
         auto res = compile(f[0], depth, used, true, profile);
         for (unsigned i = 1; i < f.size(); ++i)
           res = compose(res, compile(f[i], depth, used, true, profile), disjunction);
-        return res;
+        return finish(res);
       }
 
     // Explicit direct monitors have already run. A generic-acceptance
@@ -2123,16 +2196,16 @@ namespace cola
           {
             ++stats_.slaa_components;
             if (negative) ++stats_.slaa_negative_components;
-            return slaa;
+            return finish(slaa);
           }
-        return direct;
+        return finish(direct);
       }
 
     if (slaa)
       {
         ++stats_.slaa_components;
         if (negative) ++stats_.slaa_negative_components;
-        return slaa;
+        return finish(slaa);
       }
 
     // Try the small-Buchi route.  We only use CoLA's local elevator
@@ -2141,7 +2214,7 @@ namespace cola
     if (auto dba = try_dba(f, ba))
       {
         ++stats_.dba_components;
-        return dba;
+        return finish(dba);
       }
     auto h = analyze(ba);
     if (h.elevator)
@@ -2167,16 +2240,16 @@ namespace cola
                   {
                     auto direct = normalize_deterministic(translate_deterministic(f));
                     if (no_larger(direct, result))
-                      { ++stats_.slaa_formula_components; return direct; }
+                      { ++stats_.slaa_formula_components; return finish(direct); }
                   }
                 catch (const std::runtime_error&)
                   { ++stats_.slaa_formula_failures; }
               }
-            return result;
+            return finish(result);
           }
         ++stats_.elevator_validation_fallbacks;
         ++stats_.deterministic_fallbacks;
-        return normalize_deterministic(translate_deterministic(f));
+        return finish(normalize_deterministic(translate_deterministic(f)));
       }
 
     ++stats_.hard_buchi_components;
@@ -2213,7 +2286,7 @@ namespace cola
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
             ++stats_.profile_leaves;
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
@@ -2224,7 +2297,7 @@ namespace cola
     if (options_.verbose >= 1)
       std::cerr << "ltl2dela: deterministic formula fallback for "
                 << f << '\n';
-    return normalize_deterministic(translate_deterministic(f));
+    return finish(normalize_deterministic(translate_deterministic(f)));
   }
 
   spot::twa_graph_ptr
@@ -2234,6 +2307,7 @@ namespace cola
       throw std::runtime_error("ltl2dela requires an LTL formula");
 
     stats_ = {};
+    ldgba_cache_.clear();
     std::vector<spot::formula> used;
     // Do not normalize to Delta2 here: compile() must see the original
     // GF/profile syntax before deciding which structural compiler to use.

@@ -16,14 +16,15 @@
 
 namespace cola
 {
-  spot::twa_graph_ptr slaa_frontend(spot::formula f, spot::bdd_dict_ptr dict,
-                                  const std::string& tool,
-                                  unsigned timeout_ms, unsigned state_limit)
+  static spot::twa_graph_ptr external_frontend(spot::formula f, spot::bdd_dict_ptr dict,
+                                             const std::string& tool,
+                                             unsigned timeout_ms, unsigned state_limit,
+                                             std::vector<std::string> arguments)
   {
     if (tool.empty() || !timeout_ms || !state_limit) return nullptr;
     // mkstemp is private even when several translators run concurrently.
     const char* temp = std::getenv("TMPDIR");
-    std::string pattern = std::string(temp ? temp : "/tmp") + "/cola-slaa-XXXXXX";
+    std::string pattern = std::string(temp ? temp : "/tmp") + "/cola-front-XXXXXX";
     std::vector<char> name(pattern.begin(), pattern.end());
     name.push_back('\0');
     int fd = mkstemp(name.data());
@@ -34,9 +35,13 @@ namespace cola
       const char* name;
       ~cleanup() { close(fd); unlink(name); }
     } guard{fd, name.data()};
-    auto formula = spot::str_psl(f);
-    // No shell, formula interpolation, Spot candidate, TGBA conversion,
-    // compositional splitting, complement portfolio, or external determinizer.
+    arguments.insert(arguments.begin(), tool);
+    arguments.emplace_back("-f");
+    arguments.push_back(spot::str_psl(f));
+    std::vector<char*> argv;
+    for (auto& argument : arguments) argv.push_back(argument.data());
+    argv.push_back(nullptr);
+    // Prepare all strings before fork. No shell or command interpolation.
     pid_t pid = fork();
     if (pid < 0) return nullptr;
     if (pid == 0)
@@ -51,8 +56,7 @@ namespace cola
             || dup2(nullfd, STDERR_FILENO) < 0) _exit(126);
         close(nullfd);
         close(fd);
-        execlp(tool.c_str(), tool.c_str(), "-D0", "-b0", "-n0", "-l0",
-               "-t0", "-p2", "-f", formula.c_str(), static_cast<char*>(nullptr));
+        execvp(tool.c_str(), argv.data());
         _exit(127);
       }
     setpgid(pid, pid);
@@ -81,5 +85,23 @@ namespace cola
         || !parsed->aut->is_existential()
         || parsed->aut->num_states() > state_limit) return nullptr;
     return parsed->aut;
+  }
+
+  spot::twa_graph_ptr slaa_frontend(spot::formula f, spot::bdd_dict_ptr dict,
+                                  const std::string& tool,
+                                  unsigned timeout_ms, unsigned state_limit)
+  {
+    return external_frontend(f, dict, tool, timeout_ms, state_limit,
+                             {"-D0", "-b0", "-n0", "-l0", "-t0", "-p2"});
+  }
+
+  spot::twa_graph_ptr owl_ldgba_frontend(spot::formula f, spot::bdd_dict_ptr dict,
+                                       const std::string& tool,
+                                       const std::string& construction,
+                                       unsigned timeout_ms, unsigned state_limit)
+  {
+    if (construction != "SEJK16" && construction != "EKS20") return nullptr;
+    return external_frontend(f, dict, tool, timeout_ms, state_limit,
+                             {"ltl2ldgba", "-t", construction, "--skip-translation-portfolio"});
   }
 }

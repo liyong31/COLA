@@ -53,6 +53,11 @@ Options:
   --slaa-portfolio        try both SLAA polarities and competing residual paths
   --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
   --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
+  --ldgba-tool=PATH       opt-in OWL LDGBA -> native elevator candidate
+  --ldgba-construction=NAME  SEJK16, EKS20, or both (default: both)
+  --ldgba-timeout-ms=N    deadline per frontend attempt (default: 5000)
+  --ldgba-state-limit=N   maximum input LDGBA states (default: 256; zero skips)
+  --ldgba-attempt-limit=N maximum frontend attempts per formula (default: 8)
   --finite-witness       enable bounded LTLf reset monitors (default: off)
   --finite-witness-state-limit=N  maximum reset states (default: 256)
   --finite-witness-work-limit=N   maximum MTBDD visits (default: 16384)
@@ -195,6 +200,37 @@ int main(int argc, char** argv)
           if (a == "--slaa-portfolio")
             {
               opts.slaa_portfolio = true;
+              continue;
+            }
+          if (a.rfind("--ldgba-tool=", 0) == 0)
+            {
+              opts.ldgba_tool = value_after("--ldgba-tool=");
+              continue;
+            }
+          if (a.rfind("--ldgba-construction=", 0) == 0)
+            {
+              opts.ldgba_construction = value_after("--ldgba-construction=");
+              if (opts.ldgba_construction != "SEJK16" && opts.ldgba_construction != "EKS20"
+                  && opts.ldgba_construction != "both")
+                throw std::runtime_error("invalid LDGBA construction: " + opts.ldgba_construction);
+              continue;
+            }
+          if (a.rfind("--ldgba-timeout-ms=", 0) == 0)
+            {
+              opts.ldgba_timeout_ms = parse_uint(value_after("--ldgba-timeout-ms="),
+                                                "--ldgba-timeout-ms");
+              continue;
+            }
+          if (a.rfind("--ldgba-state-limit=", 0) == 0)
+            {
+              opts.ldgba_state_limit = parse_uint(value_after("--ldgba-state-limit="),
+                                                 "--ldgba-state-limit");
+              continue;
+            }
+          if (a.rfind("--ldgba-attempt-limit=", 0) == 0)
+            {
+              opts.ldgba_attempt_limit = parse_uint(value_after("--ldgba-attempt-limit="),
+                                                   "--ldgba-attempt-limit");
               continue;
             }
           if (a.rfind("--slaa-timeout-ms=", 0) == 0)

@@ -68,6 +68,7 @@ tests_tela_elevator_driver_SOURCES = tests/tela-elevator-driver.cpp
 tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
 TESTS += tests/slaa-route.py
+TESTS += tests/ldgba-route.py
 TESTS_ENVIRONMENT = LTLD='$(abs_builddir)/ltl2dela'; export LTLD;
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
@@ -95,6 +96,7 @@ EXTRA_DIST += tests/compare-cola-polarities.py tests/summarize-cola-polarities.p
   tests/ltl-polarity-summary.md tests/ltl-polarity-probes.json
 
 EXTRA_DIST += tests/slaa-route.py
+EXTRA_DIST += tests/ldgba-route.py
 EXTRA_DIST += tests/benchmark-slaa.py tests/summarize-slaa.py \
   tests/ltl-slaa-results.csv tests/ltl-slaa-results.json tests/ltl-slaa-report.md \
   tests/finite-witness-slaa-regressions.csv
@@ -105,3 +107,9 @@ EXTRA_DIST += tests/diagnose-slaa-shapes.py tests/summarize-slaa-shapes.py \
   tests/ltl-slaa-shape-diagnosis.md tests/ltl-slaa-portfolio-results.csv \
   tests/ltl-slaa-portfolio-results.json \
   tests/finite-witness-slaa-portfolio-regressions.csv
+
+EXTRA_DIST += tests/benchmark-ldgba.py tests/summarize-ldgba.py \
+  tests/ltl-ldgba-raw-results.csv tests/ltl-ldgba-raw-results.json \
+  tests/ltl-ldgba-results.csv tests/ltl-ldgba-results.json \
+  tests/ltl-ldgba-optimizations.csv tests/ltl-ldgba-optimizations.json \
+  tests/ltl-ldgba-report.md tests/finite-witness-ldgba-regressions.csv
