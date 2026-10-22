@@ -88,6 +88,7 @@ int main()
        "(Inf(0)|Fin(1))&(Inf(2)|Fin(3))", "Inf(3)", "Fin(3)", "t", "f"})
     for (bool exact : {false, true})
       for (bool compact : {false, true})
+       for (bool local : {false, true})
       {
         auto aut = fixture(condition);
         if (!cola::is_elevator_automaton(aut))
@@ -95,6 +96,7 @@ int main()
         spot::option_map options;
         options.set(USE_EXACT_STATE_LANGUAGES, exact);
         options.set(USE_OBSERVED_RANKS, compact);
+        options.set(USE_LOCAL_COLOURS, local);
         options.set(USE_SIMULATION, 0);
         options.set(USE_DELAYED_SIMULATION, 0);
         auto result = cola::determinize_televator(aut, options);
@@ -117,21 +119,25 @@ int main()
       }
   for (bool exact : {false, true})
     for (bool compact : {false, true})
+     for (bool local : {false, true})
     {
       auto aut = rejecting_fin_scc();
       spot::option_map options;
       options.set(USE_EXACT_STATE_LANGUAGES, exact);
       options.set(USE_OBSERVED_RANKS, compact);
+      options.set(USE_LOCAL_COLOURS, local);
       auto result = cola::determinize_televator(aut, options);
       if (!spot::is_deterministic(result) || !spot::are_equivalent(aut, result))
         throw std::runtime_error("rejecting Fin SCC mismatch");
       ++checked;
     }
   for (const char* condition : {"Inf(1)", "Inf(0)&Inf(1)", "Fin(0)&Inf(1)"})
+   for (bool local : {false, true})
     {
       auto aut = sparse_rank_scc(condition);
       spot::option_map options;
       options.set(USE_OBSERVED_RANKS, 1);
+      options.set(USE_LOCAL_COLOURS, local);
       auto result = cola::determinize_televator(aut, options);
       const char* language = std::string(condition) == "Inf(1)" ? "GF p"
         : std::string(condition) == "Inf(0)&Inf(1)" ? "GF p & GF !p" : "FG p";

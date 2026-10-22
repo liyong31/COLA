@@ -12,6 +12,7 @@
 
 #include "cola.hpp"
 #include "colour_choice.hpp"
+#include "cobuchi_weak.hpp"
 
 #include <spot/tl/formula.hh>
 #include <spot/tl/simplify.hh>
@@ -40,6 +41,8 @@ namespace cola
     bool slaa_portfolio = false;
     bool use_colour_choice = false;
     colour_choice_options colour_choices;
+    bool use_cobuchi_weak = false;
+    cobuchi_weak_options cobuchi_weak;
     unsigned slaa_timeout_ms = 5000;
     unsigned slaa_state_limit = 256;
     std::string ldgba_tool;
@@ -124,6 +127,10 @@ namespace cola
     unsigned colour_choice_sccs = 0;
     unsigned colour_choice_repairs = 0;
     unsigned colour_choice_validation_failures = 0;
+    unsigned cobuchi_weak_sccs = 0;
+    unsigned cobuchi_weak_states = 0;
+    unsigned cobuchi_weak_repairs = 0;
+    unsigned cobuchi_weak_validation_failures = 0;
     unsigned ldgba_attempts = 0;
     unsigned ldgba_failures = 0;
     unsigned ldgba_rejected = 0;

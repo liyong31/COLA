@@ -330,10 +330,67 @@ and explicit caveats about acceptance lifting/quotienting, and a parametric
 global-monitor argument with pruning restrictions. Custom SLAA rewriting and
 general shared-monitor backend code are not implemented at this checkpoint.
 
-The next priority is bounded generalised co-Buchi weakification, separately
-from state-preserving colour rewriting. Prepared `src/cobuchi_weak.*` files
-are untracked/unbuilt until the next milestone is tested. Keep the user’s
-untracked `idea.md` and nested `COLA/` checkout untouched.
+### Subsequent priorities B/C/D
+
+Read `tests/colour-elevator-report.md`. Bounded positive Fin-only SCC
+weakification is now implemented in `src/cobuchi_weak.*`. `--colour-elevator`
+enables both passes. A standard last-bad-event guess makes rejecting prefix
+SCCs and accepting weak copies; exits retain downstream semantics. Limits:
+512 total states (CLI `--cobuchi-state-limit`), 64 clauses, 16384 edges and
+Spot's colour capacity. Source/rewrite equivalence is mandatory.
+
+Corrected raw measurements have 531 rows: literature native successes
+170 -> 185, with three additional co-Buchi repairs (Parametrised 43/44/45,
+adding 4/12/32 states; checked native results 6/23/90). Forty remain hard,
+all repaired inputs complete natively, two old frontends unavailable.
+The shape grid remains 151 successes/149 hard. A diagnostic counter had
+shadowed the weakification flag; the corrected driver and targeted fixture
+cover actual execution. All 681 baseline/A/A+B integrated outputs pass;
+all final state counts tie, common-222 total 984.
+
+SCC-local acceptance packing is enabled by the new colour modes only. It
+substitutes absent/common colours, densely renames the remaining local sets
+and preserves each rank's discontinuation mark, after graph exploration.
+This is also present in Kofola DAC (inspected devel 14b657bc), not new theory.
+The raw ablation now compares identical rewritten graphs with global/local
+blocks: Parametrised 36 changes from capacity failure to one checked state
+and 15 colours with the original Spot32 build. Final generic fixtures now
+number 94, with local packing off/on. The original modes retain global blocks.
+
+The SLAA certificate driver proves/checks pure retention plus strict discharge
+and enumerates canonical configuration graphs with 4096-state/65536-work
+budgets. All 543 probes finish: 103/227 literature and 42/300 shape graphs
+certify pure persistence, with no non-singleton SCC in certified enumerations.
+Sixteen controls show two nested-W formulas lose the syntactic certificate
+under native expansion, even without merging/simplification; they still have
+singleton configuration SCCs. Conversely merging makes GF a pure one-state
+while disabling it restores recurrent spawn. Do not disable merging wholesale.
+
+The late-product campaign has 28 independently checked outputs, including a
+minimised-monitor control. At depth six, full-history D=64 gives early backend
+input 192 versus late 3, final 18 both; minimising D to seven reduces early
+input to 21. Timings/RSS are diagnostic, not a speedup ranking.
+
+`src/late_monitor.*` implements a separate checked acceptance-parametric
+reference API. It substitutes bounded global-monitor Inf valuations, checks
+each elevator profile, uses the existing fixed-acceptance backend, then composes
+the deterministic profile results with each global monitor once. Independent
+early-product verification is mandatory. It has a PRODUCT of profile state
+counts, not the desired single-rank-graph bound. Default eight profiles;
+unsupported/over-budget profiles return no candidate. It is not enabled in
+the LTL frontend. Twenty-six tests cover all 16 two-variable mixed acceptance
+functions, rejecting-run versus language-complement semantics, multiple
+monitors, profile eligibility and budgets.
+
+All ten check suites pass: 3709 colour-choice, 214 co-Buchi, seven SLAA graph/
+syntax, three late-product, 26 parametric and the historical suites (27 SLAA,
+24 LDGBA). Full smoke plus 387 complete-mode finite-witness outputs and 585
+budget/bypass checks pass. Proofs and measured scope are in
+`research/colour-elevator.tex` and `research/colour-experiments.tex`.
+Remaining research: custom recurrent-spawn elimination, one acceptance-uniform
+rank graph/pruning, and an actual exported shared acceptance DAG. Existing
+preorder pruning is preserved, not reproved or made more aggressive.
+Keep the user’s untracked `idea.md` and nested `COLA/` checkout untouched.
 
 ## Sources
 

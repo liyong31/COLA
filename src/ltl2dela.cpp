@@ -264,6 +264,10 @@ namespace cola
         << "  colour-choice SCCs rewritten: " << colour_choice_sccs << '\n'
         << "  colour-choice elevator repairs: " << colour_choice_repairs << '\n'
         << "  colour-choice validation failures: " << colour_choice_validation_failures << '\n'
+        << "  co-Buchi SCCs weakified: " << cobuchi_weak_sccs << '\n'
+        << "  co-Buchi states added: " << cobuchi_weak_states << '\n'
+        << "  co-Buchi elevator repairs: " << cobuchi_weak_repairs << '\n'
+        << "  co-Buchi validation failures: " << cobuchi_weak_validation_failures << '\n'
         << "  LDGBA attempts: " << ldgba_attempts << '\n'
         << "  LDGBA frontend/construction failures: " << ldgba_failures << '\n'
         << "  LDGBA rejected candidates: " << ldgba_rejected << '\n'
@@ -1580,6 +1584,16 @@ namespace cola
                 if (!was_elevator && cola::is_elevator_automaton(tela))
                   ++stats_.colour_choice_repairs;
               }
+            if (options_.use_cobuchi_weak)
+              {
+                bool was_elevator = cola::is_elevator_automaton(tela);
+                auto weak = weakify_cobuchi_sccs(tela, options_.cobuchi_weak);
+                if (!weak.equivalent) ++stats_.cobuchi_weak_validation_failures;
+                stats_.cobuchi_weak_sccs += weak.rewritten;
+                stats_.cobuchi_weak_states += weak.automaton->num_states() - tela->num_states();
+                tela = weak.automaton;
+                if (!was_elevator && cola::is_elevator_automaton(tela)) ++stats_.cobuchi_weak_repairs;
+              }
             if (!cola::is_elevator_automaton(tela))
               { ++stats_.slaa_non_elevator; return nullptr; }
             // Certify both boundaries. In particular, a deterministic but wrong
@@ -1594,6 +1608,7 @@ namespace cola
             generic_options.set(USE_DELAYED_SIMULATION, 0);
             generic_options.set(USE_STUTTER, 0);
             if (colours_rewritten) generic_options.set(USE_OBSERVED_RANKS, 1);
+            if (options_.use_colour_choice) generic_options.set(USE_LOCAL_COLOURS, 1);
             if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
             auto result = spot::is_deterministic(tela) ? tela
               : cola::determinize_televator(tela, generic_options);

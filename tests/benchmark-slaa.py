@@ -19,7 +19,8 @@ def main():
     ap.add_argument('--artifacts', type=Path, default=Path('build-local/slaa-comparison'))
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-slaa-results.csv'))
     ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
-                    'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'cola_combined_colour', 'tela_elevator'],
+                    'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'cola_combined_colour',
+                    'cola_colour_elevator', 'tela_elevator'],
                     default=['cola_current', 'cola_slaa', 'tela_elevator'])
     args = ap.parse_args()
     spec = importlib.util.spec_from_file_location('comparison',
@@ -36,7 +37,8 @@ def main():
               'LDGBA attempts', 'LDGBA frontend/construction failures', 'LDGBA rejected candidates',
               'LDGBA backend attempts', 'LDGBA validation failures', 'LDGBA candidates', 'LDGBA components',
               'LDGBA cache hits', 'LDGBA budget skips', 'colour-choice attempts',
-              'colour-choice SCCs rewritten', 'colour-choice elevator repairs', 'colour-choice validation failures']
+              'colour-choice SCCs rewritten', 'colour-choice elevator repairs', 'colour-choice validation failures',
+              'co-Buchi SCCs weakified', 'co-Buchi states added', 'co-Buchi elevator repairs', 'co-Buchi validation failures']
     fields = ['case', 'sources', 'formula', 'tool', 'status', 'states', 'edges', 'colours',
               'elapsed_ms', 'old_states', 'input_states', 'input_colours', 'input_deterministic',
               'input_equivalent', 'detail'] + routes
@@ -51,12 +53,13 @@ def main():
             row.update(tool=mode, old_states=previous['states'], status='ok')
             output, stderr = directory / (mode + '.hoa'), directory / (mode + '.stderr')
             command = [args.ltld, '--stats']
-            if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour']:
+            if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--slaa-tool=' + str(args.tool.resolve())]
-            if mode in ['cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour']: command += ['--slaa-portfolio']
-            if mode in ['cola_ldgba', 'cola_combined', 'cola_combined_colour']:
+            if mode in ['cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']: command += ['--slaa-portfolio']
+            if mode in ['cola_ldgba', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--ldgba-tool=' + str(args.owl.resolve())]
             if mode == 'cola_combined_colour': command += ['--colour-choice']
+            if mode == 'cola_colour_elevator': command += ['--colour-elevator']
             command += ['-f', row['formula']]
             try:
                 if mode == 'tela_elevator':
@@ -120,14 +123,15 @@ def main():
                                          for r in rows[-len(args.modes):]], flush=True)
     paths = [Path(args.ltld), Path(args.driver), args.tool,
              Path('build-local/src/.libs/libcola.0.dylib'), Path('tests/ltl-fragment-results.csv')]
-    if any(m in ['cola_ldgba', 'cola_combined', 'cola_combined_colour'] for m in args.modes): paths.append(args.owl)
+    if any(m in ['cola_ldgba', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator'] for m in args.modes): paths.append(args.owl)
     # Hash measured sources, not unrelated documentation being edited while
     # the campaign runs. Build metadata and reports do not affect the route.
     paths += [Path(p) for p in subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()
               if p.startswith('src/')]
     paths += [Path(p) for p in ['src/slaa_frontend.cpp', 'src/slaa_frontend.hpp',
         'tests/tela-elevator-driver.cpp', 'tests/generic-elevator.cpp',
-        'tests/slaa-route.py', 'tests/benchmark-slaa.py', 'src/colour_choice.cpp', 'src/colour_choice.hpp']]
+        'tests/slaa-route.py', 'tests/benchmark-slaa.py', 'src/colour_choice.cpp', 'src/colour_choice.hpp',
+        'src/cobuchi_weak.cpp', 'src/cobuchi_weak.hpp']]
     manifest = {'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                 'environment': 'tests/ltl-fragment-environment.json',
                 'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},

@@ -107,7 +107,9 @@ partitioning emits deterministic marked edges. Incremental DNF products,
 formula size, fresh colours and emitted regions have explicit budgets.
 Exhausting a budget retains that SCC unchanged. A whole-automaton
 equivalence check is mandatory; a checker capacity exception retains the
-original graph. There is no unconditional exponential DNF expansion.
+original graph. Unreachable states and their edges are retained without
+indexing them through the reachable SCC table. There is no unconditional
+exponential DNF expansion.
 The state count is preserved, but acceptance size and symbolic edge count
 may increase; this is not a claim of uniform succinctness improvement.
 
@@ -117,6 +119,68 @@ successful rewriting of all remaining target-deterministic SCCs produces
 an elevator TELA for the existing preorder backend. Generalised co-B\"uchi
 SCCs with several internal targets do not satisfy this corollary without
 an additional conversion.
+
+\paragraph{SCC-local packing at acceptance finalisation.}
+For a rank whose discontinuation colour is finite, its suffix remains in
+one accepting deterministic SCC. An original colour absent from all
+internal edges is then finite, and a colour present on every internal
+edge is infinite. Substitute these constants into the original acceptance
+condition, remove unused colours and pack the remaining indices within
+that SCC's rank block. Remap the recorded transition marks and retain a
+separate discontinuation colour for each rank. Unstable ranks still fail
+their Fin(discontinued) conjunct. Thus this changes only acceptance
+bookkeeping, not the explored rank graph or the preorder construction.
+Combined with observed rank widths, the allocation is
+\[
+ \sum_C r_C(k_C+1)+w,
+\]
+where $k_C$ is the number of colours actually used by the restricted
+condition and $w$ is the weak-component contribution. This is a standard
+locality optimisation, also present in Kofola's DAC implementation\footnote{\url{https://github.com/VeriFIT/kofola/blob/14b657bc567442722285743fbf1976af43998334/src/determinization/determinize_alg_dac.cpp}}, not
+a new determinisation theorem.
+If a separately justified bound $b_C$ limits the number of distinct
+retained runs in an $m_C$-state component, its ordered-label factor is
+\[
+ \sum_{j=0}^{\min(b_C,m_C)}\frac{m_C!}{(m_C-j)!}.
+\]
+For length $j$, choose an ordered list of distinct states, giving the
+displayed falling factorial. This is a conditional counting refinement,
+not a proof of a small language basis. An observed maximum after graph
+exploration does not itself give an a priori construction bound. No new
+aggressive residual-language pruning is enabled by these measurements.
+
+\subsection{Bounded co-B\"uchi weakification}
+An unsupported SCC may instead have a positive Fin-only local condition
+$\bigvee_{\ell=1}^h\Fin(B_\ell)$. This is handled by the standard
+last-bad-transition commitment construction, not by assuming that the
+preorder backend directly accepts arbitrary co-B\"uchi SCCs.
+Retain its original states as a rejecting prefix. For each clause copy
+the states of the SCC, keeping only internal edges whose marks avoid
+$B_\ell$. Allow a jump into that copy after any original internal edge;
+the jumping edge still belongs to the finite prefix. Copied exits lead
+to the original downstream states. A shared fresh good colour marks
+internal copied edges. The final acceptance is
+\[
+ (\Inf(s_0)\land\alpha)\lor\Inf(c_{\rm committed}),
+\]
+where $s_0$ marks unchanged original internal components.
+Original converted SCCs are rejecting weak; each copied SCC is accepting
+weak. The additional state cost is at most $\sum_C h_C|C|$, with two shared fresh
+colours, subject to explicit state, edge and clause budgets.
+
+For correctness, an accepted original suffix eventually avoids one
+$B_\ell$ and can commit after its last bad edge. Conversely an infinite
+run eventually remaining in a committed copy projects to an original
+suffix avoiding $B_\ell$. A copied exit is only a finite-prefix event
+before a downstream SCC, whose own guarded condition applies. Infinite
+uncommitted runs in converted components reject. This is the familiar
+guess-the-last-bad-event idea; the engineering contribution here is its
+bounded SCC-local composition with the checked colour-choice pass.
+Related DNF and Fin-removal constructions are described by
+John et al.~\cite{JohnJSBK21}. Spot already merges parallel equal-guard
+marks for Fin-less acceptance, while its implementation explicitly
+excludes Fin conditions from that union rule. A comprehensive novelty
+comparison of the mixed-Fin/Inf result is still required.
 
 \subsection{Pure persistence: a separate sufficient certificate}
 Suppose an alternating transition system has a strict state order and
@@ -176,3 +240,38 @@ for arbitrary monitor valuations. Run-local restarted monitors cannot be
 shared. The existing Boolean composition of complete deterministic
 components is a supported special case; a general acceptance-parametric
 backend still requires a separate interface and pruning proof.
+
+\paragraph{A checked parametric reference interface.}
+The implemented reference interface supports arbitrary positive Boolean
+combinations of skeleton and global-monitor Inf/Fin atoms. For $t$
+monitor colours it enumerates a bounded set of $2^t$ infinite-colour
+valuations $v$. Substitute $v$ into $\alpha$ before invoking the existing
+backend, obtaining a separately certified elevator instance $B_v$.
+Every native invocation therefore uses a fixed acceptance condition;
+its existing exact pruning is never applied under unknown monitor facts.
+Compose the resulting complete deterministic automata with each global
+monitor once. Its acceptance is
+\[
+ \bigvee_v\left(\operatorname{Profile}_v(C_D)
+                     \land\operatorname{Acc}(\operatorname{Preorder}(B_v))\right).
+\]
+For each word exactly one monitor profile holds. The corresponding
+disjunct accepts precisely when a skeleton run satisfies that substituted
+condition, proving equivalence. An early synchronous product is built
+only as an independent verification oracle, not as the input to any
+determinisation. Unsupported profiles and exhausted budgets return no
+candidate. All monitors must be complete, deterministic and global.
+
+This gives a safe reference implementation, with the larger bound
+\[
+ \left(\prod_i|D_i|\right)
+ \prod_{v\in\{0,1\}^t}|\operatorname{Preorder}(B_v)|.
+\]
+It does \emph{not} establish the stronger single-rank-graph bound above.
+A symbolic implementation sharing one rank graph across all valuations
+still needs acceptance-uniform SCC certificates and pruning. In
+particular, complementing the deterministic language of $B$ cannot
+replace determinising its rejecting runs: existence of a rejecting run
+differs from absence of an accepting run. The reference tests explicitly
+cover this distinction. Profile enumeration is bounded to eight by
+default and is not enabled automatically in the LTL frontend.

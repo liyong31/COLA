@@ -52,6 +52,8 @@ Options:
   --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
   --slaa-portfolio        try both SLAA polarities and competing residual paths
   --colour-choice         eliminate SCC-local acceptance-choice nondeterminism
+  --colour-elevator       also weakify unsupported local co-Buchi SCCs
+  --cobuchi-state-limit=N  total state budget for weakification (default: 512)
   --colour-choice-clause-limit=N  maximum intermediate DNF clauses (default: 64)
   --colour-choice-region-limit=N  maximum emitted regions per SCC (default: 4096)
   --colour-choice-colour-limit=N  maximum total colours (default: Spot capacity)
@@ -150,6 +152,13 @@ int main(int argc, char** argv)
               return a.substr(prefix.size());
             };
           if (a == "--colour-choice") { opts.use_colour_choice = true; continue; }
+          if (a == "--colour-elevator")
+            { opts.use_colour_choice = opts.use_cobuchi_weak = true; continue; }
+          if (a.rfind("--cobuchi-state-limit=", 0) == 0)
+            {
+              opts.cobuchi_weak.max_states = parse_uint(value_after("--cobuchi-state-limit="), "--cobuchi-state-limit");
+              continue;
+            }
           if (a.rfind("--colour-choice-clause-limit=", 0) == 0)
             {
               opts.colour_choices.max_clauses = parse_uint(value_after("--colour-choice-clause-limit="), "--colour-choice-clause-limit");

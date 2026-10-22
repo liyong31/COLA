@@ -69,6 +69,15 @@ def main():
         check('print(' + repr(response) + ')',
               {'colour-choice SCCs rewritten': 0, 'SLAA non-elevator candidates': 1},
               ['--colour-choice', '--colour-choice-clause-limit=0'], text='G(a -> F b)')
+        hard_co_buchi = ('HOA: v1\nStates: 3\nStart: 0\nAP: 2 "a" "b"\n'
+            'Acceptance: 1 Fin(0)\n--BODY--\nState: 0\n[t] 0 {0}\n[0] 1 {0}\n'
+            'State: 1\n[1] 2\n[t] 0 {0}\nState: 2\n[t] 2\n[t] 0 {0}\n--END--\n')
+        check('print(' + repr(hard_co_buchi) + ')',
+              {'co-Buchi SCCs weakified': 1, 'co-Buchi states added': 3,
+               'co-Buchi elevator repairs': 1, 'SLAA candidates': 1}, ['--colour-elevator'])
+        check('print(' + repr(hard_co_buchi) + ')',
+              {'co-Buchi SCCs weakified': 0, 'SLAA non-elevator candidates': 1},
+              ['--colour-elevator', '--cobuchi-state-limit=3'])
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'Boolean GF/FG components': 1}, text='GF a')
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'finite-witness monitors': 1},
               ['--finite-witness'], text='GF(a & X X b)')

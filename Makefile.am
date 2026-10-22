@@ -50,6 +50,10 @@ src_libcola_la_SOURCES =			\
   src/slaa_frontend.hpp                 \
   src/colour_choice.cpp                 \
   src/colour_choice.hpp                 \
+  src/cobuchi_weak.cpp                  \
+  src/cobuchi_weak.hpp                  \
+  src/late_monitor.cpp                  \
+  src/late_monitor.hpp                  \
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
@@ -75,6 +79,22 @@ check_PROGRAMS += tests/colour-choice
 tests_colour_choice_SOURCES = tests/colour-choice.cpp
 tests_colour_choice_LDADD = $(ltl2dela_LDADD)
 TESTS += tests/colour-choice
+check_PROGRAMS += tests/cobuchi-weak
+tests_cobuchi_weak_SOURCES = tests/cobuchi-weak.cpp
+tests_cobuchi_weak_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/cobuchi-weak
+check_PROGRAMS += tests/pure-persistence-driver
+tests_pure_persistence_driver_SOURCES = tests/pure-persistence-driver.cpp
+tests_pure_persistence_driver_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/pure-persistence-driver
+check_PROGRAMS += tests/late-monitor
+tests_late_monitor_SOURCES = tests/late-monitor.cpp
+tests_late_monitor_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/late-monitor
+check_PROGRAMS += tests/parametric-monitor
+tests_parametric_monitor_SOURCES = tests/parametric-monitor.cpp
+tests_parametric_monitor_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/parametric-monitor
 TESTS_ENVIRONMENT = LTLD='$(abs_builddir)/ltl2dela'; export LTLD;
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
@@ -126,3 +146,13 @@ EXTRA_DIST += research/colour-elevator.tex tests/benchmark-colour-choice.py \
   tests/colour-choice-integrated-results.json tests/colour-choice-report.md \
   tests/colour-choice-cases/response.hoa tests/colour-choice-cases/persistence.hoa \
   tests/colour-choice-cases/recurrence.hoa
+
+EXTRA_DIST += tests/colour-choice-cases/hard-cobuchi.hoa \
+  tests/probe-pure-persistence.py tests/benchmark-late-monitors.py \
+  tests/summarize-colour-elevator.py tests/colour-elevator-report.md \
+  tests/colour-weak-results.csv tests/colour-weak-results.json \
+  tests/colour-weak-integrated-results.csv tests/colour-weak-integrated-results.json \
+  tests/pure-persistence-results.csv tests/pure-persistence-results.json \
+  tests/late-monitor-results.csv tests/late-monitor-results.json \
+  tests/finite-witness-colour-regressions.csv tests/colour-acceptance-sizes.csv \
+  research/colour-experiments.tex

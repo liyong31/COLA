@@ -185,6 +185,17 @@ monitors already match these examples, so the end-to-end 222-formula state
 total remains 984. See the [colour-choice report](tests/colour-choice-report.md)
 and [proof supplement](research/colour-elevator.tex).
 
+`--colour-elevator` adds bounded SCC-local co-Büchi weakification after
+colour-choice elimination. This second pass may add states; its default
+total state budget is 512 (`--cobuchi-state-limit=N`). On the retained
+positive TELA corpus, both passes increase checked native successes from
+170 to 185, while final LTL sizes remain unchanged. The
+[priority progress report](tests/colour-elevator-report.md) includes actual
+SLAA pure-persistence certificates, early/late composition controls and
+an experimental acceptance-parametric C++ API. That API shares global
+monitor colours through bounded profile instantiation; a single shared
+parametric rank graph remains future work.
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

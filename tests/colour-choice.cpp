@@ -109,6 +109,14 @@ int main()
           ++checked;
         }
   auto a = exits();
+  auto unreachable = exits();
+  unsigned unused = unreachable->new_state();
+  unreachable->new_edge(unused, unused, bddtrue, {0});
+  unreachable->new_edge(unused, 1, bddtrue);
+  auto preserved = cola::eliminate_colour_choices(unreachable);
+  require(preserved.rewritten == 2 && preserved.automaton->num_states() == 5
+          && spot::are_equivalent(unreachable,preserved.automaton), "unreachable state was not preserved");
+  ++checked;
   auto result = cola::eliminate_colour_choices(a);
   require(result.rewritten == 2 && result.equivalent, "exit fixture did not rewrite both SCCs");
   require(result.automaton->num_states() == a->num_states(), "exit fixture added states");

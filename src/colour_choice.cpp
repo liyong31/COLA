@@ -230,9 +230,9 @@ namespace cola
     for (const auto& e : input->edges())
       {
         unsigned sc = si.scc_of(e.src);
-        if (si.scc_of(e.dst) == sc && plans[sc].active) continue;
+        if (sc < plans.size() && si.scc_of(e.dst) == sc && plans[sc].active) continue;
         mark colours = e.acc;
-        if (si.scc_of(e.dst) == sc) colours.set(original);
+        if (sc < plans.size() && si.scc_of(e.dst) == sc) colours.set(original);
         out->new_edge(e.src, e.dst, e.cond, colours);
       }
     for (const auto& p : plans)

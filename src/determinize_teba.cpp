@@ -1675,11 +1675,34 @@ namespace cola
                 static_cast<unsigned>(entry.first.detscc_labels_[i].size()));
         }
       unsigned num_colours_plus_one = num_colours_plus_one_;
+      const auto aut_acc = aut_->acc().get_acceptance();
+      bool local_colours = om_.get(USE_LOCAL_COLOURS) > 0;
+      std::vector<unsigned> strides(acc_detsccs_.size(), num_colours_plus_one);
+      std::vector<spot::acc_cond::acc_code> conditions(acc_detsccs_.size(), aut_acc);
+      std::vector<std::vector<int>> colour_maps(acc_detsccs_.size(),
+                                               std::vector<int>(num_colours_, -1));
+      if (local_colours)
+        for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+          {
+            spot::acc_cond::mark_t occurring{}, common = aut_->acc().all_sets();
+            unsigned sc = acc_detsccs_[i];
+            for (unsigned q : si_.states_of(sc))
+              for (const auto& e : aut_->out(q))
+                if (si_.scc_of(e.dst) == sc && e.cond != bddfalse)
+                  { occurring |= e.acc; common &= e.acc; }
+            auto condition = aut_acc.remove(aut_->acc().all_sets() - occurring, true)
+                                    .remove(common, false);
+            auto used = condition.used_sets();
+            unsigned packed = 0;
+            for (unsigned c : used.sets()) colour_maps[i][c] = packed++;
+            strides[i] = packed + 1;
+            conditions[i] = condition.strip(aut_->acc().all_sets() - used, true);
+          }
       // this is fixed, we can just compute it without max and min colours
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         // we compute for each DAC, how many colours needed
-        num_scc_colours[i] = num_scc_states[i] * num_colours_plus_one;
+        num_scc_colours[i] = num_scc_states[i] * strides[i];
         // should be equal to scc_size * (k + 1)
       }
       // now max_colors_ has the maximal color for each accepting deterministic SCC
@@ -1714,7 +1737,24 @@ namespace cola
           for (auto& c : det_colours[i]) {
             // Relative colours for never-present slots were recorded during
             // exploration but are absent from the compacted acceptance.
-            if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c);
+            if (!local_colours)
+              { if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c); }
+            else
+              {
+                unsigned slot = c / num_colours_plus_one;
+                unsigned source_colour = c % num_colours_plus_one;
+                if (slot >= num_scc_states[i]) continue;
+                unsigned relative;
+                if (source_colour == num_colours_)
+                  relative = strides[i] - 1;
+                else
+                  {
+                    int packed = colour_maps[i][source_colour];
+                    if (packed < 0) continue;
+                    relative = packed;
+                  }
+                t.acc.set(color_bases[i] + slot * strides[i] + relative);
+              }
           }
           // should be set to the relative color
         }
@@ -1727,20 +1767,19 @@ namespace cola
       }
       // now set up the acceptance
       spot::acc_cond::acc_code acceptance = spot::acc_cond::acc_code::f();
-      const auto aut_acc = aut_->acc().get_acceptance();
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         unsigned num_scc_i_states = num_scc_states[i];
         // we need to set up the acceptance for every run
         for (unsigned j = 0; j < num_scc_i_states; j ++) {
-          auto base = j * num_colours_plus_one;
+          auto base = j * strides[i];
           // std::cout << "shift " << base << " total " << color_bases[i] + base << std::endl;
           const auto rank_base = color_bases[i] + base;
-          auto scc_acceptance = aut_acc << rank_base;
+          auto scc_acceptance = conditions[i] << rank_base;
           // Each rank owns k source colours followed by its discontinuation
           // colour, all in this SCC's block (as on the transitions above).
           scc_acceptance &= spot::acc_cond::acc_code::fin(
-            {rank_base + num_colours_});
+            {rank_base + strides[i] - 1});
           // std::cout << "scc " << i << " acc="<< scc_acceptance << std::endl;
           // max_colors are all odd colors, the biggest one
           acceptance |= scc_acceptance;
