@@ -18,11 +18,16 @@ def main():
     ap.add_argument('--owl', type=Path, default=Path('build-local/external/owl-21.0/bin/owl'))
     ap.add_argument('--artifacts', type=Path, default=Path('build-local/slaa-comparison'))
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-slaa-results.csv'))
+    ap.add_argument('--ldgba-pruning', action='store_true',
+                    help='enable SCC colour packing and wider exact union pruning')
+    ap.add_argument('--ldgba-portfolio', action='store_true')
     ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
                     'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'cola_combined_colour',
                     'cola_colour_elevator', 'tela_elevator'],
                     default=['cola_current', 'cola_slaa', 'tela_elevator'])
     args = ap.parse_args()
+    measured_binaries = [Path(args.ltld), Path('build-local/src/.libs/libcola.0.dylib')]
+    binary_hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in measured_binaries}
     spec = importlib.util.spec_from_file_location('comparison',
         Path(__file__).with_name('compare-ltl-sizes.py'))
     comparison = importlib.util.module_from_spec(spec)
@@ -53,6 +58,8 @@ def main():
             row.update(tool=mode, old_states=previous['states'], status='ok')
             output, stderr = directory / (mode + '.hoa'), directory / (mode + '.stderr')
             command = [args.ltld, '--stats']
+            if args.ldgba_pruning: command += ['--ldgba-pruning']
+            if args.ldgba_portfolio: command += ['--ldgba-portfolio']
             if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--slaa-tool=' + str(args.tool.resolve())]
             if mode in ['cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']: command += ['--slaa-portfolio']
@@ -132,7 +139,10 @@ def main():
         'tests/tela-elevator-driver.cpp', 'tests/generic-elevator.cpp',
         'tests/slaa-route.py', 'tests/benchmark-slaa.py', 'src/colour_choice.cpp', 'src/colour_choice.hpp',
         'src/cobuchi_weak.cpp', 'src/cobuchi_weak.hpp']]
-    manifest = {'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+    assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest() == h
+               for p, h in binary_hashes.items()), 'binary changed during campaign'
+    manifest = {'ldgba_pruning': args.ldgba_pruning, 'ldgba_portfolio': args.ldgba_portfolio,
+        'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                 'environment': 'tests/ltl-fragment-environment.json',
                 'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                 'frontend_flags': ['-D0', '-b0', '-n0', '-l0', '-t0', '-p2'],
@@ -144,6 +154,9 @@ def main():
     args.csv.with_suffix('.json').write_text(json.dumps(manifest, indent=2) + '\n')
     assert len(rows) == len(baseline) * len(args.modes)
     assert all(r['status'] == 'ok' for r in rows if r['tool'] != 'tela_elevator')
+    if args.ldgba_portfolio:
+        assert not any(int(r['LDGBA validation failures'] or 0) for r in rows), \
+            'negative LDGBA candidate failed language validation'
     assert not any(r['status'] in {'backend-inequivalent', 'validation-failed'} for r in rows)
 
 

@@ -33,6 +33,13 @@ def main():
                    "assert '--skip-translation-portfolio' in sys.argv\n"
                    "os.execvp('ltl2tgba', ['ltl2tgba','-D','-f',sys.argv[-1]])")
         check(correct, {'LDGBA candidates': 1, 'LDGBA validation failures': 0})
+        check(correct, {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'])
+        # Normalisation may remove a rejecting sink even when the native
+        # result was complete. This formula exposed that at the negative boundary.
+        check(correct, {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'],
+              text='G!a | F(a & (!b W c))')
         # Generalized acceptance and nondeterministic prefix with a rejecting
         # branch; the accepting two-state region is closed and deterministic.
         generalized = ('HOA: v1\nStates: 4\nStart: 0\nAP: 2 "a" "b"\n'
@@ -42,6 +49,21 @@ def main():
             '[!1] 2\nState: 3\n[t] 3\n--END--\n')
         check('print(' + repr(generalized) + ')',
               {'LDGBA backend attempts': 1, 'LDGBA candidates': 1, 'LDGBA validation failures': 0})
+        check('print(' + repr(generalized) + ')',
+              {'LDGBA backend attempts': 1, 'LDGBA candidates': 1, 'LDGBA validation failures': 0},
+              ['--ldgba-pruning'])
+        negative_partial = ('HOA: v1\nStates: 2\nStart: 0\nAP: 2 "a" "b"\n'
+            'Acceptance: 1 Inf(0)\n--BODY--\nState: 0\n[t] 0\n'
+            '[0&!1] 1 {0}\nState: 1\n[!1] 1 {0}\n--END--\n')
+        check('print(' + repr(negative_partial) + ' if sys.argv[-1].startswith("!") else '
+              + repr(generalized) + ')',
+              {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'])
+        check('print(' + repr(generalized) + ')',
+              {'LDGBA candidates': 1, 'LDGBA validation failures': 1},
+              ['--ldgba-portfolio'])
+        check(correct, {'LDGBA attempts': 1, 'LDGBA candidates': 1},
+              ['--ldgba-portfolio', '--ldgba-attempt-limit=1'])
         check('print("invalid HOA")', {'LDGBA frontend/construction failures': 1})
         check('raise SystemExit(7)', {'LDGBA frontend/construction failures': 1})
         check('os.kill(os.getpid(),15)', {'LDGBA frontend/construction failures': 1})

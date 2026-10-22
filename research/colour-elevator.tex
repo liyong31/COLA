@@ -275,3 +275,48 @@ replace determinising its rejecting runs: existence of a rejecting run
 differs from absence of an accepting run. The reference tests explicitly
 cover this distinction. Profile enumeration is bounded to eight by
 default and is not enabled automatically in the LTL frontend.
+
+\subsection{LDGBA optimisation and the LTL complexity obligation}
+The TACAS 2017 construction of Esparza, K\v{r}et\'{i}nsk\'{y}, Raskin
+and Sickert~\cite{EKRS17} uses state-language bases to shorten ordered runs. Its
+double-exponential LTL bound does not follow from limit determinism alone.
+An unannotated doubly exponential LDGBA followed by a general factorial
+ranking construction gives only a triply exponential upper bound.
+
+The current experiment memoises exact union-language proofs and optionally
+widens SCC-local coverage checks, retaining the oldest run and deleting a
+younger run only after proving inclusion in the union of older retained
+languages. A cache key consists of the target state and sorted covering
+states; neither rank numbers nor current macrostates affect this proof.
+Unanswered queries are not cached as negative answers. Local colour packing
+and complementation of the negative-formula candidate are independent
+optimisations. These changes preserve the original acceptance construction.
+
+Here is a sufficient counting contract for the SCC variant. Let $P$ bound
+the configurations outside ranked components, including weak-component
+bookkeeping. Let component $C$ have $n_C$ states and let a certified complete
+coverage rule bound its retained rank width by $b_C$. Then the number of
+macrostates is at most
+\[
+ P\prod_C\left(\sum_{j=0}^{\min(b_C,n_C)}
+                         \frac{n_C!}{(n_C-j)!}\right).
+\]
+Consequently a doubly exponential bound in LTL length $m$ follows if
+$\log P\leq 2^{O(m)}$, $\log(1+\max_C n_C)\leq 2^{O(m)}$, and
+$\sum_C(b_C+1)\leq 2^{O(m)}$. To see this, bound the factor for $C$ by
+$(b_C+1)\max(1,n_C)^{b_C}$ and take logarithms. The first condition is
+essential: an arbitrary powerset of a doubly exponential prefix would
+already invalidate the desired bound. Likewise independent SCC bases need
+a bound on their total width, rather than only a per-SCC bound.
+
+The implemented fixed query budgets do not certify these hypotheses.
+The HOA boundary exports neither exact state-language formulas nor their
+basis support, and elevator admission does not certify initial determinism.
+Spot's matching annotations are only overapproximations and cannot justify
+deletion by themselves. A complexity-preserving annotated boundary must
+retain the deterministic prefix and closed accepting region, provide
+certified basis coverage, and prove the interaction of coverage with SCC
+rank resets and weak components. Generalised B\"uchi acceptance need not be
+degeneralised for the counting contract; it remains evaluated on persistent
+runs through shifted original colours. No new unrestricted LTL complexity
+bound is claimed for the current implementation.

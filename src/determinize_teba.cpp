@@ -388,6 +388,9 @@ namespace cola
     unsigned exact_containment_hits_ = 0;
     unsigned exact_union_queries_ = 0;
     unsigned exact_union_pruned_ = 0;
+    // A proof depends on the target and covering state languages, not their
+    // ranks or the macrostate. Reusing it must not consume the query budget.
+    std::map<std::pair<unsigned, std::vector<unsigned>>, bool> exact_union_cache_;
 
     // Adaptive exact-query accounting.  Static semantic-order construction
     // receives only a small reserved slice of the global budget.  Runtime
@@ -534,13 +537,7 @@ namespace cola
 
       unsigned budget = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
-      if (exact_containment_queries_ >= budget)
-        return false;
-
       unsigned allowance = runtime_exact_allowance(target_scc);
-      if (target_scc >= scc_runtime_exact_queries_.size()
-          || scc_runtime_exact_queries_[target_scc] >= allowance)
-        return false;
 
       // If the full earlier prefix is too large, approximate only the choice
       // of which earlier runs to test.  Deletion is still guarded by an exact
@@ -583,6 +580,21 @@ namespace cola
           std::stable_sort(candidates.begin(), candidates.end());
         }
 
+      std::vector<unsigned> covering_states;
+      for (unsigned j : candidates) covering_states.push_back(ordered[j].first);
+      std::sort(covering_states.begin(), covering_states.end());
+      auto key = std::make_pair(target_state, covering_states);
+      auto known = exact_union_cache_.find(key);
+      if (known != exact_union_cache_.end())
+        {
+          if (known->second) ++exact_union_pruned_;
+          return known->second;
+        }
+      if (exact_containment_queries_ >= budget
+          || target_scc >= scc_runtime_exact_queries_.size()
+          || scc_runtime_exact_queries_[target_scc] >= allowance)
+        return false;
+
       // Build the exact union of the selected retained earlier languages.
       spot::twa_graph_ptr cover =
         state_language_automaton(ordered[candidates[0]].first);
@@ -595,6 +607,7 @@ namespace cola
       ++scc_runtime_exact_queries_[target_scc];
       bool covered = spot::contains(
         cover, state_language_automaton(target_state));
+      exact_union_cache_.emplace(std::move(key), covered);
       if (covered)
         ++exact_union_pruned_;
       return covered;

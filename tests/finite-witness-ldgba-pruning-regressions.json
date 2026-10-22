@@ -1,0 +1,18 @@
+{
+  "base_commit": "92fc2fa150eb83a0570457edcc3ce05166eb8d29",
+  "command": "python3 tests/finite-witness.py --ltld build-local/ltld-ldgba-optimized --repeats 1 --stress 10 --random-cases 50 --csv tests/finite-witness-ldgba-pruning-regressions.csv",
+  "wrapper_source": "#!/bin/sh\nexec \"/Users/liyong/Desktop/verify/COLA/build-local/ltl2dela\" --ldgba-pruning --ldgba-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl\" --slaa-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela\" --slaa-portfolio \"$@\"\n",
+  "coverage": "387 equivalent outputs and 585 budget/bypass checks; no timeout or capacity failure. One timed process per mode, diagnostics outside timing.",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "tests/finite-witness.py": "4f71069e7fd560f34ddfbf62c728309e2f8ddde280849ced50bba0d3ca634d1b",
+    "build-local/ltld-ldgba-optimized": "0341843cf4c61947f51b1252c2fee8ce297190cf359a1c1f97f29a755d9ac8bc",
+    "build-local/.libs/ltl2dela": "c0f3d70f4317295cf55bd2cf771ee58812836a4bfca1d98908a83fa2fdc12647",
+    "build-local/src/.libs/libcola.0.dylib": "0a40f41e94063f1adbe6fc423d96f0c27c5ed094492fade4f1663dabe7e61326",
+    "src/determinize_teba.cpp": "9d5a960e45e5c4dbd1cfd87ffdd85a667db7162bfd5d772e62d88d8b31f49b15",
+    "src/ltl2dela.cpp": "b05367c916aa257da62bccbcd37060ba9ed00e2ed0ee028f1852302d96ed5e14",
+    "src/ltl2dela.hpp": "cc1e8344bf905fa2760b8bad209a45d151cb3673eaace4dc09b302eccfdd4cac",
+    "src/ltl2dela_main.cpp": "5dbd77a54a8404d13104efa9513ed1f970af949ecdab791a886845323d29738c",
+    "tests/finite-witness-ldgba-pruning-regressions.csv": "b0d3ae13b34fa7a57db90b959b19985497bf56b9b0cffc5a93b1798c9c3c6490"
+  }
+}

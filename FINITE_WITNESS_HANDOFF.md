@@ -402,3 +402,57 @@ Keep the user’s untracked `idea.md` and nested `COLA/` checkout untouched.
 The same formulas interpreted on finite traces require strong next. Spot's
 MTBDD terminal carries a continuation and a separate finite-acceptance bit;
 using only the continuation's infinite-word truth would be incorrect.
+
+
+## LDGBA pruning and TACAS polarity follow-up
+
+Continue on `colour-elevator`, stacked draft PR #3; PR #2 remains its baseline.
+The existing construction is preserved. Exact union-language queries are now
+memoised by target and sorted covering states, independently of ranks; only
+actual proofs/disproofs enter the cache. Budget exhaustion never becomes a
+cached disproof. Cached successful proofs can prune after query exhaustion.
+
+`--ldgba-pruning` enables SCC-local colour packing and widens exact SCC/prefix
+limits to 256 with 512 queries for this boundary. `--ldgba-portfolio` additionally
+tries negative LDGBA inputs, validates their source language, determinises and
+completes before complementing acceptance, then checks the positive language.
+Both polarities share the existing eight-call budget/cache. These options are
+opt-in. Generalised acceptance remains intact; no NBA or DPA detour was added.
+
+The retained-input experiment has three 1135-row controls: cache, packed, and
+packed+wider pruning. Original five-way common cohort (219): SEJK16 GBA totals
+3006 -> 1556, EKS20 GBA 1753 -> 1551, SEJK16 BA 3983 -> 1689, EKS20 BA
+3157 -> 1876; OWL TACAS DPA stays 1188. No paired size loss. Five old capacity
+failures recover under the unchanged Spot32 installation. Four old BA backend
+timeouts remain; four missing frontend artifacts are explicitly unavailable,
+not new timeouts. Packing alone changes no paired successful final state counts.
+
+Two integrated controls each contain 454 checked outputs. Pruning alone ties
+all old final sizes. Adding polarity improves LDGBA-only mode on ten formulas
+(total 1350 -> 1337), but combined remains 1336/all227 and 984/common222.
+Thus the raw construction gain does not yet improve the strongest portfolio.
+See `tests/ltl-ldgba-pruning-report.md` and its summariser for every ablation.
+
+TACAS 2017 was rechecked, including its initial-determinism and exponential
+language-basis hypotheses. Increasing a fixed query budget does not establish
+the double-exponential LTL bound. The HOA boundary lacks exact language/basis
+annotations; current SCC-local pruning is bounded and components have separate
+rank orders. `research/colour-elevator.tex` gives an explicit conditional count
+in terms of prefix configurations and total rank widths. Exporting OWL's exact
+language()/basis data and proving complete coverage across SCC resets/weak
+components remain required. Do not claim that the paper's complexity theorem
+already transfers to this implementation.
+
+Benchmark scripts now reject binary changes during a campaign; finish builds
+before measuring. An early finite-witness run overlapped relinking and failed
+with a transient missing dylib; its measurements were discarded and replaced
+by the final post-build run. Final reports/manifests describe only complete
+stable-binary campaigns. Keep the user's untracked paths untouched.
+
+The final polarity campaign exposed an additional completion mistake in the
+new path: normalisation may remove rejecting sinks. Explicit `spot::complete`
+now precedes acceptance complementation, matching the established SLAA path.
+The Dwyer 23 regression fails on the pre-fix binary and passes after the fix.
+The LDGBA suite now has 30 checks. The final polarity benchmark and summariser
+also require zero rejected language candidates, rather than only a correct
+fallback output. All final campaigns were rerun after this correction.

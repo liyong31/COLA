@@ -160,6 +160,20 @@ OWL constructs a limit-deterministic generalized Büchi automaton; COLA
 certifies its elevator structure and language, then uses its native
 Emerson–Lei determiniser with the generalized acceptance retained.
 `--ldgba-construction=SEJK16|EKS20|both` selects the algorithms (default both).
+
+`--ldgba-pruning` additionally packs original acceptance colours per SCC and
+widens exact older-run union checks to SCCs/prefixes of at most 256 states with
+512 inclusion queries. Exact union results are cached by their state languages,
+so repeated macrostates reuse proofs without spending the query budget again.
+`--ldgba-portfolio` also tries the negative formula through LDGBA; its deterministic
+result is completed before complementing acceptance and checked against the
+positive formula. Both polarities share the existing call budget. Neither option
+is enabled by default. See the [pruning ablations](tests/ltl-ldgba-pruning-report.md).
+
+These bounded graph-level optimisations do not establish the TACAS 2017
+double-exponential LTL bound: that argument additionally requires a certified
+deterministic prefix, an exponential language basis and complete basis coverage
+pruning. OWL's semantic annotations do not survive the current HOA boundary.
 The route compares final completed sizes, keeps established results on ties,
 and preserves direct-monitor priority. The combined portfolio totals 984
 states on the same 222-formula cohort, versus SLAA portfolio 985 and

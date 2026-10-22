@@ -13,9 +13,10 @@
 
 int main(int argc, char** argv)
 {
-  if (argc < 3 || argc > 9) return 1;
+  if (argc < 3 || argc > 10) return 1;
   bool integrated = false, compact = false, colours = false, preprocess = false, weak = false;
   bool local_colours = false;
+  bool ldgba_pruning = false;
   for (int i = 3; i < argc; ++i)
     if (std::string(argv[i]) == "--integrated") integrated = true;
     else if (std::string(argv[i]) == "--compact-ranks") compact = true;
@@ -24,6 +25,7 @@ int main(int argc, char** argv)
     else if (std::string(argv[i]) == "--colour-elevator") colours = weak = true;
     else if (std::string(argv[i]) == "--cobuchi-weak") weak = true;
     else if (std::string(argv[i]) == "--local-colours") local_colours = true;
+    else if (std::string(argv[i]) == "--ldgba-pruning") ldgba_pruning = true;
     else return 1;
   if (preprocess && !colours && !weak) colours = true;
   try
@@ -88,6 +90,12 @@ int main(int argc, char** argv)
       options.set(USE_SCC_INFO, integrated);
       options.set(USE_OBSERVED_RANKS, compact);
       options.set(USE_LOCAL_COLOURS, local_colours);
+      if (ldgba_pruning)
+        {
+          options.set(EXACT_STATE_LANG_SCC_LIMIT, 256);
+          options.set(EXACT_UNION_COVER_LIMIT, 256);
+          options.set(EXACT_CONTAINMENT_BUDGET, 512);
+        }
       auto output = deterministic ? input : cola::determinize_televator(input, options);
       spot::print_hoa(std::cout, output);
       if (!spot::is_deterministic(output) || !spot::are_equivalent(input, output)) return 4;

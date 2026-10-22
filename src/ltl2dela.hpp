@@ -47,6 +47,8 @@ namespace cola
     unsigned slaa_state_limit = 256;
     std::string ldgba_tool;
     std::string ldgba_construction = "both";
+    bool ldgba_pruning = false;
+    bool ldgba_portfolio = false;
     unsigned ldgba_timeout_ms = 5000;
     unsigned ldgba_state_limit = 256;
     unsigned ldgba_attempt_limit = 8;

@@ -156,3 +156,14 @@ EXTRA_DIST += tests/colour-choice-cases/hard-cobuchi.hoa \
   tests/late-monitor-results.csv tests/late-monitor-results.json \
   tests/finite-witness-colour-regressions.csv tests/colour-acceptance-sizes.csv \
   research/colour-experiments.tex
+
+EXTRA_DIST += tests/summarize-ldgba-pruning.py tests/ltl-ldgba-pruning-report.md \
+  tests/ltl-ldgba-cache.csv tests/ltl-ldgba-cache.json \
+  tests/ltl-ldgba-packed.csv tests/ltl-ldgba-packed.json \
+  tests/ltl-ldgba-packed-pruning.csv tests/ltl-ldgba-packed-pruning.json \
+  tests/ltl-ldgba-optimized-integrated.csv tests/ltl-ldgba-optimized-integrated.json \
+  tests/ltl-ldgba-polarity-integrated.csv tests/ltl-ldgba-polarity-integrated.json \
+  tests/finite-witness-ldgba-pruning-regressions.csv \
+  tests/finite-witness-ldgba-pruning-regressions.json
+EXTRA_DIST += research/ldgba-experiments.tex
+EXTRA_DIST += tests/ltl-ldgba-pruning-default.csv tests/ltl-ldgba-pruning-default.json

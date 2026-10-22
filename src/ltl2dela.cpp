@@ -1656,8 +1656,10 @@ namespace cola
     if (cached != ldgba_cache_.end())
       { ++stats_.ldgba_cache_hits; return cached->second; }
     spot::twa_graph_ptr best;
+    for (bool negative : {false, true})
     for (const std::string construction : {"SEJK16", "EKS20"})
       {
+        if (negative && !options_.ldgba_portfolio) continue;
         if (options_.ldgba_construction != "both"
             && options_.ldgba_construction != construction) continue;
         if (stats_.ldgba_attempts >= options_.ldgba_attempt_limit)
@@ -1665,24 +1667,43 @@ namespace cola
         ++stats_.ldgba_attempts;
         try
           {
-            auto input = owl_ldgba_frontend(f, dict_, options_.ldgba_tool, construction,
+            auto source_formula = negative ? spot::formula::Not(f) : f;
+            auto input = owl_ldgba_frontend(source_formula, dict_, options_.ldgba_tool, construction,
                                            options_.ldgba_timeout_ms, options_.ldgba_state_limit);
             if (!input) { ++stats_.ldgba_failures; continue; }
             if (!input->acc().is_generalized_buchi() || !cola::is_elevator_automaton(input))
               { ++stats_.ldgba_rejected; continue; }
-            if (!spot::are_equivalent(input, f))
+            if (!spot::are_equivalent(input, source_formula))
               { ++stats_.ldgba_validation_failures; continue; }
             auto om = cola_options_;
             om.set(USE_SIMULATION, 0);
             om.set(USE_DELAYED_SIMULATION, 0);
             om.set(USE_STUTTER, 0);
             om.set(USE_OBSERVED_RANKS, 1);
+            if (options_.ldgba_pruning)
+              {
+                om.set(USE_LOCAL_COLOURS, 1);
+                om.set(EXACT_STATE_LANG_SCC_LIMIT, 256);
+                om.set(EXACT_UNION_COVER_LIMIT, 256);
+                om.set(EXACT_CONTAINMENT_BUDGET, 512);
+              }
             bool deterministic = spot::is_deterministic(input);
             if (!deterministic) ++stats_.ldgba_backend_attempts;
             auto result = deterministic ? input : cola::determinize_televator(input, om);
             result = normalize_deterministic(result);
             if (!spot::is_deterministic(result) || !spot::are_equivalent(result, input))
               { ++stats_.ldgba_validation_failures; continue; }
+            if (negative)
+              {
+                // Postprocessing may remove a rejecting sink. Explicitly
+                // complete before dualising, as at the SLAA boundary.
+                result = spot::complete(result);
+                result->set_acceptance(result->num_sets(),
+                                      result->acc().get_acceptance().complement());
+                result = normalize_deterministic(result);
+                if (!spot::are_equivalent(result, f))
+                  { ++stats_.ldgba_validation_failures; continue; }
+              }
             ++stats_.ldgba_candidates;
             if (!best || (no_larger(result, best) && !no_larger(best, result))) best = result;
           }

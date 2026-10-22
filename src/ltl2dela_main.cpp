@@ -61,6 +61,8 @@ Options:
   --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
   --ldgba-tool=PATH       opt-in OWL LDGBA -> native elevator candidate
   --ldgba-construction=NAME  SEJK16, EKS20, or both (default: both)
+  --ldgba-pruning           Pack SCC colours and widen checked union pruning
+  --ldgba-portfolio         Also determinise the negation and complement it
   --ldgba-timeout-ms=N    deadline per frontend attempt (default: 5000)
   --ldgba-state-limit=N   maximum input LDGBA states (default: 256; zero skips)
   --ldgba-attempt-limit=N maximum frontend attempts per formula (default: 8)
@@ -236,6 +238,10 @@ int main(int argc, char** argv)
               opts.ldgba_tool = value_after("--ldgba-tool=");
               continue;
             }
+          if (a == "--ldgba-pruning")
+            { opts.ldgba_pruning = true; continue; }
+          if (a == "--ldgba-portfolio")
+            { opts.ldgba_portfolio = true; continue; }
           if (a.rfind("--ldgba-construction=", 0) == 0)
             {
               opts.ldgba_construction = value_after("--ldgba-construction=");
