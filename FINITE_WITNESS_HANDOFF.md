@@ -297,6 +297,44 @@ Keep PR #2 draft. Existing SLAA/finite-witness work is preserved; custom SLAA
 rewrites, annotated semantic jump/ranking optimization and SCC-local
 elevatorization remain future work.
 
+## Colour-choice milestone from idea.md
+
+Work continues on dedicated branch `colour-elevator`, based on the completed
+`0ef66dc` branch. Read `tests/colour-choice-report.md` and
+`research/colour-elevator.tex`. Spot remains the 32-set installation.
+
+Priority A is implemented: BDD target-deterministic SCC detection, bounded
+generalised-Rabin clause rewriting, SCC selectors and state-preserving mark
+choice elimination. The theorem has a finite-requirement round-robin proof.
+Global source/rewrite equivalence is mandatory; verification capacity retains
+the original graph. Reuse the existing native backend without reproving it.
+`--colour-choice` enables this on SLAA candidates. All limits fall back safely.
+
+The new suite passes 3708 checks, including an exhaustive 3600-case family
+with a separate recurrent-edge oracle, 100 seeded multi-state cases and eight
+edge/budget/capacity fixtures. All six make-check suites pass; SLAA frontend
+checks now number 25. The retained-TELA scan has 530 rows: 227 positive
+literature, 300 shape/polarity and three illustrative cases. Two historical
+frontends are unavailable; all other 528 preprocessing outputs verify.
+Twelve literature intermediates become elevator and eleven complete native
+determinisation; Parametrised 36 still hits native capacity. Hardness 8 exceeds
+capacity during equivalence, safely retaining its input. The 300 shape variants
+retain genuine target nondeterminism and have no eligibility gain.
+
+All 454 integrated baseline/enabled outputs pass; both totals remain 1336 on
+227 and 984 on common 222. Do not present raw eligibility as a final size gain:
+the changed examples already have direct one-state monitors. Spot already merges
+Fin-less equal-guard edges; mixed Fin/Inf generalisation is not a novelty claim.
+The supplement includes a proved pure-persistence configuration graph result
+and explicit caveats about acceptance lifting/quotienting, and a parametric
+global-monitor argument with pruning restrictions. Custom SLAA rewriting and
+general shared-monitor backend code are not implemented at this checkpoint.
+
+The next priority is bounded generalised co-Buchi weakification, separately
+from state-preserving colour rewriting. Prepared `src/cobuchi_weak.*` files
+are untracked/unbuilt until the next milestone is tested. Keep the user’s
+untracked `idea.md` and nested `COLA/` checkout untouched.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex

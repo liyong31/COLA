@@ -1,5 +1,6 @@
 // Experimental raw TELA boundary. No LTL routing or fallback can mask errors.
 #include "cola.hpp"
+#include "colour_choice.hpp"
 #include <spot/parseaut/public.hh>
 #include <spot/tl/parse.hh>
 #include <spot/twaalgos/contains.hh>
@@ -11,11 +12,13 @@
 
 int main(int argc, char** argv)
 {
-  if (argc < 3 || argc > 5) return 1;
-  bool integrated = false, compact = false;
+  if (argc < 3 || argc > 7) return 1;
+  bool integrated = false, compact = false, colours = false, preprocess = false;
   for (int i = 3; i < argc; ++i)
     if (std::string(argv[i]) == "--integrated") integrated = true;
     else if (std::string(argv[i]) == "--compact-ranks") compact = true;
+    else if (std::string(argv[i]) == "--colour-choice") colours = true;
+    else if (std::string(argv[i]) == "--preprocess-only") colours = preprocess = true;
     else return 1;
   try
     {
@@ -41,6 +44,20 @@ int main(int argc, char** argv)
                 << "\ninput-hard-sccs: " << hard << '\n';
       if (!spot::are_equivalent(input, formula.f)) return 3;
       std::cerr << "input-equivalent: 1\n";
+      if (colours)
+        {
+          auto rewritten = cola::eliminate_colour_choices(input);
+          std::cerr << "colour-rewritten-sccs: " << rewritten.rewritten
+                    << "\ncolour-equivalent: " << rewritten.equivalent << '\n';
+          for (const auto& c : rewritten.sccs)
+            std::cerr << "colour-scc: " << c.scc << " states=" << c.states
+                      << " target=" << c.target_deterministic << " reason=" << c.reason
+                      << " clauses=" << c.clauses << " regions=" << c.regions
+                      << " fresh-colours=" << c.fresh_colours << '\n';
+          if (!rewritten.equivalent) return 4;
+          input = rewritten.automaton;
+          if (preprocess) { spot::print_hoa(std::cout, input); return 0; }
+        }
       if (!cola::is_elevator_automaton(input)) return 2;
       bool deterministic = spot::is_deterministic(input);
       std::cerr << "input-deterministic: " << deterministic << '\n';

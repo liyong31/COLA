@@ -1,0 +1,178 @@
+% Research supplement; include after the main manuscript's macro definitions.
+\section{Eliminating SCC-local acceptance choices}
+\label{sec:colour-choice}
+
+We reuse the existing preorder determiniser; its correctness is not reproved
+here. The following preprocessing statement concerns existential,
+transition-based Emerson--Lei automata. It is independent of any particular
+LTL frontend. Novelty relative to earlier acceptance transformations remains
+under investigation; the statement below is a correctness result, not a
+priority claim.
+
+\begin{definition}
+An SCC $C$ is \emph{internally target-deterministic} if, for every state
+$q\in C$ and letter $a$, all enabled transitions from $q$ into $C$ have
+the same destination. Their acceptance marks may differ. Transitions
+leaving $C$ are unrestricted. Write $\mathcal M(q,a)$ for the nonempty
+family of mark sets of enabled internal transitions when such transitions
+exist.
+\end{definition}
+
+Restrict the acceptance condition to infinite runs remaining in $C$:
+colours absent from internal edges are finite, and colours on every
+internal edge are infinite. Suppose the resulting condition has the form
+\[
+ \alpha_C=\bigvee_{\ell=1}^h\left(\Fin(B_\ell)\land
+                    \bigwedge_{j=1}^{m_\ell}\Inf(G_{\ell,j})\right).
+\]
+Here $\Fin(B)$ means that every colour in $B$ occurs finitely often,
+and $\Inf(G)$ means that some colour in $G$ occurs infinitely often.
+Both sets and the number of requirements are finite. Empty bad sets and
+empty conjunctions are allowed. This set notation should not be confused
+with Spot's compressed internal syntax: its \texttt{Fin(\{x,y\})}
+represents a disjunction, which must first be split into clauses.
+
+On an enabled internal step define fresh predicates
+\begin{align*}
+ b_\ell(q,a)&\iff
+       \forall M\in\mathcal M(q,a): M\cap B_\ell\ne\varnothing,\\
+ g_{\ell,j}(q,a)&\iff
+       \exists M\in\mathcal M(q,a):
+         M\cap B_\ell=\varnothing\ \land\ M\cap G_{\ell,j}\ne\varnothing.
+\end{align*}
+Replace the parallel choices by the unique internal destination marked
+with precisely these predicates, and use
+\[
+ \beta_C=\bigvee_{\ell=1}^h\left(\Fin(b_\ell)\land
+                          \bigwedge_j\Inf(g_{\ell,j})\right).
+\]
+
+\begin{theorem}[State-preserving colour-choice elimination]
+\label{thm:colour-choice}
+For any fixed infinite state/letter path remaining in $C$, a choice of
+original marks satisfies $\alpha_C$ if and only if the rewritten path
+satisfies $\beta_C$. Consequently internal mark-choice nondeterminism
+can be removed without adding states.
+\end{theorem}
+\begin{proof}
+For the forward implication choose a clause accepted by an original run.
+After a finite prefix no chosen mark intersects $B_\ell$. Therefore
+$b_\ell$ occurs only finitely often. Every required $G_{\ell,j}$ is
+chosen infinitely often on a bad-free transition, so each predicate
+$g_{\ell,j}$ holds infinitely often.
+
+Conversely choose a clause accepted by the rewritten path. After the
+last occurrence of $b_\ell$ there is a bad-free choice at every position.
+If $m_\ell=0$, make any such choice forever. Otherwise cycle through the
+finitely many requirements. For the next requirement $j$, wait until a
+strictly later position satisfying $g_{\ell,j}$ and take its witnessing
+bad-free choice; such a position exists because $g_{\ell,j}$ holds
+infinitely often. Use arbitrary bad-free choices while waiting. Each
+requirement is served infinitely often and no bad colour is chosen
+after the finite prefix. The state path is unchanged because internal
+destinations do not depend on the mark choice. The original clause
+therefore accepts.
+\end{proof}
+
+The bad-free qualification is essential. With choices $\varnothing$ and
+$\{b,g\}$ on every step, $\Fin(b)\land\Inf(g)$ is unsatisfiable:
+every good choice is also bad. Testing good availability without excluding
+bad choices would incorrectly accept. Conversely choices $\{g_1\}$ and
+$\{g_2\}$ can satisfy $\Inf(g_1)\land\Inf(g_2)$ by alternating;
+simultaneous availability in one choice is unnecessary.
+
+\begin{corollary}[Whole-automaton replacement]
+For every rewritten SCC introduce a selector $s_C$ on all of its internal
+edges. Mark unchanged internal edges by a shared selector $s_0$. Keep
+inter-SCC transitions and all states, and use
+\[
+ (\Inf(s_0)\land\alpha)\ \lor\
+ \bigvee_{C\text{ rewritten}}(\Inf(s_C)\land\beta_C).
+\]
+The resulting automaton is language-equivalent to the original.
+\end{corollary}
+\begin{proof}
+Every infinite run eventually remains in one SCC of the finite condensation
+DAG. Its internal selector occurs infinitely often; all other selectors
+occur finitely often. Apply Theorem~\ref{thm:colour-choice} in a rewritten
+SCC, or retain the original suffix acceptance in an unchanged SCC. Marks
+on the finite prefix and inter-SCC transitions do not affect acceptance.
+\end{proof}
+
+\paragraph{Implementation and limits.}
+Detection compares BDD guards of distinct internal destinations. For each
+clause, safe availability is the disjunction of guards of bad-free edges;
+good availability is computed by filtering that same family. Symbolic
+partitioning emits deterministic marked edges. Incremental DNF products,
+formula size, fresh colours and emitted regions have explicit budgets.
+Exhausting a budget retains that SCC unchanged. A whole-automaton
+equivalence check is mandatory; a checker capacity exception retains the
+original graph. There is no unconditional exponential DNF expansion.
+The state count is preserved, but acceptance size and symbolic edge count
+may increase; this is not a claim of uniform succinctness improvement.
+
+\paragraph{Structural consequence.}
+If every SCC is inherently weak or internally target-deterministic,
+successful rewriting of all remaining target-deterministic SCCs produces
+an elevator TELA for the existing preorder backend. Generalised co-B\"uchi
+SCCs with several internal targets do not satisfy this corollary without
+an additional conversion.
+
+\subsection{Pure persistence: a separate sufficient certificate}
+Suppose an alternating transition system has a strict state order and
+every transition from $q$ has target either $\{q\}$ or a set of strictly
+smaller states. Empty target sets are allowed. A canonical configuration
+transition simultaneously selects one enabled transition for every active
+state and takes the union of their targets, with no quotienting or merging
+of configurations.
+
+\begin{proposition}
+Every SCC of this canonical configuration graph is a singleton.
+\end{proposition}
+\begin{proof}
+Order configurations lexicographically by their characteristic vectors,
+examining the largest state first. A transition either preserves all
+active states using singleton self-loops, or selects at least one strict
+transition. Let $q$ be the largest state selecting a strict transition.
+All larger active states use singleton self-loops, and no smaller state
+can introduce $q$ or a larger state. Thus $q$ disappears, all larger
+membership bits are unchanged, and the vector strictly decreases.
+Nontrivial cycles are impossible.
+\end{proof}
+
+This is a graph statement. It does not by itself prove correctness of a
+particular alternating acceptance lifting or of a quotient used by an
+external frontend. Multiple self-loop marks still require colour-choice
+elimination. The empty configuration and any special terminal conventions
+must be checked in the actual representation.
+
+Before frontend-specific merging, a sufficient NNF syntax is generated by
+Boolean predicates, Boolean combination, $\X\theta$, $\F\theta$,
+$\G b$, $b\U\theta$, $b\W\theta$, $\theta\R b$ and $\theta\M b$,
+where $b$ is propositional. In the usual temporal-state expansion the
+self-retaining branches have only propositional guards and discharge
+branches use strict subformulas. This is a sufficient certificate for that
+specified expansion, not a statement that arbitrary LTL3TELA simplification
+preserves the property. In particular $\G\F b$ recurrently spawns a lower
+obligation and fails the literal pure-persistence condition, even though
+COLA already handles it directly.
+
+\subsection{Late global monitors}
+For a deterministic global monitor $D$ whose unique run starts at the
+beginning of the word, its acceptance colours can be shared. If a skeleton
+rank $r$ represents a stable run, substituting skeleton colours only gives
+\[
+ \bigvee_r\bigl(\Fin(d_r)\land
+       \alpha(C_{B,r},C_D)\bigr).
+\]
+For each fixed word, the truth values of the monitor's infinite-colour
+predicates are independent of $r$. Hence the expression evaluates the
+same monitor facts for every stable skeleton run. A product formed after
+skeleton determinisation has at most
+$|\operatorname{Preorder}(B)|\prod_i|D_i|$ states. This argument requires
+the skeleton construction to retain every run needed by the parametric
+acceptance; pruning under one fixed acceptance is not automatically valid
+for arbitrary monitor valuations. Run-local restarted monitors cannot be
+shared. The existing Boolean composition of complete deterministic
+components is a supported special case; a general acceptance-parametric
+backend still requires a separate interface and pruning proof.

@@ -57,6 +57,18 @@ def main():
               {'SLAA validation failures': 1, 'SLAA components': 0})
         non_elevator = 'HOA: v1\nStates: 1\nStart: 0\nAP: 0\nAcceptance: 1 Inf(0)\n--BODY--\nState: 0\n[t] 0 {0}\n[t] 0\n--END--\n'
         check('print(' + repr(non_elevator) + ')', {'SLAA non-elevator candidates': 1})
+        response = ('HOA: v1\nStates: 2\nStart: 0\nAP: 2 "a" "b"\n'
+                    'Acceptance: 2 Fin(0)&Inf(1)\n--BODY--\nState: 0\n'
+                    '[!0|1] 0 {1}\n[!0|1] 0 {0 1}\n[0&!1] 1\n[0&!1] 1 {0}\n'
+                    'State: 1\n[1] 0 {1}\n[1] 0 {0 1}\n[!1] 1\n[!1] 1 {0}\n--END--\n')
+        check('print(' + repr(response) + ')', {'SLAA non-elevator candidates': 1}, text='G(a -> F b)')
+        check('print(' + repr(response) + ')',
+              {'colour-choice SCCs rewritten': 1, 'colour-choice elevator repairs': 1,
+               'SLAA candidates': 1, 'SLAA validation failures': 0},
+              ['--colour-choice'], text='G(a -> F b)')
+        check('print(' + repr(response) + ')',
+              {'colour-choice SCCs rewritten': 0, 'SLAA non-elevator candidates': 1},
+              ['--colour-choice', '--colour-choice-clause-limit=0'], text='G(a -> F b)')
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'Boolean GF/FG components': 1}, text='GF a')
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'finite-witness monitors': 1},
               ['--finite-witness'], text='GF(a & X X b)')

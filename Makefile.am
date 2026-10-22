@@ -48,6 +48,8 @@ src_libcola_la_SOURCES =			\
   src/ltl2dela.cpp				\
   src/slaa_frontend.cpp                 \
   src/slaa_frontend.hpp                 \
+  src/colour_choice.cpp                 \
+  src/colour_choice.hpp                 \
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
@@ -69,6 +71,10 @@ tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
 TESTS += tests/slaa-route.py
 TESTS += tests/ldgba-route.py
+check_PROGRAMS += tests/colour-choice
+tests_colour_choice_SOURCES = tests/colour-choice.cpp
+tests_colour_choice_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/colour-choice
 TESTS_ENVIRONMENT = LTLD='$(abs_builddir)/ltl2dela'; export LTLD;
 EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
   tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
@@ -113,3 +119,10 @@ EXTRA_DIST += tests/benchmark-ldgba.py tests/summarize-ldgba.py \
   tests/ltl-ldgba-results.csv tests/ltl-ldgba-results.json \
   tests/ltl-ldgba-optimizations.csv tests/ltl-ldgba-optimizations.json \
   tests/ltl-ldgba-report.md tests/finite-witness-ldgba-regressions.csv
+
+EXTRA_DIST += research/colour-elevator.tex tests/benchmark-colour-choice.py \
+  tests/summarize-colour-choice.py tests/colour-choice-results.csv \
+  tests/colour-choice-results.json tests/colour-choice-integrated-results.csv \
+  tests/colour-choice-integrated-results.json tests/colour-choice-report.md \
+  tests/colour-choice-cases/response.hoa tests/colour-choice-cases/persistence.hoa \
+  tests/colour-choice-cases/recurrence.hoa

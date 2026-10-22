@@ -174,6 +174,17 @@ unbounded. Observed rank widths reduce acceptance allocation at this
 boundary; this Spot build’s acceptance capacity can still reject candidates.
 See the report for 1135 raw GBA/BA/DPA comparisons and 60 optimization controls.
 
+Add `--colour-choice` to an SLAA mode to eliminate SCC-local acceptance-choice
+nondeterminism before elevator certification. The pass preserves states,
+checks internal target uniqueness with BDDs, rewrites mixed Fin/Inf clauses
+under explicit budgets, and independently checks equivalence. Clause,
+region and colour limits are configurable; failed checks retain the input.
+On retained positive literature TELA, twelve previously non-elevator inputs
+become eligible and eleven complete native determinisation. Existing direct
+monitors already match these examples, so the end-to-end 222-formula state
+total remains 984. See the [colour-choice report](tests/colour-choice-report.md)
+and [proof supplement](research/colour-elevator.tex).
+
 ### Build
 
 The standard CoLA build now also builds `ltl2dela`:

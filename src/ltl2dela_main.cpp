@@ -51,6 +51,10 @@ Options:
   --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
   --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
   --slaa-portfolio        try both SLAA polarities and competing residual paths
+  --colour-choice         eliminate SCC-local acceptance-choice nondeterminism
+  --colour-choice-clause-limit=N  maximum intermediate DNF clauses (default: 64)
+  --colour-choice-region-limit=N  maximum emitted regions per SCC (default: 4096)
+  --colour-choice-colour-limit=N  maximum total colours (default: Spot capacity)
   --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
   --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
   --ldgba-tool=PATH       opt-in OWL LDGBA -> native elevator candidate
@@ -145,6 +149,22 @@ int main(int argc, char** argv)
             {
               return a.substr(prefix.size());
             };
+          if (a == "--colour-choice") { opts.use_colour_choice = true; continue; }
+          if (a.rfind("--colour-choice-clause-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_clauses = parse_uint(value_after("--colour-choice-clause-limit="), "--colour-choice-clause-limit");
+              continue;
+            }
+          if (a.rfind("--colour-choice-region-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_regions = parse_uint(value_after("--colour-choice-region-limit="), "--colour-choice-region-limit");
+              continue;
+            }
+          if (a.rfind("--colour-choice-colour-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_colours = parse_uint(value_after("--colour-choice-colour-limit="), "--colour-choice-colour-limit");
+              continue;
+            }
 
           if (a == "-h" || a == "--help")
             {

@@ -260,6 +260,10 @@ namespace cola
         << "  SLAA formula candidates: " << slaa_formula_candidates << '\n'
         << "  SLAA formula components: " << slaa_formula_components << '\n'
         << "  SLAA formula failures: " << slaa_formula_failures << '\n'
+        << "  colour-choice attempts: " << colour_choice_attempts << '\n'
+        << "  colour-choice SCCs rewritten: " << colour_choice_sccs << '\n'
+        << "  colour-choice elevator repairs: " << colour_choice_repairs << '\n'
+        << "  colour-choice validation failures: " << colour_choice_validation_failures << '\n'
         << "  LDGBA attempts: " << ldgba_attempts << '\n'
         << "  LDGBA frontend/construction failures: " << ldgba_failures << '\n'
         << "  LDGBA rejected candidates: " << ldgba_rejected << '\n'
@@ -1563,6 +1567,19 @@ namespace cola
             auto tela = slaa_frontend(source, dict_, options_.slaa_tool,
                                      options_.slaa_timeout_ms, options_.slaa_state_limit);
             if (!tela) { ++stats_.slaa_failures; return nullptr; }
+            bool colours_rewritten = false;
+            if (options_.use_colour_choice)
+              {
+                ++stats_.colour_choice_attempts;
+                bool was_elevator = cola::is_elevator_automaton(tela);
+                auto rewritten = eliminate_colour_choices(tela, options_.colour_choices);
+                if (!rewritten.equivalent) ++stats_.colour_choice_validation_failures;
+                stats_.colour_choice_sccs += rewritten.rewritten;
+                colours_rewritten = rewritten.rewritten != 0;
+                tela = rewritten.automaton;
+                if (!was_elevator && cola::is_elevator_automaton(tela))
+                  ++stats_.colour_choice_repairs;
+              }
             if (!cola::is_elevator_automaton(tela))
               { ++stats_.slaa_non_elevator; return nullptr; }
             // Certify both boundaries. In particular, a deterministic but wrong
@@ -1576,6 +1593,7 @@ namespace cola
             generic_options.set(USE_SIMULATION, 0);
             generic_options.set(USE_DELAYED_SIMULATION, 0);
             generic_options.set(USE_STUTTER, 0);
+            if (colours_rewritten) generic_options.set(USE_OBSERVED_RANKS, 1);
             if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
             auto result = spot::is_deterministic(tela) ? tela
               : cola::determinize_televator(tela, generic_options);

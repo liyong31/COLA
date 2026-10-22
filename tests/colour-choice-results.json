@@ -1,0 +1,13 @@
+{
+  "sha256": {
+    "build-local/tests/.libs/tela-elevator-driver": "b12e50ce468af83d120c1459721ca85f3ef9b16f5ed2b428ebf1cd2e838ee9f8",
+    "build-local/src/.libs/libcola.0.dylib": "e6da7669a8b0cd5fec756988613700cffe975d64704598cade4269bc01f192b7",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-colour-choice.py": "567ab55f1677a579ffc0ac4237cbe9d1733008e72a3ad0b56087ba762be8da72",
+    "src/colour_choice.cpp": "41a2aa379c48397f6d1ac0a7a559c5298acd6783ae3efb7f4fc8e46907a1959b",
+    "src/colour_choice.hpp": "743b5855fb085195e5dd804d466b282c05d37ffb6ce276d1ea2b04d1f18c8d68"
+  },
+  "timeout_seconds_per_process": 5,
+  "workers": 2,
+  "native_options": "--integrated --compact-ranks in both controls",
+  "unchanged_inputs": "new native result reuses old result when no SCC was rewritten"
+}
