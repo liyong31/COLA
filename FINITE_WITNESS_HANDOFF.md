@@ -599,3 +599,16 @@ remains as requested; improvements to specialized output sizes are follow-up
 work. Selected repeated serial timings are reported separately from the
 concurrent corpus measurements. The build/script/result manifests retain
 measured hashes; do not rebuild frozen binaries during experiments.
+
+## Smaller outputs preferred (subsequent follow-up)
+
+The user now prioritizes state count. Dedicated GF/FG, recurrence and optional
+finite-witness monitors remain first; broad fragment, checked DBA and X-advice
+results compete with validated configured candidates. Exact ties keep the
+incumbent. `--specialized-first` retains the previous strict-priority policy.
+The full 227-formula portfolio recovers 1387 -> 1336 complete states, with
+no per-formula increase against the historical 1336-state portfolio. All908
+new outputs, all13 check suites, complete smoke, and387 finite-witness outputs
+plus585 budget/bypass checks pass. See `tests/smaller-states-report.md` for the
+configuration, candidate limits and measured manifests. Neither this policy
+nor the underlying bounded portfolio certifies global state minimality.

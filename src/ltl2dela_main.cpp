@@ -45,6 +45,7 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
+  --specialized-first     skip competing candidates after specialization
   --no-specialized        disable early GF/FG and fragment routing
   --no-dba                disable checked weak/transition-Buchi attempts
   --dba-state-limit=N     maximum states in bounded DBA attempts (default: 512)
@@ -213,6 +214,11 @@ int main(int argc, char** argv)
           if (a == "--no-recurrence")
             {
               opts.use_recurrence_compiler = false;
+              continue;
+            }
+          if (a == "--specialized-first")
+            {
+              opts.strict_specialized_priority = true;
               continue;
             }
           if (a == "--no-specialized")

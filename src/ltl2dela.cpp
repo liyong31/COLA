@@ -1476,16 +1476,45 @@ namespace cola
         if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
-        // Recognized fragments are terminal: generic SLAA/LDGBA routes
-        // are reserved for residuals without a specialized construction.
-        if (dba && no_larger(dba, direct))
-          {
-            ++stats_.dba_components;
-            return dba;
-          }
-        return direct;
+        // Syntactic recognition is not a state-minimality certificate.
+        // Keep the dedicated GF/FG paths above terminal, but compare this
+        // broader deterministic translation with checked generic candidates.
+        auto best = prefer_smaller(f, dba && no_larger(dba, direct) ? dba : direct);
+        if (dba && best == dba) ++stats_.dba_components;
+        return best;
       }
     return nullptr;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::prefer_smaller(spot::formula f, spot::twa_graph_ptr direct)
+  {
+    if (options_.strict_specialized_priority
+        || (options_.slaa_tool.empty() && options_.ldgba_tool.empty())
+        || spot::complete(direct)->num_states() == 1)
+      return direct;
+
+    auto ldgba = try_ldgba(f);
+    bool negative = false;
+    auto slaa = try_slaa(f, negative);
+    auto best = direct;
+    auto improve = [&](const spot::twa_graph_ptr& candidate)
+      {
+        if (candidate && no_larger(candidate, best) && !no_larger(best, candidate))
+          best = candidate;
+      };
+    improve(ldgba);
+    improve(slaa);
+    if (best != direct)
+      {
+        if (best == slaa)
+          {
+            ++stats_.slaa_components;
+            if (negative) ++stats_.slaa_negative_components;
+          }
+        else ++stats_.ldgba_components;
+      }
+    return best;
   }
 
   spot::twa_graph_ptr
@@ -2144,7 +2173,7 @@ namespace cola
     // and Delta2 normalization can obscure the original mu obligations.
     // Keep easy fragments on their existing specialized translation path.
     if (!is_direct_fragment(f))
-      if (auto advised = compile_x_advice(f)) return advised;
+      if (auto advised = compile_x_advice(f)) return prefer_smaller(f, advised);
 
     // Before building any Buchi automaton, perform the most direct
     // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
@@ -2256,8 +2285,9 @@ namespace cola
         ba = translate_buchi(f);
         if (auto dba = try_dba(f, ba))
           {
-            ++stats_.dba_components;
-            return dba;
+            auto best = prefer_smaller(f, dba);
+            if (best == dba) ++stats_.dba_components;
+            return best;
           }
       }
 
