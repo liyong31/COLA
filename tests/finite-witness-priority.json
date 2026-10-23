@@ -1,0 +1,16 @@
+{
+  "base_commit": "cc2dc27634fd187758051275ad2a0175468991dd",
+  "command": "python3 tests/finite-witness.py --ltld build-local/ltld-owl-cross --repeats 1 --stress 10 --random-cases 50 --csv tests/finite-witness-priority.csv",
+  "wrapper_source": "#!/bin/sh\nexec \"/Users/liyong/Desktop/verify/COLA/build-local/ltl2dela\" --ldgba-cross-scc --ldgba-pruning --ldgba-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl\" --slaa-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela\" --slaa-portfolio \"$@\"\n",
+  "coverage": "387 equivalent outputs and 585 budget/bypass checks; zero timeout or capacity failure",
+  "sha256": {
+    "tests/finite-witness.py": "4f71069e7fd560f34ddfbf62c728309e2f8ddde280849ced50bba0d3ca634d1b",
+    "build-local/ltld-owl-cross": "f55a261aca1de88ee4f6d26013fbd6043d20c822842d0a96eb748e97fe7bd045",
+    "build-local/.libs/ltl2dela": "6059242b6b1450ef41bfc3686935db88f2712d266faf4ef3324adb2383f89f32",
+    "build-local/src/.libs/libcola.0.dylib": "8b83fa72e68739b1af051fc5bc03bd9ad295c27818a51edbde92293b09421c64",
+    "src/ltl2dela.cpp": "82e8493049c5c7346f8ad905cdfdf9b3aeae18d003e03710719d02649188092f",
+    "src/owl_annotations.cpp": "cfca265230b7c94ad5f690454049adb568ea2c6fda132b5d3b4a035e91f142b3",
+    "src/determinize_teba.cpp": "ddf6b9eeee789719326f42b7154183c053fb46693e197d76f4b2c948fbe83175",
+    "tests/finite-witness-priority.csv": "c9af24cb3a0eece4556322b63c7716882fe79f9b2c84c9f85327b00d88ab552b"
+  }
+}

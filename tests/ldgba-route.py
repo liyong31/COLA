@@ -18,8 +18,12 @@ def main():
             nonlocal checked
             tool.write_text('#!/usr/bin/env python3\nimport sys,os,time\n' + body + '\n')
             tool.chmod(0o700)
+            force_residual = [] if any(key in expected for key in
+                ['Boolean GF/FG components', 'finite-witness monitors']) else [
+                    '--no-specialized', '--no-dba', '--no-boolean-split',
+                    '--no-master-profiles', '--no-x-advice', '--no-profiles', '--no-recurrence']
             result = subprocess.run([ltld, '--stats', '--ldgba-tool=' + str(tool),
-                '--ldgba-construction=SEJK16', *flags, '-f', text],
+                '--ldgba-construction=SEJK16', *force_residual, *flags, '-f', text],
                 capture_output=True, text=True, check=True, timeout=30)
             output.write_text(result.stdout)
             reference.write_text(subprocess.check_output(['ltl2tgba', '-D', '-G', '-f', text], text=True))
@@ -31,8 +35,16 @@ def main():
 
         correct = ("assert sys.argv[1] == 'ltl2ldgba' and sys.argv[2] == '-t'\n"
                    "assert '--skip-translation-portfolio' in sys.argv\n"
+                   "assert '--state-labels' in sys.argv\n"
                    "os.execvp('ltl2tgba', ['ltl2tgba','-D','-f',sys.argv[-1]])")
         check(correct, {'LDGBA candidates': 1, 'LDGBA validation failures': 0})
+        check(correct, {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'])
+        # Normalisation may remove a rejecting sink even when the native
+        # result was complete. This formula exposed that at the negative boundary.
+        check(correct, {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'],
+              text='G!a | F(a & (!b W c))')
         # Generalized acceptance and nondeterministic prefix with a rejecting
         # branch; the accepting two-state region is closed and deterministic.
         generalized = ('HOA: v1\nStates: 4\nStart: 0\nAP: 2 "a" "b"\n'
@@ -42,6 +54,34 @@ def main():
             '[!1] 2\nState: 3\n[t] 3\n--END--\n')
         check('print(' + repr(generalized) + ')',
               {'LDGBA backend attempts': 1, 'LDGBA candidates': 1, 'LDGBA validation failures': 0})
+        check('print(' + repr(generalized) + ')',
+              {'LDGBA backend attempts': 1, 'LDGBA candidates': 1, 'LDGBA validation failures': 0},
+              ['--ldgba-pruning'])
+        # Two equivalent deterministic SCCs exercise cross-SCC certification
+        # and the smaller-of-baseline/pruned policy on a non-direct formula.
+        duplicated = generalized.replace('States: 4', 'States: 6').replace(
+            '[t] 3\nState: 1', '[t] 3\n[!0|1] 4 {0 1}\n[0&!1] 5\nState: 1')
+        duplicated = duplicated.replace('--END--',
+            'State: 4\n[!0|1] 4 {0 1}\n[0&!1] 5\n'
+            'State: 5\n[1] 4 {0 1}\n[!1] 5\n--END--')
+        for q in [1, 2, 4, 5]:
+            label = 'B[([G(!p0|Fp1)], [], [], Fixpoints{}) [C=' + ('Fb' if q in [2, 5] else 'true') + ']]'
+            duplicated = duplicated.replace('State: ' + str(q) + '\n', 'State: ' + str(q) + ' "' + label + '"\n')
+        check('print(' + repr(duplicated) + ')',
+              {'LDGBA backend attempts': 2, 'LDGBA candidates': 1, 'LDGBA validation failures': 0},
+              ['--ldgba-cross-scc', '--ldgba-pruning'])
+        negative_partial = ('HOA: v1\nStates: 2\nStart: 0\nAP: 2 "a" "b"\n'
+            'Acceptance: 1 Inf(0)\n--BODY--\nState: 0\n[t] 0\n'
+            '[0&!1] 1 {0}\nState: 1\n[!1] 1 {0}\n--END--\n')
+        check('print(' + repr(negative_partial) + ' if sys.argv[-1].startswith("!") else '
+              + repr(generalized) + ')',
+              {'LDGBA candidates': 2, 'LDGBA validation failures': 0},
+              ['--ldgba-portfolio', '--ldgba-pruning'])
+        check('print(' + repr(generalized) + ')',
+              {'LDGBA candidates': 1, 'LDGBA validation failures': 1},
+              ['--ldgba-portfolio'])
+        check(correct, {'LDGBA attempts': 1, 'LDGBA candidates': 1},
+              ['--ldgba-portfolio', '--ldgba-attempt-limit=1'])
         check('print("invalid HOA")', {'LDGBA frontend/construction failures': 1})
         check('raise SystemExit(7)', {'LDGBA frontend/construction failures': 1})
         check('os.kill(os.getpid(),15)', {'LDGBA frontend/construction failures': 1})
@@ -79,7 +119,7 @@ def main():
         batch = directory / 'formulas.ltl'
         batch.write_text(formula + '\n' + formula + '\n')
         result = subprocess.run([ltld, '--stats', '--ldgba-tool=' + str(tool),
-            '--ldgba-attempt-limit=1', '-F', str(batch)],
+            '--ldgba-attempt-limit=1', '--no-specialized', '--no-dba', '-F', str(batch)],
             capture_output=True, text=True, check=True, timeout=30)
         assert result.stderr.count('  LDGBA attempts: 1\n') == 2, result.stderr
         output.write_text(result.stdout)

@@ -18,10 +18,18 @@ def main():
     ap.add_argument('--owl', type=Path, default=Path('build-local/external/owl-21.0/bin/owl'))
     ap.add_argument('--artifacts', type=Path, default=Path('build-local/slaa-comparison'))
     ap.add_argument('--csv', type=Path, default=Path('tests/ltl-slaa-results.csv'))
+    ap.add_argument('--ldgba-pruning', action='store_true',
+                    help='enable SCC colour packing and wider exact union pruning')
+    ap.add_argument('--ldgba-portfolio', action='store_true')
+    ap.add_argument('--no-ldgba-annotations', action='store_true')
+    ap.add_argument('--ldgba-cross-scc', action='store_true')
     ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
-                    'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'tela_elevator'],
+                    'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'cola_combined_colour',
+                    'cola_colour_elevator', 'tela_elevator'],
                     default=['cola_current', 'cola_slaa', 'tela_elevator'])
     args = ap.parse_args()
+    measured_binaries = [Path(args.ltld), Path('build-local/src/.libs/libcola.0.dylib')]
+    binary_hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in measured_binaries}
     spec = importlib.util.spec_from_file_location('comparison',
         Path(__file__).with_name('compare-ltl-sizes.py'))
     comparison = importlib.util.module_from_spec(spec)
@@ -35,7 +43,11 @@ def main():
               'SLAA formula candidates', 'SLAA formula components', 'SLAA formula failures',
               'LDGBA attempts', 'LDGBA frontend/construction failures', 'LDGBA rejected candidates',
               'LDGBA backend attempts', 'LDGBA validation failures', 'LDGBA candidates', 'LDGBA components',
-              'LDGBA cache hits', 'LDGBA budget skips']
+              'LDGBA cache hits', 'LDGBA budget skips', 'colour-choice attempts',
+              'LDGBA annotations certified', 'LDGBA annotations rejected',
+              'LDGBA annotation pair proofs', 'LDGBA annotation union proofs',
+              'colour-choice SCCs rewritten', 'colour-choice elevator repairs', 'colour-choice validation failures',
+              'co-Buchi SCCs weakified', 'co-Buchi states added', 'co-Buchi elevator repairs', 'co-Buchi validation failures']
     fields = ['case', 'sources', 'formula', 'tool', 'status', 'states', 'edges', 'colours',
               'elapsed_ms', 'old_states', 'input_states', 'input_colours', 'input_deterministic',
               'input_equivalent', 'detail'] + routes
@@ -50,11 +62,17 @@ def main():
             row.update(tool=mode, old_states=previous['states'], status='ok')
             output, stderr = directory / (mode + '.hoa'), directory / (mode + '.stderr')
             command = [args.ltld, '--stats']
-            if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined']:
+            if args.ldgba_pruning: command += ['--ldgba-pruning']
+            if args.ldgba_portfolio: command += ['--ldgba-portfolio']
+            if args.no_ldgba_annotations: command += ['--no-ldgba-annotations']
+            if args.ldgba_cross_scc: command += ['--ldgba-cross-scc']
+            if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--slaa-tool=' + str(args.tool.resolve())]
-            if mode in ['cola_slaa_portfolio', 'cola_combined']: command += ['--slaa-portfolio']
-            if mode in ['cola_ldgba', 'cola_combined']:
+            if mode in ['cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']: command += ['--slaa-portfolio']
+            if mode in ['cola_ldgba', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--ldgba-tool=' + str(args.owl.resolve())]
+            if mode == 'cola_combined_colour': command += ['--colour-choice']
+            if mode == 'cola_colour_elevator': command += ['--colour-elevator']
             command += ['-f', row['formula']]
             try:
                 if mode == 'tela_elevator':
@@ -118,15 +136,20 @@ def main():
                                          for r in rows[-len(args.modes):]], flush=True)
     paths = [Path(args.ltld), Path(args.driver), args.tool,
              Path('build-local/src/.libs/libcola.0.dylib'), Path('tests/ltl-fragment-results.csv')]
-    if any(m in ['cola_ldgba', 'cola_combined'] for m in args.modes): paths.append(args.owl)
+    if any(m in ['cola_ldgba', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator'] for m in args.modes): paths.append(args.owl)
     # Hash measured sources, not unrelated documentation being edited while
     # the campaign runs. Build metadata and reports do not affect the route.
     paths += [Path(p) for p in subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()
               if p.startswith('src/')]
     paths += [Path(p) for p in ['src/slaa_frontend.cpp', 'src/slaa_frontend.hpp',
         'tests/tela-elevator-driver.cpp', 'tests/generic-elevator.cpp',
-        'tests/slaa-route.py', 'tests/benchmark-slaa.py']]
-    manifest = {'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+        'tests/slaa-route.py', 'tests/benchmark-slaa.py', 'src/colour_choice.cpp', 'src/colour_choice.hpp',
+        'src/cobuchi_weak.cpp', 'src/cobuchi_weak.hpp']]
+    assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest() == h
+               for p, h in binary_hashes.items()), 'binary changed during campaign'
+    manifest = {'ldgba_pruning': args.ldgba_pruning, 'ldgba_portfolio': args.ldgba_portfolio,
+        'ldgba_annotations': not args.no_ldgba_annotations, 'ldgba_cross_scc': args.ldgba_cross_scc,
+        'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                 'environment': 'tests/ltl-fragment-environment.json',
                 'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                 'frontend_flags': ['-D0', '-b0', '-n0', '-l0', '-t0', '-p2'],
@@ -138,6 +161,9 @@ def main():
     args.csv.with_suffix('.json').write_text(json.dumps(manifest, indent=2) + '\n')
     assert len(rows) == len(baseline) * len(args.modes)
     assert all(r['status'] == 'ok' for r in rows if r['tool'] != 'tela_elevator')
+    if args.ldgba_portfolio:
+        assert not any(int(r['LDGBA validation failures'] or 0) for r in rows), \
+            'negative LDGBA candidate failed language validation'
     assert not any(r['status'] in {'backend-inequivalent', 'validation-failed'} for r in rows)
 
 

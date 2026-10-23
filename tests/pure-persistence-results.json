@@ -1,0 +1,13 @@
+{
+  "sha256": {
+    "build-local/tests/.libs/pure-persistence-driver": "334ed706f6fcb3eaff33359929122ece30241b13860d497072ac5a0d51ec6060",
+    "/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "/Users/liyong/Desktop/verify/COLA/tests/probe-pure-persistence.py": "31335ff69e23d31a5597accace6bc0ceb61bd685b95522d01457a29f04d646ae",
+    "tests/pure-persistence-driver.cpp": "88ca2ae27664b4ca69bb9268deed2426236975c7611fc97749e4a06bc05e5126"
+  },
+  "configuration_budget": 4096,
+  "work_budget": 65536,
+  "timeout_seconds_per_process": 5,
+  "workers": 2,
+  "scope": "Graph and syntax certificates only; no alternating acceptance lifting"
+}

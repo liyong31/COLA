@@ -1,0 +1,63 @@
+\subsection{Implementation and measured scope (22 October 2026)}
+The implementation reuses the existing preorder backend and preserves the
+direct finite-witness and specialised recurrence routes. All measurements
+here use Spot 2.14.1 with its existing 32-set capacity, Apple Clang 17 and
+the local Apple M3 computer. No claim of novel acceptance determinisation
+or improved unrestricted LTL complexity follows from these experiments.
+
+The colour-choice suite passes 3709 checks, including all 16 acceptance
+functions over two colours and all nonempty mark-choice families on two
+letters, with an independent recurrent-edge oracle. Co-B\"uchi
+weakification has 214 checks. The parametric reference interface has 26
+checks, including all 16 two-variable mixed acceptance functions with
+independent LTL oracles. Historical tests, full smoke, 387 finite-witness
+outputs and 585 additional budget/bypass checks pass.
+
+On 227 retained positive SLAA-derived TELA inputs, twelve formerly
+non-elevator inputs become eligible after state-preserving rewriting;
+twelve complete with SCC-local packing (eleven without). Bounded weakification recovers
+three more. Native successes increase from 170 to 185. Two historical
+frontend outputs are unavailable, forty inputs remain non-elevator and
+all fifteen repaired inputs complete native determinisation. The independent
+equivalence check itself can also exceed capacity, in which case the
+unchanged input is retained. The 300 retained shape/polarity variants
+have no eligibility gains from these passes.
+
+All 681 integrated outputs across the established combined portfolio,
+colour-choice mode and colour-elevator mode are deterministic, complete
+and equivalent to retained independent references. Each mode totals
+1336 complete states on all 227 formulas, and 984 on the common
+222-formula external-tool cohort; the retained LTL3TELA total is 991.
+The new preprocessing therefore improves structural coverage, not final
+state counts on this corpus: specialised monitors and the other polarity
+already handle the repaired examples well.
+
+Actual SLAA graph certification succeeds on 103 of 227 literature inputs
+and 42 of 300 shape/polarity variants. All certified enumerated
+configuration graphs have singleton SCCs. Sixteen additional controls
+show that native expansion need not preserve the sufficient source
+syntax: two nested-W formulas fail the pure-persistence graph certificate
+even with simplification and merging disabled, while their configuration
+graphs still have singleton SCCs. Conversely U/G merging turns
+$\G\F a$ into a certified one-state SLAA; disabling merging gives
+recurrent spawning. The certificate is sufficient, not necessary, and
+blanket removal of simplification is unjustified.
+
+Early/late Boolean composition is checked at seven window depths with
+both full-history and minimised global monitors (28 verified outputs).
+At depth six the full-history monitor has 64 states: early composition
+sends 192 states to the backend, while late composition sends three;
+both final automata have 18 states. A minimised seven-state monitor
+reduces the early input to 21 states, still versus three late, with the
+same final size. This control is essential: much of the apparent large
+timing gain comes from monitor minimisation. Single-run timings and peak
+RSS are recorded for diagnosis, not as runtime-ranking claims.
+
+Code, CSVs, source/binary manifests and reproduction scripts are retained
+on the implementation branch:
+\url{https://github.com/liyong31/COLA/tree/colour-elevator}.
+The detailed report is \texttt{tests/colour-elevator-report.md}.
+An internal shared acceptance DAG is not exported by the current Spot
+representation, so no implementation DAG-size measurement is claimed.
+Genuine recurrent-spawn elimination and one acceptance-uniform rank graph
+remain open implementation/proof obligations.

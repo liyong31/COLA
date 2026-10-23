@@ -1,0 +1,19 @@
+{
+  "base_commit": "b01db7936c40a6ac6686488ee19db233f680789b",
+  "command": "python3 tests/finite-witness.py --ltld build-local/ltld-ldgba-optimized --repeats 1 --stress 10 --random-cases 50 --csv tests/finite-witness-owl-annotations.csv",
+  "wrapper_source": "#!/bin/sh\nexec \"/Users/liyong/Desktop/verify/COLA/build-local/ltl2dela\" --ldgba-pruning --ldgba-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl\" --slaa-tool=\"/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela\" --slaa-portfolio \"$@\"\n",
+  "annotations": "enabled by default on the optional OWL LDGBA route",
+  "coverage": "387 equivalent outputs and 585 budget/bypass checks; zero timeout or capacity failure. One timed process per mode; diagnostics outside timing.",
+  "sha256": {
+    "tests/finite-witness.py": "4f71069e7fd560f34ddfbf62c728309e2f8ddde280849ced50bba0d3ca634d1b",
+    "build-local/ltld-ldgba-optimized": "0341843cf4c61947f51b1252c2fee8ce297190cf359a1c1f97f29a755d9ac8bc",
+    "build-local/.libs/ltl2dela": "4973c7e478f95901a449903cfe5b620edb2596bbdc4e4ebc452419a3177a1abf",
+    "build-local/src/.libs/libcola.0.dylib": "226bd9ec41e65579bc53e01cada5b0e6938429ad3a7c53140eeae1ffe6466fd5",
+    "src/owl_annotations.cpp": "88f6b8852be5c5178c2b3bffd1a24dbca04c2ae7ed8b376802d8da5c516731db",
+    "src/owl_annotations.hpp": "688e6a57c145c0c3a431f8831043f46fe6d10e95312e36d54bfe8456ee599fba",
+    "src/determinize_teba.cpp": "c077dc95c492d103977f7299324298699dbf596d5ae93745e98ad666292bf064",
+    "src/ltl2dela.cpp": "47c847c955da2656a1540bb62c8fea483a28b6f041e2260f74178af71ac34b18",
+    "src/slaa_frontend.cpp": "d3e60b57fe00ed462d4cba268c1025ef564d60258b35830fc048f7f957b1f647",
+    "tests/finite-witness-owl-annotations.csv": "c0e55db7db5c1eb25374ae5c0d343cb958671a74c88bbf6e9c0a6716e0b95762"
+  }
+}

@@ -112,6 +112,16 @@ COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
 alone has severe regressions and three timeouts on the full corpus; this is
 an experimental comparison, not a change to translator defaults.
 
+Specialized constructions now have strict priority. Recurrence and finite-witness
+monitors, recognized GF/FG and other fragments, X-advice, checked DBA recognition,
+and available profile decompositions run before external generic frontends.
+Each refined child repeats these checks. SLAA/LDGBA candidates are admitted only
+for remaining residuals, even when polarity portfolios are enabled. Explicit
+`--no-specialized` / `--no-dba` switches remain useful for construction ablations.
+The [priority regression report](tests/specialized-priority-report.md) records
+681 checked outputs and the resulting residual coverage. The portfolio totals
+below describe earlier routing and remain historical measurements.
+
 The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
 candidate that preserves generic acceptance and uses COLA's native elevator
 determiniser. Configure the pinned LTL3TELA executable explicitly:
@@ -135,7 +145,8 @@ This first milestone does not yet implement new elevator-aware dealternation
 rules or local SCC semi-determinisation.
 
 Add `--slaa-portfolio` to try both SLAA polarities and compare eligible
-X-advice/elevator results with alternative constructions. Negative results
+residual elevator results with alternative constructions. Successful X-advice
+constructions now return before these generic candidates. Negative results
 are completed before acceptance is complemented and checked against the
 original language. On 222 matched literature formulas, this mode totals
 985 states versus positive SLAA mode 1035 and LTL3TELA 991; all 681 outputs
@@ -160,6 +171,39 @@ OWL constructs a limit-deterministic generalized Büchi automaton; COLA
 certifies its elevator structure and language, then uses its native
 Emerson–Lei determiniser with the generalized acceptance retained.
 `--ldgba-construction=SEJK16|EKS20|both` selects the algorithms (default both).
+
+`--ldgba-pruning` additionally packs original acceptance colours per SCC and
+widens exact older-run union checks to SCCs/prefixes of at most 256 states with
+512 inclusion queries. Exact union results are cached by their state languages,
+so repeated macrostates reuse proofs without spending the query budget again.
+`--ldgba-portfolio` also tries the negative formula through LDGBA; its deterministic
+result is completed before complementing acceptance and checked against the
+positive formula. Both polarities share the existing call budget. Neither option
+is enabled by default. See the [pruning ablations](tests/ltl-ldgba-pruning-report.md).
+
+OWL is now invoked with `--state-labels`. The LDGBA determiniser reconstructs
+SEJK16/EKS20 accepting-state languages from those names and independently checks
+each formula against the input automaton rooted at that state. Certified formulas
+prove pairwise dominance and full older-prefix union coverage using Boolean BDDs
+over temporal atoms. These proofs bypass the bounded exact-query allowance;
+missing, malformed or unverified annotations leave the existing checks in place.
+Use `--no-ldgba-annotations` to disable this mechanism for an ablation. The original
+Emerson–Lei acceptance and rank-discontinuation construction are retained.
+
+`--ldgba-cross-scc` additionally prunes runs covered by the certified union of
+retained runs in lower SCCs. Each SCC keeps its independent determinisation;
+local ranks are never compared across SCCs. A strict SCC order prevents repeated
+mutual deletion. Because pruning can increase reachable macrostate counts, this
+option compares changed results with the original construction on the same HOA
+and retains the smaller checked, completed candidate. It may add one backend call
+per changed candidate, without additional frontend calls. See the
+[OWL comparison and cross-SCC ablation](tests/owl-gap-report.md).
+
+This supplies checked formula-based pruning, but does not yet establish the
+TACAS 2017 double-exponential LTL bound: initial determinism, a singly exponential
+total basis/width bound across SCCs and weak-component bookkeeping remain to be
+certified. Spot's `match_states()` overapproximations still only guide ordering.
+See the [annotation experiment](tests/owl-annotations-report.md).
 The route compares final completed sizes, keeps established results on ties,
 and preserves direct-monitor priority. The combined portfolio totals 984
 states on the same 222-formula cohort, versus SLAA portfolio 985 and
@@ -173,6 +217,28 @@ budget skips this route. Native construction and language checks remain
 unbounded. Observed rank widths reduce acceptance allocation at this
 boundary; this Spot build’s acceptance capacity can still reject candidates.
 See the report for 1135 raw GBA/BA/DPA comparisons and 60 optimization controls.
+
+Add `--colour-choice` to an SLAA mode to eliminate SCC-local acceptance-choice
+nondeterminism before elevator certification. The pass preserves states,
+checks internal target uniqueness with BDDs, rewrites mixed Fin/Inf clauses
+under explicit budgets, and independently checks equivalence. Clause,
+region and colour limits are configurable; failed checks retain the input.
+On retained positive literature TELA, twelve previously non-elevator inputs
+become eligible and eleven complete native determinisation. Existing direct
+monitors already match these examples, so the end-to-end 222-formula state
+total remains 984. See the [colour-choice report](tests/colour-choice-report.md)
+and [proof supplement](research/colour-elevator.tex).
+
+`--colour-elevator` adds bounded SCC-local co-Büchi weakification after
+colour-choice elimination. This second pass may add states; its default
+total state budget is 512 (`--cobuchi-state-limit=N`). On the retained
+positive TELA corpus, both passes increase checked native successes from
+170 to 185, while final LTL sizes remain unchanged. The
+[priority progress report](tests/colour-elevator-report.md) includes actual
+SLAA pure-persistence certificates, early/late composition controls and
+an experimental acceptance-parametric C++ API. That API shares global
+monitor colours through bounded profile instantiation; a single shared
+parametric rank graph remains future work.
 
 ### Build
 

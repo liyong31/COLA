@@ -51,10 +51,20 @@ Options:
   --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
   --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
   --slaa-portfolio        try both SLAA polarities and competing residual paths
+  --colour-choice         eliminate SCC-local acceptance-choice nondeterminism
+  --colour-elevator       also weakify unsupported local co-Buchi SCCs
+  --cobuchi-state-limit=N  total state budget for weakification (default: 512)
+  --colour-choice-clause-limit=N  maximum intermediate DNF clauses (default: 64)
+  --colour-choice-region-limit=N  maximum emitted regions per SCC (default: 4096)
+  --colour-choice-colour-limit=N  maximum total colours (default: Spot capacity)
   --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
   --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
   --ldgba-tool=PATH       opt-in OWL LDGBA -> native elevator candidate
   --ldgba-construction=NAME  SEJK16, EKS20, or both (default: both)
+  --ldgba-pruning           Pack SCC colours and widen checked union pruning
+  --ldgba-portfolio         Also determinise the negation and complement it
+  --no-ldgba-annotations    Disable checked OWL state-language coverage
+  --ldgba-cross-scc         Prune certified covered runs between SCCs
   --ldgba-timeout-ms=N    deadline per frontend attempt (default: 5000)
   --ldgba-state-limit=N   maximum input LDGBA states (default: 256; zero skips)
   --ldgba-attempt-limit=N maximum frontend attempts per formula (default: 8)
@@ -145,6 +155,29 @@ int main(int argc, char** argv)
             {
               return a.substr(prefix.size());
             };
+          if (a == "--colour-choice") { opts.use_colour_choice = true; continue; }
+          if (a == "--colour-elevator")
+            { opts.use_colour_choice = opts.use_cobuchi_weak = true; continue; }
+          if (a.rfind("--cobuchi-state-limit=", 0) == 0)
+            {
+              opts.cobuchi_weak.max_states = parse_uint(value_after("--cobuchi-state-limit="), "--cobuchi-state-limit");
+              continue;
+            }
+          if (a.rfind("--colour-choice-clause-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_clauses = parse_uint(value_after("--colour-choice-clause-limit="), "--colour-choice-clause-limit");
+              continue;
+            }
+          if (a.rfind("--colour-choice-region-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_regions = parse_uint(value_after("--colour-choice-region-limit="), "--colour-choice-region-limit");
+              continue;
+            }
+          if (a.rfind("--colour-choice-colour-limit=", 0) == 0)
+            {
+              opts.colour_choices.max_colours = parse_uint(value_after("--colour-choice-colour-limit="), "--colour-choice-colour-limit");
+              continue;
+            }
 
           if (a == "-h" || a == "--help")
             {
@@ -207,6 +240,14 @@ int main(int argc, char** argv)
               opts.ldgba_tool = value_after("--ldgba-tool=");
               continue;
             }
+          if (a == "--ldgba-pruning")
+            { opts.ldgba_pruning = true; continue; }
+          if (a == "--ldgba-portfolio")
+            { opts.ldgba_portfolio = true; continue; }
+          if (a == "--ldgba-cross-scc")
+            { opts.ldgba_cross_scc = true; continue; }
+          if (a == "--no-ldgba-annotations")
+            { opts.ldgba_annotations = false; continue; }
           if (a.rfind("--ldgba-construction=", 0) == 0)
             {
               opts.ldgba_construction = value_after("--ldgba-construction=");

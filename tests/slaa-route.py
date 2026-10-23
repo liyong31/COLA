@@ -20,8 +20,12 @@ def main():
             nonlocal checked
             tool.write_text('#!/usr/bin/env python3\nimport os, sys, time\n' + body + '\n')
             tool.chmod(0o700)
+            force_residual = [] if any(key in expected for key in
+                ['Boolean GF/FG components', 'finite-witness monitors']) else [
+                    '--no-specialized', '--no-dba', '--no-boolean-split',
+                    '--no-master-profiles', '--no-x-advice', '--no-profiles', '--no-recurrence']
             result = subprocess.run([ltld, '--stats', '--slaa-tool=' + str(tool),
-                *flags, '-f', text], capture_output=True, text=True, timeout=20, check=True)
+                *force_residual, *flags, '-f', text], capture_output=True, text=True, timeout=20, check=True)
             output.write_text(result.stdout)
             target = reference
             if text != formula:
@@ -57,6 +61,27 @@ def main():
               {'SLAA validation failures': 1, 'SLAA components': 0})
         non_elevator = 'HOA: v1\nStates: 1\nStart: 0\nAP: 0\nAcceptance: 1 Inf(0)\n--BODY--\nState: 0\n[t] 0 {0}\n[t] 0\n--END--\n'
         check('print(' + repr(non_elevator) + ')', {'SLAA non-elevator candidates': 1})
+        response = ('HOA: v1\nStates: 2\nStart: 0\nAP: 2 "a" "b"\n'
+                    'Acceptance: 2 Fin(0)&Inf(1)\n--BODY--\nState: 0\n'
+                    '[!0|1] 0 {1}\n[!0|1] 0 {0 1}\n[0&!1] 1\n[0&!1] 1 {0}\n'
+                    'State: 1\n[1] 0 {1}\n[1] 0 {0 1}\n[!1] 1\n[!1] 1 {0}\n--END--\n')
+        check('print(' + repr(response) + ')', {'SLAA non-elevator candidates': 1}, text='G(a -> F b)')
+        check('print(' + repr(response) + ')',
+              {'colour-choice SCCs rewritten': 1, 'colour-choice elevator repairs': 1,
+               'SLAA candidates': 1, 'SLAA validation failures': 0},
+              ['--colour-choice'], text='G(a -> F b)')
+        check('print(' + repr(response) + ')',
+              {'colour-choice SCCs rewritten': 0, 'SLAA non-elevator candidates': 1},
+              ['--colour-choice', '--colour-choice-clause-limit=0'], text='G(a -> F b)')
+        hard_co_buchi = ('HOA: v1\nStates: 3\nStart: 0\nAP: 2 "a" "b"\n'
+            'Acceptance: 1 Fin(0)\n--BODY--\nState: 0\n[t] 0 {0}\n[0] 1 {0}\n'
+            'State: 1\n[1] 2\n[t] 0 {0}\nState: 2\n[t] 2\n[t] 0 {0}\n--END--\n')
+        check('print(' + repr(hard_co_buchi) + ')',
+              {'co-Buchi SCCs weakified': 1, 'co-Buchi states added': 3,
+               'co-Buchi elevator repairs': 1, 'SLAA candidates': 1}, ['--colour-elevator'])
+        check('print(' + repr(hard_co_buchi) + ')',
+              {'co-Buchi SCCs weakified': 0, 'SLAA non-elevator candidates': 1},
+              ['--colour-elevator', '--cobuchi-state-limit=3'])
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'Boolean GF/FG components': 1}, text='GF a')
         check('raise SystemExit(7)', {'SLAA attempts': 0, 'finite-witness monitors': 1},
               ['--finite-witness'], text='GF(a & X X b)')

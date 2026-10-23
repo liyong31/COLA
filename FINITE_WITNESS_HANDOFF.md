@@ -297,6 +297,101 @@ Keep PR #2 draft. Existing SLAA/finite-witness work is preserved; custom SLAA
 rewrites, annotated semantic jump/ranking optimization and SCC-local
 elevatorization remain future work.
 
+## Colour-choice milestone from idea.md
+
+Work continues on dedicated branch `colour-elevator`, based on the completed
+`0ef66dc` branch. Read `tests/colour-choice-report.md` and
+`research/colour-elevator.tex`. Spot remains the 32-set installation.
+
+Priority A is implemented: BDD target-deterministic SCC detection, bounded
+generalised-Rabin clause rewriting, SCC selectors and state-preserving mark
+choice elimination. The theorem has a finite-requirement round-robin proof.
+Global source/rewrite equivalence is mandatory; verification capacity retains
+the original graph. Reuse the existing native backend without reproving it.
+`--colour-choice` enables this on SLAA candidates. All limits fall back safely.
+
+The new suite passes 3708 checks, including an exhaustive 3600-case family
+with a separate recurrent-edge oracle, 100 seeded multi-state cases and eight
+edge/budget/capacity fixtures. All six make-check suites pass; SLAA frontend
+checks now number 25. The retained-TELA scan has 530 rows: 227 positive
+literature, 300 shape/polarity and three illustrative cases. Two historical
+frontends are unavailable; all other 528 preprocessing outputs verify.
+Twelve literature intermediates become elevator and eleven complete native
+determinisation; Parametrised 36 still hits native capacity. Hardness 8 exceeds
+capacity during equivalence, safely retaining its input. The 300 shape variants
+retain genuine target nondeterminism and have no eligibility gain.
+
+All 454 integrated baseline/enabled outputs pass; both totals remain 1336 on
+227 and 984 on common 222. Do not present raw eligibility as a final size gain:
+the changed examples already have direct one-state monitors. Spot already merges
+Fin-less equal-guard edges; mixed Fin/Inf generalisation is not a novelty claim.
+The supplement includes a proved pure-persistence configuration graph result
+and explicit caveats about acceptance lifting/quotienting, and a parametric
+global-monitor argument with pruning restrictions. Custom SLAA rewriting and
+general shared-monitor backend code are not implemented at this checkpoint.
+
+### Subsequent priorities B/C/D
+
+Read `tests/colour-elevator-report.md`. Bounded positive Fin-only SCC
+weakification is now implemented in `src/cobuchi_weak.*`. `--colour-elevator`
+enables both passes. A standard last-bad-event guess makes rejecting prefix
+SCCs and accepting weak copies; exits retain downstream semantics. Limits:
+512 total states (CLI `--cobuchi-state-limit`), 64 clauses, 16384 edges and
+Spot's colour capacity. Source/rewrite equivalence is mandatory.
+
+Corrected raw measurements have 531 rows: literature native successes
+170 -> 185, with three additional co-Buchi repairs (Parametrised 43/44/45,
+adding 4/12/32 states; checked native results 6/23/90). Forty remain hard,
+all repaired inputs complete natively, two old frontends unavailable.
+The shape grid remains 151 successes/149 hard. A diagnostic counter had
+shadowed the weakification flag; the corrected driver and targeted fixture
+cover actual execution. All 681 baseline/A/A+B integrated outputs pass;
+all final state counts tie, common-222 total 984.
+
+SCC-local acceptance packing is enabled by the new colour modes only. It
+substitutes absent/common colours, densely renames the remaining local sets
+and preserves each rank's discontinuation mark, after graph exploration.
+This is also present in Kofola DAC (inspected devel 14b657bc), not new theory.
+The raw ablation now compares identical rewritten graphs with global/local
+blocks: Parametrised 36 changes from capacity failure to one checked state
+and 15 colours with the original Spot32 build. Final generic fixtures now
+number 94, with local packing off/on. The original modes retain global blocks.
+
+The SLAA certificate driver proves/checks pure retention plus strict discharge
+and enumerates canonical configuration graphs with 4096-state/65536-work
+budgets. All 543 probes finish: 103/227 literature and 42/300 shape graphs
+certify pure persistence, with no non-singleton SCC in certified enumerations.
+Sixteen controls show two nested-W formulas lose the syntactic certificate
+under native expansion, even without merging/simplification; they still have
+singleton configuration SCCs. Conversely merging makes GF a pure one-state
+while disabling it restores recurrent spawn. Do not disable merging wholesale.
+
+The late-product campaign has 28 independently checked outputs, including a
+minimised-monitor control. At depth six, full-history D=64 gives early backend
+input 192 versus late 3, final 18 both; minimising D to seven reduces early
+input to 21. Timings/RSS are diagnostic, not a speedup ranking.
+
+`src/late_monitor.*` implements a separate checked acceptance-parametric
+reference API. It substitutes bounded global-monitor Inf valuations, checks
+each elevator profile, uses the existing fixed-acceptance backend, then composes
+the deterministic profile results with each global monitor once. Independent
+early-product verification is mandatory. It has a PRODUCT of profile state
+counts, not the desired single-rank-graph bound. Default eight profiles;
+unsupported/over-budget profiles return no candidate. It is not enabled in
+the LTL frontend. Twenty-six tests cover all 16 two-variable mixed acceptance
+functions, rejecting-run versus language-complement semantics, multiple
+monitors, profile eligibility and budgets.
+
+All ten check suites pass: 3709 colour-choice, 214 co-Buchi, seven SLAA graph/
+syntax, three late-product, 26 parametric and the historical suites (27 SLAA,
+24 LDGBA). Full smoke plus 387 complete-mode finite-witness outputs and 585
+budget/bypass checks pass. Proofs and measured scope are in
+`research/colour-elevator.tex` and `research/colour-experiments.tex`.
+Remaining research: custom recurrent-spawn elimination, one acceptance-uniform
+rank graph/pruning, and an actual exported shared acceptance DAG. Existing
+preorder pruning is preserved, not reproved or made more aggressive.
+Keep the user’s untracked `idea.md` and nested `COLA/` checkout untouched.
+
 ## Sources
 
 - https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex
@@ -307,3 +402,181 @@ elevatorization remain future work.
 The same formulas interpreted on finite traces require strong next. Spot's
 MTBDD terminal carries a continuation and a separate finite-acceptance bit;
 using only the continuation's infinite-word truth would be incorrect.
+
+
+## LDGBA pruning and TACAS polarity follow-up
+
+Continue on `colour-elevator`, stacked draft PR #3; PR #2 remains its baseline.
+The existing construction is preserved. Exact union-language queries are now
+memoised by target and sorted covering states, independently of ranks; only
+actual proofs/disproofs enter the cache. Budget exhaustion never becomes a
+cached disproof. Cached successful proofs can prune after query exhaustion.
+
+`--ldgba-pruning` enables SCC-local colour packing and widens exact SCC/prefix
+limits to 256 with 512 queries for this boundary. `--ldgba-portfolio` additionally
+tries negative LDGBA inputs, validates their source language, determinises and
+completes before complementing acceptance, then checks the positive language.
+Both polarities share the existing eight-call budget/cache. These options are
+opt-in. Generalised acceptance remains intact; no NBA or DPA detour was added.
+
+The retained-input experiment has three 1135-row controls: cache, packed, and
+packed+wider pruning. Original five-way common cohort (219): SEJK16 GBA totals
+3006 -> 1556, EKS20 GBA 1753 -> 1551, SEJK16 BA 3983 -> 1689, EKS20 BA
+3157 -> 1876; OWL TACAS DPA stays 1188. No paired size loss. Five old capacity
+failures recover under the unchanged Spot32 installation. Four old BA backend
+timeouts remain; four missing frontend artifacts are explicitly unavailable,
+not new timeouts. Packing alone changes no paired successful final state counts.
+
+Two integrated controls each contain 454 checked outputs. Pruning alone ties
+all old final sizes. Adding polarity improves LDGBA-only mode on ten formulas
+(total 1350 -> 1337), but combined remains 1336/all227 and 984/common222.
+Thus the raw construction gain does not yet improve the strongest portfolio.
+See `tests/ltl-ldgba-pruning-report.md` and its summariser for every ablation.
+
+TACAS 2017 was rechecked, including its initial-determinism and exponential
+language-basis hypotheses. Increasing a fixed query budget does not establish
+the double-exponential LTL bound. The HOA boundary lacks exact language/basis
+annotations; current SCC-local pruning is bounded and components have separate
+rank orders. `research/colour-elevator.tex` gives an explicit conditional count
+in terms of prefix configurations and total rank widths. Exporting OWL's exact
+language()/basis data and proving complete coverage across SCC resets/weak
+components remain required. Do not claim that the paper's complexity theorem
+already transfers to this implementation.
+
+Benchmark scripts now reject binary changes during a campaign; finish builds
+before measuring. An early finite-witness run overlapped relinking and failed
+with a transient missing dylib; its measurements were discarded and replaced
+by the final post-build run. Final reports/manifests describe only complete
+stable-binary campaigns. Keep the user's untracked paths untouched.
+
+The final polarity campaign exposed an additional completion mistake in the
+new path: normalisation may remove rejecting sinks. Explicit `spot::complete`
+now precedes acceptance complementation, matching the established SLAA path.
+The Dwyer 23 regression fails on the pre-fix binary and passes after the fix.
+The LDGBA suite now has 30 checks. The final polarity benchmark and summariser
+also require zero rejected language candidates, rather than only a correct
+fallback output. All final campaigns were rerun after this correction.
+
+
+## Certified OWL state-language annotations
+
+The optional OWL LDGBA frontend now always requests `--state-labels`.
+`src/owl_annotations.*` decodes the measured OWL 21 SEJK16/EKS20 B-state
+representations, including indexed fixed-point APs versus native-name monitor
+formulas, nested records, quoted AP names and unspaced p0Up1/U/W/R/M tokens.
+Each reconstructed formula is independently checked against the automaton
+rooted at that state. Unsupported/malformed/inequivalent descriptions stay
+unknown; no deletion trusts an unverified label. At most the first 256 state
+indices are certified, matching the default admission limit.
+
+`USE_OWL_ANNOTATIONS` enables the existing elevator backend's annotation oracle.
+It proves exact pair dominance for static ordering and full older-prefix union
+coverage via Boolean BDDs over maximal temporal subformulas. These checks run
+before and independently of the bounded automaton-inclusion budget. Only younger
+runs are removed; original shifted acceptance/discontinuation is unchanged.
+`--no-ldgba-annotations` disables this default-on mechanism for the LDGBA route.
+Generic callers must explicitly set the backend option. Spot match_states()
+overapproximations remain ordering hints and never become deletion certificates.
+
+The 1816 raw outputs compare identical labelled inputs off/on for both positive
+and negative formulas. All 3329 decoded annotations certify; zero rejections.
+There are 7406 pair-proof uses and 10182 union pruning events. Positive EKS20
+improves Parametrised42 66->42 and Liberouter43 76->34. Negative Parametrised45
+improves SEJK16 88->62 and EKS20 47->14. No paired successful result grows.
+Negative Hardness5 SEJK16 recovers a ten-second backend timeout (1158 states).
+Timeouts, capacity and input-budget failures remain explicit; timings are only
+diagnostic and campaigns can overlap.
+
+All 454 integrated outputs pass with zero LDGBA validation failures; totals tie
+the prior polarity version: LDGBA-only 1337 and combined1336/all227 (984/common222).
+The full finite-witness rerun passes 387 outputs plus585 budget/bypass checks.
+All eleven make-check suites pass, including26 new annotation regressions that
+exercise genuine joint coverage, actual pruning with all exact checking budgets
+disabled, forged labels, AP-name collisions and tokenisation. Final smoke passes.
+The interrupted initial decoder-development measurements were discarded.
+
+Reproduction/data: tests/benchmark-owl-annotations.py,
+tests/summarize-owl-annotations.py and tests/owl-annotations-report.md. The raw
+manifest includes all new source hashes; source/binary hashes and artifact/CSV
+consistency were verified. Do not rebuild during a measurement campaign.
+
+The formula annotation and safe full-prefix Boolean pruning are now implemented.
+Remaining TACAS proof obligations concern initial determinism, a singly exponential
+bound on total basis/width and weak bookkeeping across SCCs, and the interaction
+with independent SCC rank resets. Boolean abstraction is not arbitrary LTL
+implication. The conditional counting statement is updated accordingly; do not
+keep claiming that the HOA path carries no annotations.
+
+## OWL gap diagnosis and independent-SCC coverage pruning
+
+The user explicitly requires preserving independent determinisation of each SCC,
+while pruning runs covered by other components. The implementation retains
+all local rankings and shifted original acceptance. USE_OWL_CROSS_SCC (raw driver
+--cross-scc) adds certified union-language deletion before local colour generation.
+Only retained runs in strictly lower reverse-topological SCCs can cover a target.
+Processing lower SCCs first prevents mutual deletion. Every accepting-witness
+replacement or proper source SCC transition decreases its SCC number, hence only
+finitely many replacements occur; after the last, the existing local construction
+preserves an accepting continuation. No cross-component local-rank comparison or
+single global ranking was introduced. Unknown/forged annotations cannot prune.
+
+The 908 new OWL controls independently disable polarity selection and the fragment
+portfolio. The large FG gaps remain with both disabled: Parametrised27 32 versus5,
+Parametrised45 89 versus15. OWL AsymmetricDPAConstruction at source commit
+632c2da3ec982cdda340305afb9a3ddf45000491 partitions jump classes and rotates a single
+safety candidate (safetyProgress), whereas our weak bookkeeping retains subsets.
+The five Ga/Gb/Gc/Gd/Ge languages are incomparable; coverage cannot remove them.
+Safe safety scheduling still needs a restartability/fairness certificate.
+Do not copy OWL's global ranking into the SCC-decomposed construction.
+
+Matched positive algorithm-family comparisons do not show a universal OWL win:
+SEJK16 has COLA1753 / OWL2060 on225 common successes; EKS20 COLA1932 / OWL3051
+on224. On the fixed222 successful in all four controls and both COLA algorithms,
+best positive COLA totals1426, OWL positive SEJK16 without fragment portfolio1820,
+OWL both-polarity SEJK16 without fragment portfolio1372. These are family-level
+comparisons, not the exact same HOA graph: OWL retains internal preprocessing.
+The old1188 figure enables polarity and fragment portfolios and uses another
+fixed219 cohort. Never mix these cohorts or call it positive-only determinisation.
+
+The 1816 identical-input cross-SCC off/on outputs cover both polarities and both
+algorithms, with annotations enabled in both modes. Positive:449 paired successes,
+6 smaller,443 ties,0 larger,88 fewer states,3664 coverage deletions. Negative:
+445 paired successes,11 smaller,428 ties,6 larger,220 fewer states,7225 deletions.
+Negative Hardness3 SEJK16 recovers an acceptance-capacity failure with377 states.
+All successful native and completed outputs pass independent language checks;
+capacity, frontend-timeout and input-budget outcomes remain explicit.
+Examples: positive EKS20 Dwyer50 72->38, Dwyer55 109->86, Dwyer45 28->22;
+negative SEJK16 Hardness1 379->169; negative EKS20 Hardness5 133->91.
+Fewer tracked runs need not mean fewer macrostates: negative EKS20 Hardness1 grows
+22->29 and Hardness3 24->60. Keep these adverse raw results in the report.
+
+The optional LTL flag --ldgba-cross-scc therefore compares any changed pruned
+candidate with the existing construction on the same frontend HOA, validates both,
+normalises/completes them and retains the smaller positive-language result. It may
+make one additional backend call, but no additional frontend call. Default routing
+and direct GF/FG/DBA priorities remain. The route fixture duplicates a deterministic
+accepting SCC to exercise certification and the comparison policy (31 route checks).
+The annotation suite now has42 checks, including genuine cross-SCC joint coverage,
+forged labels and preservation of uncovered accepting witnesses.
+
+A separate experimental raw --prefix-resets option certifies the A/B partition,
+decodes SEJK/EKS A formulas and resets accepting runs only on a proper deterministic
+prefix SCC change when all discarded languages are covered by the retained prefix.
+Its structural and language certificates have fixture tests, including forged A
+labels, prefix nondeterminism, accepting prefix edges and nonclosed B regions.
+It is not enabled in the LTL route and has no corpus size claim.
+
+Reproduction: tests/diagnose-owl-ldgba-gap.py, tests/benchmark-owl-annotations.py
+--scc-pruning cross [--negative], tests/benchmark-slaa.py --ldgba-cross-scc, and
+ tests/summarize-owl-gap.py. Report: tests/owl-gap-report.md; proof discussion:
+research/owl-gap.tex. Raw binaries were frozen and copied into
+build-local/owl-cross-measured-binaries before the final frontend-integration build.
+Their manifests describe that earlier measured build, not the later linked binary.
+
+Final integration/validation: all454 cross-SCC-enabled LDGBA/combined outputs pass,
+with zero validation failures. Counts exactly tie the previous annotation baseline:
+LDGBA-only1337, combined1336/all227 and984/common222. Raw gains do not improve the
+strongest end-to-end portfolio on this corpus. The full finite-witness rerun with
+cross-SCC-enabled combined routing passes387 outputs plus585 budget/bypass checks,
+with zero timeout/capacity failure. Smoke passes. The manuscript receives the
+new cross-SCC proof sketch and the adverse results, and still compiles to22 pages.

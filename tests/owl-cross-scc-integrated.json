@@ -1,0 +1,55 @@
+{
+  "ldgba_pruning": true,
+  "ldgba_portfolio": true,
+  "ldgba_annotations": true,
+  "ldgba_cross_scc": true,
+  "base_commit": "1e751d1b918b8cdf081a59daf1b26e94a6d95ffd",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "6059242b6b1450ef41bfc3686935db88f2712d266faf4ef3324adb2383f89f32",
+    "build-local/tests/.libs/tela-elevator-driver": "ffb52ca6385b215f37b2cdddfa029c11657dfcbb5cc2836e079863a0d5f1b52a",
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/src/.libs/libcola.0.dylib": "5bc0ff6f5a4e30d7d67a7ebde411f4fd0e849f63c1985800db35724ada08ae82",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "src/cola.hpp": "1e4ace0f527b0e70379a60a36083202bbc4ee7305c0c7d0ee2dd4d37b77f7547",
+    "src/determinize_teba.cpp": "ddf6b9eeee789719326f42b7154183c053fb46693e197d76f4b2c948fbe83175",
+    "src/ltl2dela.cpp": "0413d8731008d5df742b2ab2172e25b5abccca5f06f5eb2e6fc7af0b6f337865",
+    "src/ltl2dela.hpp": "b6c481d800f687945667da5964489c51597d3c3cedf733cd1539e827d2ab9b8a",
+    "src/ltl2dela_main.cpp": "85311f03a267fd92b9d47d8ac4bdd2a8aab9449201237ffb0f2c0d0de6c84385",
+    "src/owl_annotations.cpp": "cfca265230b7c94ad5f690454049adb568ea2c6fda132b5d3b4a035e91f142b3",
+    "src/owl_annotations.hpp": "a79a3c5d6416fce3a2e0658ac440a818dc2b6123ea6e1d28a460f7d17ea5ea28",
+    "src/slaa_frontend.cpp": "d3e60b57fe00ed462d4cba268c1025ef564d60258b35830fc048f7f957b1f647",
+    "src/slaa_frontend.hpp": "df9906a565cb98ee77e11e1dc891a59fd3b095f3042a59fc0483df9cd27decc3",
+    "tests/tela-elevator-driver.cpp": "834174620d2adc4dcd1467dc985282925391f58c3a7d85bc1fb3aeae4a3bd833",
+    "tests/generic-elevator.cpp": "8c89916a131460c4d25320c5a919bc8c2ece097aab6731f6787409093503e0d8",
+    "tests/slaa-route.py": "a83f7633e22ccd1e0f5b1fb8e78777e6dd937f25e03bdf3fa42d227489dec1f9",
+    "tests/benchmark-slaa.py": "eea2f05be0f9ee6bbb6aa1efbb6f01056cfde143324546b2f25cad3a007566f6",
+    "src/colour_choice.cpp": "3f8277552181077f72548fb52cb8786657bce2ac9f731e998e98712499921d87",
+    "src/colour_choice.hpp": "743b5855fb085195e5dd804d466b282c05d37ffb6ce276d1ea2b04d1f18c8d68",
+    "src/cobuchi_weak.cpp": "2573ca77e3da196fd55c9b03d3784c7f76e945de925c114c7817b2dfc3b34b63",
+    "src/cobuchi_weak.hpp": "9d8c5d9fe10bcef593690f4c08387392f9782e4f1b29c6690e3d312fd4fcca19"
+  },
+  "frontend_flags": [
+    "-D0",
+    "-b0",
+    "-n0",
+    "-l0",
+    "-t0",
+    "-p2"
+  ],
+  "modes": [
+    "cola_ldgba",
+    "cola_combined"
+  ],
+  "frontend_timeout_seconds": 5,
+  "integrated_input_state_limit": 256,
+  "outer_timeout_seconds": 30,
+  "raw_driver_codes": {
+    "2": "non-elevator",
+    "3": "frontend-inequivalent",
+    "4": "backend-inequivalent",
+    "5": "input-budget",
+    "6": "backend-error"
+  }
+}

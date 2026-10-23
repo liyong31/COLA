@@ -11,6 +11,8 @@
 #pragma once
 
 #include "cola.hpp"
+#include "colour_choice.hpp"
+#include "cobuchi_weak.hpp"
 
 #include <spot/tl/formula.hh>
 #include <spot/tl/simplify.hh>
@@ -37,10 +39,18 @@ namespace cola
     // Optional isolated LTL3TELA SLAA -> generic TELA front-end.
     std::string slaa_tool;
     bool slaa_portfolio = false;
+    bool use_colour_choice = false;
+    colour_choice_options colour_choices;
+    bool use_cobuchi_weak = false;
+    cobuchi_weak_options cobuchi_weak;
     unsigned slaa_timeout_ms = 5000;
     unsigned slaa_state_limit = 256;
     std::string ldgba_tool;
     std::string ldgba_construction = "both";
+    bool ldgba_pruning = false;
+    bool ldgba_portfolio = false;
+    bool ldgba_annotations = true;
+    bool ldgba_cross_scc = false;
     unsigned ldgba_timeout_ms = 5000;
     unsigned ldgba_state_limit = 256;
     unsigned ldgba_attempt_limit = 8;
@@ -117,12 +127,25 @@ namespace cola
     unsigned slaa_formula_candidates = 0;
     unsigned slaa_formula_components = 0;
     unsigned slaa_formula_failures = 0;
+    unsigned colour_choice_attempts = 0;
+    unsigned colour_choice_sccs = 0;
+    unsigned colour_choice_repairs = 0;
+    unsigned colour_choice_validation_failures = 0;
+    unsigned cobuchi_weak_sccs = 0;
+    unsigned cobuchi_weak_states = 0;
+    unsigned cobuchi_weak_repairs = 0;
+    unsigned cobuchi_weak_validation_failures = 0;
     unsigned ldgba_attempts = 0;
     unsigned ldgba_failures = 0;
     unsigned ldgba_rejected = 0;
     unsigned ldgba_backend_attempts = 0;
     unsigned ldgba_validation_failures = 0;
     unsigned ldgba_candidates = 0;
+    unsigned ldgba_annotations_certified = 0;
+    unsigned ldgba_annotations_rejected = 0;
+    unsigned ldgba_annotation_pair_proofs = 0;
+    unsigned ldgba_annotation_union_proofs = 0;
+    unsigned ldgba_cross_scc_proofs = 0;
     unsigned ldgba_components = 0;
     unsigned ldgba_cache_hits = 0;
     unsigned ldgba_budget_skips = 0;

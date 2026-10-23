@@ -1,0 +1,25 @@
+{
+  "base_commit": "1e751d1b918b8cdf081a59daf1b26e94a6d95ffd",
+  "sha256": {
+    "build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "/Users/liyong/Desktop/verify/COLA/tests/diagnose-owl-ldgba-gap.py": "e3940b4ab7b0d30096360c8ae563705bda5c72b1a2ce5363cb6266aa09e0d1f5"
+  },
+  "variants": {
+    "positive": [
+      "--EKRS17-skip-complement"
+    ],
+    "no_portfolio": [
+      "--skip-translation-portfolio"
+    ],
+    "positive_no_portfolio": [
+      "--EKRS17-skip-complement",
+      "--skip-translation-portfolio"
+    ],
+    "eks20_positive_no_portfolio": [
+      "--EKRS17-skip-complement",
+      "--skip-translation-portfolio"
+    ]
+  },
+  "timeout_seconds": 10,
+  "workers": 2
+}

@@ -1,0 +1,19 @@
+{
+  "sha256": {
+    "build-local/tests/.libs/tela-elevator-driver": "f985b706a88a6eb76abc87f18654323e518402391c39f30d39bee1c3c52c31f9",
+    "build-local/src/.libs/libcola.0.dylib": "f851de9f2ed500d671415a25a4db2af9f4372bdfc9eb87b19f58ee704e1fd3cd",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-colour-choice.py": "41f949e2edf1d2a13fdfd36c6861ea6da6070d38c41384364c6f14b8fe4cb929",
+    "src/colour_choice.cpp": "3f8277552181077f72548fb52cb8786657bce2ac9f731e998e98712499921d87",
+    "src/colour_choice.hpp": "743b5855fb085195e5dd804d466b282c05d37ffb6ce276d1ea2b04d1f18c8d68",
+    "src/cobuchi_weak.cpp": "2573ca77e3da196fd55c9b03d3784c7f76e945de925c114c7817b2dfc3b34b63",
+    "src/cobuchi_weak.hpp": "9d8c5d9fe10bcef593690f4c08387392f9782e4f1b29c6690e3d312fd4fcca19",
+    "src/determinize_teba.cpp": "a4cc109ce7471e7f41d6a41cd276ab408ededa89716f9900610b60f26bb4088a",
+    "src/cola.hpp": "24e15ddab7e6c9cb9c675370fab9fdbc4590811e9cd77a784e4c61342e66d5b8",
+    "tests/tela-elevator-driver.cpp": "5fa6aab576d0b235c4ba6eeac77bda11e5740524098864e8c3320e05afb52faa"
+  },
+  "timeout_seconds_per_process": 5,
+  "workers": 2,
+  "native_options": "--integrated --compact-ranks throughout; changed new weakification outputs also use --local-colours",
+  "weakification": true,
+  "unchanged_inputs": "new native result reuses old result when no SCC was rewritten"
+}

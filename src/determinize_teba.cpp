@@ -15,6 +15,7 @@
 
 //#include "optimizer.hpp"
 #include "cola.hpp"
+#include "owl_annotations.hpp"
 #include "simulation.hpp"
 #include "types.hpp"
 //#include "struct.hpp"
@@ -370,6 +371,7 @@ namespace cola
     std::vector<spot::formula> state_annotations_;
     bool use_formula_annotations_;
     spot::tl_simplifier annotation_simplifier_;
+    std::unique_ptr<owl_language_oracle> owl_oracle_;
 
     // Fixed semantic order for states in deterministic accepting SCCs.
     // Existing runs keep their historical labels; this order is consulted
@@ -388,6 +390,9 @@ namespace cola
     unsigned exact_containment_hits_ = 0;
     unsigned exact_union_queries_ = 0;
     unsigned exact_union_pruned_ = 0;
+    // A proof depends on the target and covering state languages, not their
+    // ranks or the macrostate. Reusing it must not consume the query budget.
+    std::map<std::pair<unsigned, std::vector<unsigned>>, bool> exact_union_cache_;
 
     // Adaptive exact-query accounting.  Static semantic-order construction
     // receives only a small reserved slice of the global budget.  Runtime
@@ -464,12 +469,16 @@ namespace cola
     bool
     exact_language_dominance(unsigned p, unsigned q)
     {
-      if (p == q || om_.get(USE_EXACT_STATE_LANGUAGES) <= 0)
+      if (p == q)
         return false;
 
       unsigned scc = si_.scc_of(p);
       if (scc != si_.scc_of(q))
         return false;
+
+      if (owl_oracle_ && owl_oracle_->covers(q, {p}))
+        { ++owl_oracle_->stats.pair_proofs; return true; }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
 
       unsigned limit = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
@@ -517,8 +526,17 @@ namespace cola
     bool
     exact_union_covers(const std::vector<label>& ordered, unsigned pos)
     {
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || pos == 0)
+      if (pos == 0)
         return false;
+
+      if (owl_oracle_)
+        {
+          std::vector<unsigned> older;
+          for (unsigned j = 0; j < pos; ++j) older.push_back(ordered[j].first);
+          if (owl_oracle_->covers(ordered[pos].first, older))
+            { ++owl_oracle_->stats.union_proofs; return true; }
+        }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
 
       unsigned target_state = ordered[pos].first;
       unsigned target_scc = si_.scc_of(target_state);
@@ -534,13 +552,7 @@ namespace cola
 
       unsigned budget = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
-      if (exact_containment_queries_ >= budget)
-        return false;
-
       unsigned allowance = runtime_exact_allowance(target_scc);
-      if (target_scc >= scc_runtime_exact_queries_.size()
-          || scc_runtime_exact_queries_[target_scc] >= allowance)
-        return false;
 
       // If the full earlier prefix is too large, approximate only the choice
       // of which earlier runs to test.  Deletion is still guarded by an exact
@@ -583,6 +595,21 @@ namespace cola
           std::stable_sort(candidates.begin(), candidates.end());
         }
 
+      std::vector<unsigned> covering_states;
+      for (unsigned j : candidates) covering_states.push_back(ordered[j].first);
+      std::sort(covering_states.begin(), covering_states.end());
+      auto key = std::make_pair(target_state, covering_states);
+      auto known = exact_union_cache_.find(key);
+      if (known != exact_union_cache_.end())
+        {
+          if (known->second) ++exact_union_pruned_;
+          return known->second;
+        }
+      if (exact_containment_queries_ >= budget
+          || target_scc >= scc_runtime_exact_queries_.size()
+          || scc_runtime_exact_queries_[target_scc] >= allowance)
+        return false;
+
       // Build the exact union of the selected retained earlier languages.
       spot::twa_graph_ptr cover =
         state_language_automaton(ordered[candidates[0]].first);
@@ -595,6 +622,7 @@ namespace cola
       ++scc_runtime_exact_queries_[target_scc];
       bool covered = spot::contains(
         cover, state_language_automaton(target_state));
+      exact_union_cache_.emplace(std::move(key), covered);
       if (covered)
         ++exact_union_pruned_;
       return covered;
@@ -603,7 +631,7 @@ namespace cola
     void
     exact_union_cover_prune(std::vector<label>& nodes)
     {
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || nodes.size() <= 1)
+      if ((om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 && !owl_oracle_) || nodes.size() <= 1)
         return;
 
       // Kretinsky-style ordered union subsumption: never remove the smallest
@@ -989,6 +1017,37 @@ namespace cola
       }
     }
 
+    void prune_cross_scc_languages(elevator_mstate& ms)
+    {
+      if (!owl_oracle_ || om_.get(USE_OWL_CROSS_SCC) <= 0) return;
+      auto reached = ms.get_reach_set();
+      std::vector<unsigned> ordered(reached.begin(), reached.end());
+      std::sort(ordered.begin(), ordered.end(), [&](unsigned p, unsigned q)
+        { return std::make_pair(si_.scc_of(p), p) < std::make_pair(si_.scc_of(q), q); });
+      std::vector<unsigned> retained;
+      for (unsigned q : ordered)
+        {
+          std::vector<unsigned> covering;
+          for (unsigned p : retained)
+            if (si_.scc_of(p) < si_.scc_of(q)) covering.push_back(p);
+          if (!covering.empty() && owl_oracle_->covers(q, covering))
+            {
+              ms.weak_set_.erase(q);
+              ms.break_set_.erase(q);
+              for (auto& nodes : ms.detscc_labels_)
+                nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
+                            [&](const label& n) { return n.first == q; }), nodes.end());
+              ++owl_oracle_->stats.cross_scc_proofs;
+            }
+          else retained.push_back(q);
+        }
+      // Spot SCC numbers decrease along proper SCC transitions. Every
+      // replacement is into a strictly lower SCC, so an accepting witness
+      // cannot be discarded infinitely often. Within-SCC rank order and
+      // shifted original acceptance remain unchanged. Never compare local
+      // ranks across SCCs, nor delete mutually covering runs simultaneously.
+    }
+
     int get_detscc_index(unsigned scc)
     {
       for (int idx = 0; idx < acc_detsccs_.size(); idx++)
@@ -1120,11 +1179,42 @@ namespace cola
       // std::cout << "After step: " << get_name(succ) << std::endl;
       //2. Compute the labelling successors for deterministic SCCs
       compute_deterministic_successors(ms, succ, next_detstates, det_cache);
+      if (owl_oracle_ && owl_oracle_->stats.prefix_admitted)
+        {
+          std::vector<unsigned> before, after;
+          for (unsigned q : ms.weak_set_) if (owl_oracle_->is_prefix(q)) before.push_back(q);
+          for (unsigned q : succ.weak_set_) if (owl_oracle_->is_prefix(q)) after.push_back(q);
+          if (before.size() == 1 && after.size() == 1
+              && si_.scc_of(before[0]) != si_.scc_of(after[0]))
+            {
+              bool covered = owl_oracle_->known(after[0]);
+              auto reached = succ.get_reach_set();
+              unsigned removed = 0;
+              for (unsigned q : reached)
+                if (!owl_oracle_->is_prefix(q))
+                  { ++removed; covered &= owl_oracle_->covers(q, after); }
+              if (covered && removed)
+                {
+                  // SCC changes along the certified deterministic prefix are
+                  // finite. Every discarded tail is accepted from the retained
+                  // prefix, so a replacement accepting run survives the last
+                  // reset. Never reset indefinitely inside a prefix SCC.
+                  for (auto& nodes : succ.detscc_labels_) nodes.clear();
+                  for (unsigned q : reached)
+                    if (!owl_oracle_->is_prefix(q))
+                      { succ.weak_set_.erase(q); succ.break_set_.erase(q); }
+                  ++owl_oracle_->stats.prefix_resets;
+                  owl_oracle_->stats.reset_runs += removed;
+                }
+            }
+        }
       // std::cout << "After receiving more successors: " << get_name(succ) << std::endl;
       if (use_simulation_)
       {
         make_simulation_state(succ);
       }
+
+      prune_cross_scc_languages(succ);
 
       // Observe SCC pressure before exact pruning so the runtime budget can
       // adapt to the unpruned concurrent rank width.
@@ -1133,7 +1223,7 @@ namespace cola
       // Exact ordered union-language pruning is optional and bounded.
       // It is independent of simulation and therefore can still strengthen
       // macrostates when simulation is disabled or inconclusive.
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0 || owl_oracle_)
         for (auto& nodes: succ.detscc_labels_)
           exact_union_cover_prune(nodes);
 
@@ -1526,6 +1616,9 @@ namespace cola
           use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
                                    && state_annotations_.size() == aut->num_states()),
           annotation_simplifier_(aut->get_dict()),
+          owl_oracle_(om.get(USE_OWL_ANNOTATIONS) > 0
+                      ? std::make_unique<owl_language_oracle>(aut,
+                          om.get(USE_OWL_PREFIX_RESETS) > 0) : nullptr),
           semantic_order_rank_(nb_states_),
           annotation_coverage_(nb_states_, 0),
           state_language_automata_(nb_states_),
@@ -1675,11 +1768,34 @@ namespace cola
                 static_cast<unsigned>(entry.first.detscc_labels_[i].size()));
         }
       unsigned num_colours_plus_one = num_colours_plus_one_;
+      const auto aut_acc = aut_->acc().get_acceptance();
+      bool local_colours = om_.get(USE_LOCAL_COLOURS) > 0;
+      std::vector<unsigned> strides(acc_detsccs_.size(), num_colours_plus_one);
+      std::vector<spot::acc_cond::acc_code> conditions(acc_detsccs_.size(), aut_acc);
+      std::vector<std::vector<int>> colour_maps(acc_detsccs_.size(),
+                                               std::vector<int>(num_colours_, -1));
+      if (local_colours)
+        for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+          {
+            spot::acc_cond::mark_t occurring{}, common = aut_->acc().all_sets();
+            unsigned sc = acc_detsccs_[i];
+            for (unsigned q : si_.states_of(sc))
+              for (const auto& e : aut_->out(q))
+                if (si_.scc_of(e.dst) == sc && e.cond != bddfalse)
+                  { occurring |= e.acc; common &= e.acc; }
+            auto condition = aut_acc.remove(aut_->acc().all_sets() - occurring, true)
+                                    .remove(common, false);
+            auto used = condition.used_sets();
+            unsigned packed = 0;
+            for (unsigned c : used.sets()) colour_maps[i][c] = packed++;
+            strides[i] = packed + 1;
+            conditions[i] = condition.strip(aut_->acc().all_sets() - used, true);
+          }
       // this is fixed, we can just compute it without max and min colours
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         // we compute for each DAC, how many colours needed
-        num_scc_colours[i] = num_scc_states[i] * num_colours_plus_one;
+        num_scc_colours[i] = num_scc_states[i] * strides[i];
         // should be equal to scc_size * (k + 1)
       }
       // now max_colors_ has the maximal color for each accepting deterministic SCC
@@ -1714,7 +1830,24 @@ namespace cola
           for (auto& c : det_colours[i]) {
             // Relative colours for never-present slots were recorded during
             // exploration but are absent from the compacted acceptance.
-            if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c);
+            if (!local_colours)
+              { if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c); }
+            else
+              {
+                unsigned slot = c / num_colours_plus_one;
+                unsigned source_colour = c % num_colours_plus_one;
+                if (slot >= num_scc_states[i]) continue;
+                unsigned relative;
+                if (source_colour == num_colours_)
+                  relative = strides[i] - 1;
+                else
+                  {
+                    int packed = colour_maps[i][source_colour];
+                    if (packed < 0) continue;
+                    relative = packed;
+                  }
+                t.acc.set(color_bases[i] + slot * strides[i] + relative);
+              }
           }
           // should be set to the relative color
         }
@@ -1727,20 +1860,19 @@ namespace cola
       }
       // now set up the acceptance
       spot::acc_cond::acc_code acceptance = spot::acc_cond::acc_code::f();
-      const auto aut_acc = aut_->acc().get_acceptance();
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         unsigned num_scc_i_states = num_scc_states[i];
         // we need to set up the acceptance for every run
         for (unsigned j = 0; j < num_scc_i_states; j ++) {
-          auto base = j * num_colours_plus_one;
+          auto base = j * strides[i];
           // std::cout << "shift " << base << " total " << color_bases[i] + base << std::endl;
           const auto rank_base = color_bases[i] + base;
-          auto scc_acceptance = aut_acc << rank_base;
+          auto scc_acceptance = conditions[i] << rank_base;
           // Each rank owns k source colours followed by its discontinuation
           // colour, all in this SCC's block (as on the transitions above).
           scc_acceptance &= spot::acc_cond::acc_code::fin(
-            {rank_base + num_colours_});
+            {rank_base + strides[i] - 1});
           // std::cout << "scc " << i << " acc="<< scc_acceptance << std::endl;
           // max_colors are all odd colors, the biggest one
           acceptance |= scc_acceptance;
@@ -1845,6 +1977,9 @@ namespace cola
       }
       
       simplify_acceptance_here(res_);
+      if (owl_oracle_)
+        res_->set_named_prop("cola-owl-annotation-stats",
+                             new owl_annotation_stats(owl_oracle_->stats));
       // spot::print_hoa(std::cout, res_);
       return res_;
     }
