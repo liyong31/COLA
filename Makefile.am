@@ -193,3 +193,9 @@ EXTRA_DIST += tests/diagnose-ltl3tela-pipeline.py tests/ltl3tela-pipeline-report
   tests/benchmark-specialized-priority.py tests/specialized-priority-report.md \
   tests/specialized-priority-results.csv tests/specialized-priority-results.json \
   tests/finite-witness-priority.csv tests/finite-witness-priority.json
+
+EXTRA_DIST += tests/build-routing-ablation.py tests/benchmark-routing-effect.py \
+  tests/time-routing-effect.py tests/summarize-routing-effect.py \
+  tests/routing-effect-report.md tests/routing-effect-results.csv \
+  tests/routing-effect-results.json tests/routing-effect-serial.csv \
+  tests/routing-effect-serial.json

@@ -1,0 +1,31 @@
+{
+  "sha256": {
+    "/Users/liyong/Desktop/verify/COLA/build-local/routing-ablation/build.json": "ed560232614497acf6d299e115c723394a17785b4bcf11d367b3437f8b61ca64",
+    "/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-routing-effect.py": "e1e6304b011c01571034b56436cf9f8fd0dda2c3fe9d0111c96786aa72ec69a0",
+    "tests/compare-ltl-sizes.py": "78f51c6d38fd4b842f94d971e7a8ff3ab12b41994161b6080e6621ebd6247258",
+    "/Users/liyong/Desktop/verify/COLA/build-local/routing-ablation/before/ltl2dela": "d73a24a547700237c568984bd089ebbe342195463039bfe242b395f7d5bdaef6",
+    "/Users/liyong/Desktop/verify/COLA/build-local/routing-ablation/before/libcola.0.dylib": "cd37e2ca4855c583bd587ea751f071614d79e63ccafc61a7b8550b83706ffab4",
+    "/Users/liyong/Desktop/verify/COLA/build-local/routing-ablation/after/ltl2dela": "d73a24a547700237c568984bd089ebbe342195463039bfe242b395f7d5bdaef6",
+    "/Users/liyong/Desktop/verify/COLA/build-local/routing-ablation/after/libcola.0.dylib": "8b83fa72e68739b1af051fc5bc03bd9ad295c27818a51edbde92293b09421c64",
+    "/Users/liyong/Desktop/verify/COLA/tests/time-routing-effect.py": "688b25d4f924f96ba6620ecd4b92a58d7c6caffde575f8d431e8389b15637278"
+  },
+  "selection": [
+    "DwyerAC98.ltl:45",
+    "DwyerAC98.ltl:46",
+    "DwyerAC98.ltl:50",
+    "DwyerAC98.ltl:55",
+    "Parametrised.ltl:27",
+    "Parametrised.ltl:45",
+    "Liberouter04.ltl:43"
+  ],
+  "configs": [
+    "default",
+    "portfolio"
+  ],
+  "repeats": 3,
+  "seed": 20261023,
+  "execution": "One process at a time, randomly interleaved before/after within each repeat; fresh translator and frontend processes.",
+  "timing": "perf_counter_ns around subprocess.run capture_output; validation and metrics excluded; no corpus benchmark running concurrently."
+}

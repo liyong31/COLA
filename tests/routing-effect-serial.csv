@@ -1,0 +1,85 @@
+case,sources,formula,config,route,repeat,status,elapsed_ms,states
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,before,0,ok,45.306,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,after,0,ok,32.787,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,before,1,ok,33.955,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,after,1,ok,33.26,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,after,2,ok,33.695,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),default,before,2,ok,33.498,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,before,0,ok,1517.408,6
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,after,0,ok,32.396,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,after,1,ok,32.095,17
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,before,1,ok,1485.494,6
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,before,2,ok,1479.041,6
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),portfolio,after,2,ok,32.349,17
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,after,0,ok,7.791,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,before,0,ok,7.293,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,before,1,ok,7.633,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,after,1,ok,7.766,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,after,2,ok,9.566,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),default,before,2,ok,7.637,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,before,0,ok,1222.536,3
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,after,0,ok,8.18,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,after,1,ok,7.823,6
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,before,1,ok,1265.336,3
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,before,2,ok,1261.034,3
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),portfolio,after,2,ok,8.521,6
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,before,0,ok,27.099,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,after,0,ok,26.172,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,before,1,ok,26.644,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,after,1,ok,26.323,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,before,2,ok,26.6,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),default,after,2,ok,26.873,12
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,before,0,ok,1961.654,11
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,after,0,ok,1910.502,11
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,after,1,ok,2029.526,11
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,before,1,ok,1821.908,11
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,before,2,ok,1922.433,11
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),portfolio,after,2,ok,1839.296,11
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,after,0,ok,556.167,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,before,0,ok,555.097,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,after,1,ok,555.737,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,before,1,ok,546.86,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,before,2,ok,577.749,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),default,after,2,ok,553.238,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,before,0,ok,7601.881,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,after,0,ok,6739.538,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,after,1,ok,6425.933,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,before,1,ok,7495.251,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,before,2,ok,7775.356,13
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),portfolio,after,2,ok,6351.092,13
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,after,0,ok,7.428,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,before,0,ok,7.034,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,before,1,ok,6.657,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,after,1,ok,6.546,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,after,2,ok,6.549,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,default,before,2,ok,6.44,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,before,0,ok,6.533,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,after,0,ok,8.056,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,before,1,ok,7.062,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,after,1,ok,6.963,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,before,2,ok,6.75,1
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,portfolio,after,2,ok,6.679,1
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,before,0,ok,8.868,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,after,0,ok,9.01,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,after,1,ok,8.92,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,before,1,ok,8.936,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,after,2,ok,9.845,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),default,before,2,ok,9.312,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,before,0,ok,1503.005,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,after,0,ok,8.904,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,before,1,ok,1479.288,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,after,1,ok,8.836,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,after,2,ok,8.889,8
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),portfolio,before,2,ok,1510.328,8
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,after,0,ok,8.056,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,before,0,ok,7.991,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,before,1,ok,8.103,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,after,1,ok,8.029,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,before,2,ok,7.801,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),default,after,2,ok,7.873,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,before,0,ok,1620.23,9
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,after,0,ok,8.718,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,before,1,ok,1621.807,9
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,after,1,ok,8.359,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,after,2,ok,8.325,10
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),portfolio,before,2,ok,1758.199,9

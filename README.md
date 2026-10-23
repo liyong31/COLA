@@ -122,6 +122,13 @@ The [priority regression report](tests/specialized-priority-report.md) records
 681 checked outputs and the resulting residual coverage. The portfolio totals
 below describe earlier routing and remain historical measurements.
 
+The [matched before/after experiment](tests/routing-effect-report.md) measures
+this priority change directly: all 1816 outputs pass language checks. Default
+states stay at 1388; the configured portfolio changes from 1336 to 1387 states,
+while external calls fall from 788 to 26. Thus strict priority avoids substantial
+frontend work but sacrifices some size improvements. The report keeps this
+tradeoff separate from the earlier baseline comparisons and algorithm rankings.
+
 The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
 candidate that preserves generic acceptance and uses COLA's native elevator
 determiniser. Configure the pinned LTL3TELA executable explicitly:

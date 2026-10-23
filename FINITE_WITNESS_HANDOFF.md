@@ -580,3 +580,22 @@ strongest end-to-end portfolio on this corpus. The full finite-witness rerun wit
 cross-SCC-enabled combined routing passes387 outputs plus585 budget/bypass checks,
 with zero timeout/capacity failure. Smoke passes. The manuscript receives the
 new cross-SCC proof sketch and the adverse results, and still compiles to22 pages.
+
+## Merged continuation and routing experiment (23 October 2026)
+
+PR #2 and its stacked follow-up PR #3 are merged into `ltl2dela`.
+The final merge is `178da6c148323a0aa52d052ade8f97899c3750a0`;
+its tree matches the checked specialized-first implementation
+`2c83c3c7aad4b56df0b22aa6c33b796d60066655`.
+The finite-witness construction remains preserved and optional.
+
+The matched experiment in `tests/routing-effect-report.md` compares that
+implementation with pre-priority `cc2dc27634fd187758051275ad2a0175468991dd`,
+rebuilding only the changed routing file while reusing identical other objects.
+All 1816 outputs pass language equivalence, determinism and completeness.
+Default size is unchanged (1388); configured portfolio size changes
+1336 -> 1387 while external calls fall 788 -> 26. Strict specialized priority
+remains as requested; improvements to specialized output sizes are follow-up
+work. Selected repeated serial timings are reported separately from the
+concurrent corpus measurements. The build/script/result manifests retain
+measured hashes; do not rebuild frozen binaries during experiments.
