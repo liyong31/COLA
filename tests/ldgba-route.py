@@ -53,6 +53,19 @@ def main():
         check('print(' + repr(generalized) + ')',
               {'LDGBA backend attempts': 1, 'LDGBA candidates': 1, 'LDGBA validation failures': 0},
               ['--ldgba-pruning'])
+        # Two equivalent deterministic SCCs exercise cross-SCC certification
+        # and the smaller-of-baseline/pruned policy on a non-direct formula.
+        duplicated = generalized.replace('States: 4', 'States: 6').replace(
+            '[t] 3\nState: 1', '[t] 3\n[!0|1] 4 {0 1}\n[0&!1] 5\nState: 1')
+        duplicated = duplicated.replace('--END--',
+            'State: 4\n[!0|1] 4 {0 1}\n[0&!1] 5\n'
+            'State: 5\n[1] 4 {0 1}\n[!1] 5\n--END--')
+        for q in [1, 2, 4, 5]:
+            label = 'B[([G(!p0|Fp1)], [], [], Fixpoints{}) [C=' + ('Fb' if q in [2, 5] else 'true') + ']]'
+            duplicated = duplicated.replace('State: ' + str(q) + '\n', 'State: ' + str(q) + ' "' + label + '"\n')
+        check('print(' + repr(duplicated) + ')',
+              {'LDGBA backend attempts': 2, 'LDGBA candidates': 1, 'LDGBA validation failures': 0},
+              ['--ldgba-cross-scc', '--ldgba-pruning'])
         negative_partial = ('HOA: v1\nStates: 2\nStart: 0\nAP: 2 "a" "b"\n'
             'Acceptance: 1 Inf(0)\n--BODY--\nState: 0\n[t] 0\n'
             '[0&!1] 1 {0}\nState: 1\n[!1] 1 {0}\n--END--\n')

@@ -121,9 +121,26 @@ namespace cola
       return result;
     }
 
-    std::vector<spot::formula> decode(std::string name, const spot::const_twa_graph_ptr& aut)
+    std::vector<spot::formula> decode(std::string name, const spot::const_twa_graph_ptr& aut,
+                                      bool include_prefix)
     {
-      if (name.size() < 4 || name.size() > 65536 || name.substr(0, 2) != "B[" || name.back() != ']') return {};
+      if (name.size() < 4 || name.size() > 65536 || name.back() != ']') return {};
+      if (include_prefix && name.substr(0, 2) == "A[")
+        {
+          auto body = trim(name.substr(2, name.size() - 3));
+          if (body.empty()) return {};
+          if (body.front() != '{') return {parse(body, aut, false)};
+          if (end_group(body, 0) != body.size() - 1) return {};
+          std::vector<spot::formula> terms;
+          for (const auto& entry : split(body.substr(1, body.size() - 2)))
+            {
+              auto eq = entry.find('=');
+              if (eq == std::string::npos) return {};
+              terms.push_back(parse(entry.substr(eq + 1), aut, false));
+            }
+          return {spot::formula::Or(terms)};
+        }
+      if (name.substr(0, 2) != "B[") return {};
       name = trim(name.substr(2, name.size() - 3));
       if (name.empty()) return {};
       std::vector<spot::formula> terms;
@@ -180,17 +197,48 @@ namespace cola
     }
   }
 
-  owl_language_oracle::owl_language_oracle(const spot::const_twa_graph_ptr& aut)
-    : formulas_(aut->num_states()), languages_(aut->num_states(), bddfalse)
+  owl_language_oracle::owl_language_oracle(const spot::const_twa_graph_ptr& aut, bool include_prefix)
+    : formulas_(aut->num_states()), languages_(aut->num_states(), bddfalse),
+      regions_(aut->num_states(), 0)
   {
     auto names = aut->get_named_prop<std::vector<std::string>>("state-names");
     if (!names) return;
+    if (include_prefix && aut->is_existential() && aut->num_sets()
+        && aut->acc().is_generalized_buchi() && names->size() == aut->num_states())
+      {
+        bool valid = true;
+        for (unsigned q = 0; q < aut->num_states(); ++q)
+          {
+            const auto& s = (*names)[q];
+            if (s.rfind("A[", 0) == 0) regions_[q] = 'A';
+            else if (s.rfind("B[", 0) == 0) regions_[q] = 'B';
+            else valid = false;
+          }
+        if (!is_prefix(aut->get_init_state_number())) valid = false;
+        for (unsigned q = 0; q < aut->num_states() && valid; ++q)
+          {
+            bdd internal_guards = bddfalse;
+            for (const auto& t : aut->out(q))
+              {
+                if (t.cond == bddfalse) continue;
+                if (regions_[q] == 'B' && regions_[t.dst] != 'B') { valid = false; break; }
+                if (regions_[q] == 'A' && regions_[t.dst] != 'A') continue;
+                // Rejecting internally deterministic prefix, closed fully
+                // deterministic accepting region. Duplicate edges are rejected
+                // conservatively rather than trusting the state-name tags.
+                if ((regions_[q] == 'A' && t.acc)
+                    || (internal_guards & t.cond) != bddfalse) { valid = false; break; }
+                internal_guards |= t.cond;
+              }
+          }
+        stats.prefix_admitted = valid;
+      }
     for (unsigned q = 0; q < aut->num_states() && q < names->size() && q < 256; ++q)
       {
       bool decoded = false;
       try
         {
-          auto candidates = decode((*names)[q], aut);
+          auto candidates = decode((*names)[q], aut, stats.prefix_admitted);
           if (candidates.empty()) continue;
           ++stats.decoded;
           decoded = true;
@@ -203,6 +251,7 @@ namespace cola
                 languages_[q] = language;
                 formulas_[q] = f;
                 ++stats.certified;
+                if (is_prefix(q)) ++stats.prefix_certified;
                 break;
               }
           if (!formulas_[q]) ++stats.rejected;
@@ -241,6 +290,7 @@ namespace cola
   }
 
   bool owl_language_oracle::known(unsigned q) const { return q < formulas_.size() && bool(formulas_[q]); }
+  bool owl_language_oracle::is_prefix(unsigned q) const { return q < regions_.size() && regions_[q] == 'A'; }
 
   bool owl_language_oracle::covers(unsigned target, const std::vector<unsigned>& older) const
   {

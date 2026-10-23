@@ -179,3 +179,11 @@ EXTRA_DIST += tests/benchmark-owl-annotations.py tests/summarize-owl-annotations
   tests/owl-annotations-integrated.csv tests/owl-annotations-integrated.json \
   tests/owl-annotations-report.md research/owl-annotations.tex \
   tests/finite-witness-owl-annotations.csv tests/finite-witness-owl-annotations.json
+
+EXTRA_DIST += tests/diagnose-owl-ldgba-gap.py tests/summarize-owl-gap.py \
+  tests/owl-gap-controls.csv tests/owl-gap-controls.json tests/owl-gap-report.md \
+  tests/owl-cross-scc-results.csv tests/owl-cross-scc-results.json \
+  tests/owl-cross-scc-negative-results.csv tests/owl-cross-scc-negative-results.json \
+  tests/owl-cross-scc-integrated.csv tests/owl-cross-scc-integrated.json
+EXTRA_DIST += research/owl-gap.tex tests/finite-witness-owl-cross.csv \
+  tests/finite-witness-owl-cross.json

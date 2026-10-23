@@ -279,6 +279,7 @@ namespace cola
         << "  LDGBA annotations rejected: " << ldgba_annotations_rejected << '\n'
         << "  LDGBA annotation pair proofs: " << ldgba_annotation_pair_proofs << '\n'
         << "  LDGBA annotation union proofs: " << ldgba_annotation_union_proofs << '\n'
+        << "  LDGBA cross-SCC proofs: " << ldgba_cross_scc_proofs << '\n'
         << "  LDGBA components: " << ldgba_components << '\n'
         << "  LDGBA cache hits: " << ldgba_cache_hits << '\n'
         << "  LDGBA budget skips: " << ldgba_budget_skips << '\n'
@@ -1686,6 +1687,7 @@ namespace cola
             om.set(USE_STUTTER, 0);
             om.set(USE_OBSERVED_RANKS, 1);
             om.set(USE_OWL_ANNOTATIONS, options_.ldgba_annotations);
+            om.set(USE_OWL_CROSS_SCC, options_.ldgba_cross_scc);
             if (options_.ldgba_pruning)
               {
                 om.set(USE_LOCAL_COLOURS, 1);
@@ -1696,12 +1698,15 @@ namespace cola
             bool deterministic = spot::is_deterministic(input);
             if (!deterministic) ++stats_.ldgba_backend_attempts;
             auto result = deterministic ? input : cola::determinize_televator(input, om);
+            bool cross_changed = false;
             if (auto a = result->get_named_prop<owl_annotation_stats>("cola-owl-annotation-stats"))
               {
                 stats_.ldgba_annotations_certified += a->certified;
                 stats_.ldgba_annotations_rejected += a->rejected;
                 stats_.ldgba_annotation_pair_proofs += a->pair_proofs;
                 stats_.ldgba_annotation_union_proofs += a->union_proofs;
+                stats_.ldgba_cross_scc_proofs += a->cross_scc_proofs;
+                cross_changed = a->cross_scc_proofs > 0;
               }
             result = normalize_deterministic(result);
             if (!spot::is_deterministic(result) || !spot::are_equivalent(result, input))
@@ -1716,6 +1721,36 @@ namespace cola
                 result = normalize_deterministic(result);
                 if (!spot::are_equivalent(result, f))
                   { ++stats_.ldgba_validation_failures; continue; }
+              }
+            if (options_.ldgba_cross_scc && cross_changed)
+              {
+                // Certified pruning preserves language, but need not reduce
+                // reachable macrostates. Compare the original SCC construction
+                // on the same input; no additional frontend call is required.
+                try
+                  {
+                    auto baseline_options = om;
+                    baseline_options.set(USE_OWL_CROSS_SCC, 0);
+                    ++stats_.ldgba_backend_attempts;
+                    auto baseline = normalize_deterministic(
+                      cola::determinize_televator(input, baseline_options));
+                    if (negative)
+                      {
+                        baseline = spot::complete(baseline);
+                        baseline->set_acceptance(baseline->num_sets(),
+                          baseline->acc().get_acceptance().complement());
+                        baseline = normalize_deterministic(baseline);
+                      }
+                    if (!spot::is_deterministic(baseline) || !spot::are_equivalent(baseline, f))
+                      ++stats_.ldgba_validation_failures;
+                    else
+                      {
+                        baseline = spot::complete(baseline);
+                        result = spot::complete(result);
+                        if (no_larger(baseline, result)) result = baseline;
+                      }
+                  }
+                catch (const std::runtime_error&) { ++stats_.ldgba_failures; }
               }
             ++stats_.ldgba_candidates;
             if (!best || (no_larger(result, best) && !no_larger(best, result))) best = result;

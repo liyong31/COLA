@@ -179,6 +179,15 @@ missing, malformed or unverified annotations leave the existing checks in place.
 Use `--no-ldgba-annotations` to disable this mechanism for an ablation. The original
 Emerson–Lei acceptance and rank-discontinuation construction are retained.
 
+`--ldgba-cross-scc` additionally prunes runs covered by the certified union of
+retained runs in lower SCCs. Each SCC keeps its independent determinisation;
+local ranks are never compared across SCCs. A strict SCC order prevents repeated
+mutual deletion. Because pruning can increase reachable macrostate counts, this
+option compares changed results with the original construction on the same HOA
+and retains the smaller checked, completed candidate. It may add one backend call
+per changed candidate, without additional frontend calls. See the
+[OWL comparison and cross-SCC ablation](tests/owl-gap-report.md).
+
 This supplies checked formula-based pruning, but does not yet establish the
 TACAS 2017 double-exponential LTL bound: initial determinism, a singly exponential
 total basis/width bound across SCCs and weak-component bookkeeping remain to be

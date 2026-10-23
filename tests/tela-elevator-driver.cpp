@@ -14,11 +14,12 @@
 
 int main(int argc, char** argv)
 {
-  if (argc < 3 || argc > 10) return 1;
+  if (argc < 3 || argc > 12) return 1;
   bool integrated = false, compact = false, colours = false, preprocess = false, weak = false;
   bool local_colours = false;
   bool ldgba_pruning = false;
   bool owl_annotations = false, annotation_only = false;
+  bool prefix_resets = false, cross_scc = false;
   for (int i = 3; i < argc; ++i)
     if (std::string(argv[i]) == "--integrated") integrated = true;
     else if (std::string(argv[i]) == "--compact-ranks") compact = true;
@@ -30,6 +31,8 @@ int main(int argc, char** argv)
     else if (std::string(argv[i]) == "--ldgba-pruning") ldgba_pruning = true;
     else if (std::string(argv[i]) == "--owl-annotations") owl_annotations = true;
     else if (std::string(argv[i]) == "--annotation-only") owl_annotations = annotation_only = true;
+    else if (std::string(argv[i]) == "--cross-scc") owl_annotations = cross_scc = true;
+    else if (std::string(argv[i]) == "--prefix-resets") owl_annotations = prefix_resets = true;
     else return 1;
   if (preprocess && !colours && !weak) colours = true;
   try
@@ -95,6 +98,8 @@ int main(int argc, char** argv)
       options.set(USE_OBSERVED_RANKS, compact);
       options.set(USE_LOCAL_COLOURS, local_colours);
       options.set(USE_OWL_ANNOTATIONS, owl_annotations);
+      options.set(USE_OWL_PREFIX_RESETS, prefix_resets);
+      options.set(USE_OWL_CROSS_SCC, cross_scc);
       if (annotation_only) options.set(USE_EXACT_STATE_LANGUAGES, 0);
       if (ldgba_pruning)
         {
@@ -108,7 +113,13 @@ int main(int argc, char** argv)
                   << "\nannotation-certified: " << s->certified
                   << "\nannotation-rejected: " << s->rejected
                   << "\nannotation-pair-proofs: " << s->pair_proofs
+                  << "\ncross-scc-proofs: " << s->cross_scc_proofs
                   << "\nannotation-union-proofs: " << s->union_proofs << '\n';
+      if (auto s = output->get_named_prop<cola::owl_annotation_stats>("cola-owl-annotation-stats"))
+        std::cerr << "prefix-admitted: " << s->prefix_admitted
+                  << "\nprefix-certified: " << s->prefix_certified
+                  << "\nprefix-resets: " << s->prefix_resets
+                  << "\nprefix-reset-runs: " << s->reset_runs << '\n';
       spot::print_hoa(std::cout, output);
       if (!spot::is_deterministic(output) || !spot::are_equivalent(input, output)) return 4;
       return 0;

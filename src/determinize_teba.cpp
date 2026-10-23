@@ -1017,6 +1017,37 @@ namespace cola
       }
     }
 
+    void prune_cross_scc_languages(elevator_mstate& ms)
+    {
+      if (!owl_oracle_ || om_.get(USE_OWL_CROSS_SCC) <= 0) return;
+      auto reached = ms.get_reach_set();
+      std::vector<unsigned> ordered(reached.begin(), reached.end());
+      std::sort(ordered.begin(), ordered.end(), [&](unsigned p, unsigned q)
+        { return std::make_pair(si_.scc_of(p), p) < std::make_pair(si_.scc_of(q), q); });
+      std::vector<unsigned> retained;
+      for (unsigned q : ordered)
+        {
+          std::vector<unsigned> covering;
+          for (unsigned p : retained)
+            if (si_.scc_of(p) < si_.scc_of(q)) covering.push_back(p);
+          if (!covering.empty() && owl_oracle_->covers(q, covering))
+            {
+              ms.weak_set_.erase(q);
+              ms.break_set_.erase(q);
+              for (auto& nodes : ms.detscc_labels_)
+                nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
+                            [&](const label& n) { return n.first == q; }), nodes.end());
+              ++owl_oracle_->stats.cross_scc_proofs;
+            }
+          else retained.push_back(q);
+        }
+      // Spot SCC numbers decrease along proper SCC transitions. Every
+      // replacement is into a strictly lower SCC, so an accepting witness
+      // cannot be discarded infinitely often. Within-SCC rank order and
+      // shifted original acceptance remain unchanged. Never compare local
+      // ranks across SCCs, nor delete mutually covering runs simultaneously.
+    }
+
     int get_detscc_index(unsigned scc)
     {
       for (int idx = 0; idx < acc_detsccs_.size(); idx++)
@@ -1148,11 +1179,42 @@ namespace cola
       // std::cout << "After step: " << get_name(succ) << std::endl;
       //2. Compute the labelling successors for deterministic SCCs
       compute_deterministic_successors(ms, succ, next_detstates, det_cache);
+      if (owl_oracle_ && owl_oracle_->stats.prefix_admitted)
+        {
+          std::vector<unsigned> before, after;
+          for (unsigned q : ms.weak_set_) if (owl_oracle_->is_prefix(q)) before.push_back(q);
+          for (unsigned q : succ.weak_set_) if (owl_oracle_->is_prefix(q)) after.push_back(q);
+          if (before.size() == 1 && after.size() == 1
+              && si_.scc_of(before[0]) != si_.scc_of(after[0]))
+            {
+              bool covered = owl_oracle_->known(after[0]);
+              auto reached = succ.get_reach_set();
+              unsigned removed = 0;
+              for (unsigned q : reached)
+                if (!owl_oracle_->is_prefix(q))
+                  { ++removed; covered &= owl_oracle_->covers(q, after); }
+              if (covered && removed)
+                {
+                  // SCC changes along the certified deterministic prefix are
+                  // finite. Every discarded tail is accepted from the retained
+                  // prefix, so a replacement accepting run survives the last
+                  // reset. Never reset indefinitely inside a prefix SCC.
+                  for (auto& nodes : succ.detscc_labels_) nodes.clear();
+                  for (unsigned q : reached)
+                    if (!owl_oracle_->is_prefix(q))
+                      { succ.weak_set_.erase(q); succ.break_set_.erase(q); }
+                  ++owl_oracle_->stats.prefix_resets;
+                  owl_oracle_->stats.reset_runs += removed;
+                }
+            }
+        }
       // std::cout << "After receiving more successors: " << get_name(succ) << std::endl;
       if (use_simulation_)
       {
         make_simulation_state(succ);
       }
+
+      prune_cross_scc_languages(succ);
 
       // Observe SCC pressure before exact pruning so the runtime budget can
       // adapt to the unpruned concurrent rank width.
@@ -1555,7 +1617,8 @@ namespace cola
                                    && state_annotations_.size() == aut->num_states()),
           annotation_simplifier_(aut->get_dict()),
           owl_oracle_(om.get(USE_OWL_ANNOTATIONS) > 0
-                      ? std::make_unique<owl_language_oracle>(aut) : nullptr),
+                      ? std::make_unique<owl_language_oracle>(aut,
+                          om.get(USE_OWL_PREFIX_RESETS) > 0) : nullptr),
           semantic_order_rank_(nb_states_),
           annotation_coverage_(nb_states_, 0),
           state_language_automata_(nb_states_),

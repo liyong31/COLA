@@ -40,3 +40,7 @@ data/.R*
 src/.libs
 src/.deps
 
+
+!tests/owl-gap-*
+!tests/owl-cross-*
+!research/owl-gap.tex

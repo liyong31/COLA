@@ -22,6 +22,7 @@ def main():
                     help='enable SCC colour packing and wider exact union pruning')
     ap.add_argument('--ldgba-portfolio', action='store_true')
     ap.add_argument('--no-ldgba-annotations', action='store_true')
+    ap.add_argument('--ldgba-cross-scc', action='store_true')
     ap.add_argument('--modes', nargs='+', choices=['cola_current', 'cola_slaa',
                     'cola_slaa_portfolio', 'cola_ldgba', 'cola_combined', 'cola_combined_colour',
                     'cola_colour_elevator', 'tela_elevator'],
@@ -64,6 +65,7 @@ def main():
             if args.ldgba_pruning: command += ['--ldgba-pruning']
             if args.ldgba_portfolio: command += ['--ldgba-portfolio']
             if args.no_ldgba_annotations: command += ['--no-ldgba-annotations']
+            if args.ldgba_cross_scc: command += ['--ldgba-cross-scc']
             if mode in ['cola_slaa', 'cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']:
                 command += ['--slaa-tool=' + str(args.tool.resolve())]
             if mode in ['cola_slaa_portfolio', 'cola_combined', 'cola_combined_colour', 'cola_colour_elevator']: command += ['--slaa-portfolio']
@@ -146,7 +148,7 @@ def main():
     assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest() == h
                for p, h in binary_hashes.items()), 'binary changed during campaign'
     manifest = {'ldgba_pruning': args.ldgba_pruning, 'ldgba_portfolio': args.ldgba_portfolio,
-        'ldgba_annotations': not args.no_ldgba_annotations,
+        'ldgba_annotations': not args.no_ldgba_annotations, 'ldgba_cross_scc': args.ldgba_cross_scc,
         'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
                 'environment': 'tests/ltl-fragment-environment.json',
                 'sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},

@@ -506,3 +506,77 @@ bound on total basis/width and weak bookkeeping across SCCs, and the interaction
 with independent SCC rank resets. Boolean abstraction is not arbitrary LTL
 implication. The conditional counting statement is updated accordingly; do not
 keep claiming that the HOA path carries no annotations.
+
+## OWL gap diagnosis and independent-SCC coverage pruning
+
+The user explicitly requires preserving independent determinisation of each SCC,
+while pruning runs covered by other components. The implementation retains
+all local rankings and shifted original acceptance. USE_OWL_CROSS_SCC (raw driver
+--cross-scc) adds certified union-language deletion before local colour generation.
+Only retained runs in strictly lower reverse-topological SCCs can cover a target.
+Processing lower SCCs first prevents mutual deletion. Every accepting-witness
+replacement or proper source SCC transition decreases its SCC number, hence only
+finitely many replacements occur; after the last, the existing local construction
+preserves an accepting continuation. No cross-component local-rank comparison or
+single global ranking was introduced. Unknown/forged annotations cannot prune.
+
+The 908 new OWL controls independently disable polarity selection and the fragment
+portfolio. The large FG gaps remain with both disabled: Parametrised27 32 versus5,
+Parametrised45 89 versus15. OWL AsymmetricDPAConstruction at source commit
+632c2da3ec982cdda340305afb9a3ddf45000491 partitions jump classes and rotates a single
+safety candidate (safetyProgress), whereas our weak bookkeeping retains subsets.
+The five Ga/Gb/Gc/Gd/Ge languages are incomparable; coverage cannot remove them.
+Safe safety scheduling still needs a restartability/fairness certificate.
+Do not copy OWL's global ranking into the SCC-decomposed construction.
+
+Matched positive algorithm-family comparisons do not show a universal OWL win:
+SEJK16 has COLA1753 / OWL2060 on225 common successes; EKS20 COLA1932 / OWL3051
+on224. On the fixed222 successful in all four controls and both COLA algorithms,
+best positive COLA totals1426, OWL positive SEJK16 without fragment portfolio1820,
+OWL both-polarity SEJK16 without fragment portfolio1372. These are family-level
+comparisons, not the exact same HOA graph: OWL retains internal preprocessing.
+The old1188 figure enables polarity and fragment portfolios and uses another
+fixed219 cohort. Never mix these cohorts or call it positive-only determinisation.
+
+The 1816 identical-input cross-SCC off/on outputs cover both polarities and both
+algorithms, with annotations enabled in both modes. Positive:449 paired successes,
+6 smaller,443 ties,0 larger,88 fewer states,3664 coverage deletions. Negative:
+445 paired successes,11 smaller,428 ties,6 larger,220 fewer states,7225 deletions.
+Negative Hardness3 SEJK16 recovers an acceptance-capacity failure with377 states.
+All successful native and completed outputs pass independent language checks;
+capacity, frontend-timeout and input-budget outcomes remain explicit.
+Examples: positive EKS20 Dwyer50 72->38, Dwyer55 109->86, Dwyer45 28->22;
+negative SEJK16 Hardness1 379->169; negative EKS20 Hardness5 133->91.
+Fewer tracked runs need not mean fewer macrostates: negative EKS20 Hardness1 grows
+22->29 and Hardness3 24->60. Keep these adverse raw results in the report.
+
+The optional LTL flag --ldgba-cross-scc therefore compares any changed pruned
+candidate with the existing construction on the same frontend HOA, validates both,
+normalises/completes them and retains the smaller positive-language result. It may
+make one additional backend call, but no additional frontend call. Default routing
+and direct GF/FG/DBA priorities remain. The route fixture duplicates a deterministic
+accepting SCC to exercise certification and the comparison policy (31 route checks).
+The annotation suite now has42 checks, including genuine cross-SCC joint coverage,
+forged labels and preservation of uncovered accepting witnesses.
+
+A separate experimental raw --prefix-resets option certifies the A/B partition,
+decodes SEJK/EKS A formulas and resets accepting runs only on a proper deterministic
+prefix SCC change when all discarded languages are covered by the retained prefix.
+Its structural and language certificates have fixture tests, including forged A
+labels, prefix nondeterminism, accepting prefix edges and nonclosed B regions.
+It is not enabled in the LTL route and has no corpus size claim.
+
+Reproduction: tests/diagnose-owl-ldgba-gap.py, tests/benchmark-owl-annotations.py
+--scc-pruning cross [--negative], tests/benchmark-slaa.py --ldgba-cross-scc, and
+ tests/summarize-owl-gap.py. Report: tests/owl-gap-report.md; proof discussion:
+research/owl-gap.tex. Raw binaries were frozen and copied into
+build-local/owl-cross-measured-binaries before the final frontend-integration build.
+Their manifests describe that earlier measured build, not the later linked binary.
+
+Final integration/validation: all454 cross-SCC-enabled LDGBA/combined outputs pass,
+with zero validation failures. Counts exactly tie the previous annotation baseline:
+LDGBA-only1337, combined1336/all227 and984/common222. Raw gains do not improve the
+strongest end-to-end portfolio on this corpus. The full finite-witness rerun with
+cross-SCC-enabled combined routing passes387 outputs plus585 budget/bypass checks,
+with zero timeout/capacity failure. Smoke passes. The manuscript receives the
+new cross-SCC proof sketch and the adverse results, and still compiles to22 pages.

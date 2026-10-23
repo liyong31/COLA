@@ -19,6 +19,7 @@ def main():
     ap.add_argument('--csv', type=Path, default=Path('tests/owl-annotations-results.csv'))
     ap.add_argument('--timeout', type=float, default=10)
     ap.add_argument('--negative', action='store_true')
+    ap.add_argument('--scc-pruning', choices=['cross', 'prefix', 'both'], help='ablate certified SCC pruning with annotations enabled in both modes')
     args = ap.parse_args()
     spec = importlib.util.spec_from_file_location('comparison', Path(__file__).with_name('compare-ltl-sizes.py'))
     comparison = importlib.util.module_from_spec(spec); spec.loader.exec_module(comparison)
@@ -31,7 +32,7 @@ def main():
     fields = ['case', 'sources', 'formula', 'algorithm', 'mode', 'status', 'input_states',
               'states', 'edges', 'colours', 'elapsed_ms', 'annotation-decoded',
               'annotation-certified', 'annotation-rejected', 'annotation-pair-proofs',
-              'annotation-union-proofs', 'detail']
+              'annotation-union-proofs', 'cross-scc-proofs', 'prefix-resets', 'prefix-reset-runs', 'detail']
 
     def measure(previous, alg):
         formula = '!(' + previous['formula'] + ')' if args.negative else previous['formula']
@@ -59,7 +60,9 @@ def main():
                 results.append(r); continue
             cmd = [args.driver, str(source), formula, '--integrated', '--compact-ranks',
                    '--local-colours', '--ldgba-pruning']
-            if mode == 'on': cmd += ['--owl-annotations']
+            if mode == 'on' or args.scc_pruning: cmd += ['--owl-annotations']
+            if mode == 'on' and args.scc_pruning in ['cross', 'both']: cmd += ['--cross-scc']
+            if mode == 'on' and args.scc_pruning in ['prefix', 'both']: cmd += ['--prefix-resets']
             native_code, native, elapsed = run(cmd, mode + '.hoa')
             r['elapsed_ms'] = round(elapsed, 3)
             diagnostic = (directory / (mode + '.hoa.stderr')).read_text(errors='replace')
@@ -103,7 +106,7 @@ def main():
                   [(r['mode'], r['status'], r['states'], r['annotation-certified']) for r in batch], flush=True)
     assert all(hashlib.sha256(Path(p).read_bytes()).hexdigest() == h for p, h in hashes.items()), 'measured file changed'
     manifest = {'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-        'sha256': hashes, 'timeout_seconds': args.timeout, 'workers': 2, 'negative': args.negative,
+        'sha256': hashes, 'timeout_seconds': args.timeout, 'workers': 2, 'negative': args.negative, 'scc_pruning': args.scc_pruning,
         'input_hoa_sha256': {str(p.relative_to(args.artifacts)): hashlib.sha256(p.read_bytes()).hexdigest()
                             for p in args.artifacts.glob('*/*/input.hoa')},
         'flags': '--integrated --compact-ranks --local-colours --ldgba-pruning [--owl-annotations]'}
