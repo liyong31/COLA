@@ -18,8 +18,12 @@ def main():
             nonlocal checked
             tool.write_text('#!/usr/bin/env python3\nimport sys,os,time\n' + body + '\n')
             tool.chmod(0o700)
+            force_residual = [] if any(key in expected for key in
+                ['Boolean GF/FG components', 'finite-witness monitors']) else [
+                    '--no-specialized', '--no-dba', '--no-boolean-split',
+                    '--no-master-profiles', '--no-x-advice', '--no-profiles', '--no-recurrence']
             result = subprocess.run([ltld, '--stats', '--ldgba-tool=' + str(tool),
-                '--ldgba-construction=SEJK16', *flags, '-f', text],
+                '--ldgba-construction=SEJK16', *force_residual, *flags, '-f', text],
                 capture_output=True, text=True, check=True, timeout=30)
             output.write_text(result.stdout)
             reference.write_text(subprocess.check_output(['ltl2tgba', '-D', '-G', '-f', text], text=True))
@@ -115,7 +119,7 @@ def main():
         batch = directory / 'formulas.ltl'
         batch.write_text(formula + '\n' + formula + '\n')
         result = subprocess.run([ltld, '--stats', '--ldgba-tool=' + str(tool),
-            '--ldgba-attempt-limit=1', '-F', str(batch)],
+            '--ldgba-attempt-limit=1', '--no-specialized', '--no-dba', '-F', str(batch)],
             capture_output=True, text=True, check=True, timeout=30)
         assert result.stderr.count('  LDGBA attempts: 1\n') == 2, result.stderr
         output.write_text(result.stdout)

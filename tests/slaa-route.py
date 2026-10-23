@@ -20,8 +20,12 @@ def main():
             nonlocal checked
             tool.write_text('#!/usr/bin/env python3\nimport os, sys, time\n' + body + '\n')
             tool.chmod(0o700)
+            force_residual = [] if any(key in expected for key in
+                ['Boolean GF/FG components', 'finite-witness monitors']) else [
+                    '--no-specialized', '--no-dba', '--no-boolean-split',
+                    '--no-master-profiles', '--no-x-advice', '--no-profiles', '--no-recurrence']
             result = subprocess.run([ltld, '--stats', '--slaa-tool=' + str(tool),
-                *flags, '-f', text], capture_output=True, text=True, timeout=20, check=True)
+                *force_residual, *flags, '-f', text], capture_output=True, text=True, timeout=20, check=True)
             output.write_text(result.stdout)
             target = reference
             if text != formula:

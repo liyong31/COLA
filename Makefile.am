@@ -76,7 +76,7 @@ tests_tela_elevator_driver_SOURCES = tests/tela-elevator-driver.cpp
 tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
 TESTS += tests/slaa-route.py
-TESTS += tests/ldgba-route.py
+TESTS += tests/ldgba-route.py tests/specialized-priority.py
 check_PROGRAMS += tests/owl-annotations
 tests_owl_annotations_SOURCES = tests/owl-annotations.cpp
 tests_owl_annotations_LDADD = $(ltl2dela_LDADD)
@@ -128,7 +128,7 @@ EXTRA_DIST += tests/compare-cola-polarities.py tests/summarize-cola-polarities.p
   tests/ltl-polarity-summary.md tests/ltl-polarity-probes.json
 
 EXTRA_DIST += tests/slaa-route.py
-EXTRA_DIST += tests/ldgba-route.py
+EXTRA_DIST += tests/ldgba-route.py tests/specialized-priority.py
 EXTRA_DIST += tests/benchmark-slaa.py tests/summarize-slaa.py \
   tests/ltl-slaa-results.csv tests/ltl-slaa-results.json tests/ltl-slaa-report.md \
   tests/finite-witness-slaa-regressions.csv
@@ -187,3 +187,9 @@ EXTRA_DIST += tests/diagnose-owl-ldgba-gap.py tests/summarize-owl-gap.py \
   tests/owl-cross-scc-integrated.csv tests/owl-cross-scc-integrated.json
 EXTRA_DIST += research/owl-gap.tex tests/finite-witness-owl-cross.csv \
   tests/finite-witness-owl-cross.json
+
+EXTRA_DIST += tests/diagnose-ltl3tela-pipeline.py tests/ltl3tela-pipeline-report.md \
+  tests/ltl3tela-pipeline.csv tests/ltl3tela-pipeline.json \
+  tests/benchmark-specialized-priority.py tests/specialized-priority-report.md \
+  tests/specialized-priority-results.csv tests/specialized-priority-results.json \
+  tests/finite-witness-priority.csv tests/finite-witness-priority.json

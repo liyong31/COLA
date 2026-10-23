@@ -1476,21 +1476,8 @@ namespace cola
         if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
         ++stats_.direct_formula_components;
         auto direct = normalize_deterministic(translate_deterministic(f));
-        // Pure obligations keep their existing direct construction. More
-        // general recurrence/persistence languages may have a cheaper DGBA.
-        auto ldgba = f.is_syntactic_obligation() ? nullptr : try_ldgba(f);
-        bool negative = false;
-        auto slaa = try_slaa(f, negative);
-        if (ldgba && no_larger(ldgba, direct) && !no_larger(direct, ldgba)
-            && (!dba || !no_larger(dba, ldgba)) && (!slaa || !no_larger(slaa, ldgba)))
-          { ++stats_.ldgba_components; return ldgba; }
-        if (slaa && no_larger(slaa, direct)
-            && (!dba || no_larger(slaa, dba)))
-          {
-            ++stats_.slaa_components;
-            if (negative) ++stats_.slaa_negative_components;
-            return slaa;
-          }
+        // Recognized fragments are terminal: generic SLAA/LDGBA routes
+        // are reserved for residuals without a specialized construction.
         if (dba && no_larger(dba, direct))
           {
             ++stats_.dba_components;
@@ -2142,16 +2129,6 @@ namespace cola
     if (options_.use_specialized_fragments)
       if (auto special = compile_specialized(f)) return special;
 
-    auto ldgba = try_ldgba(f);
-    auto finish = [&](spot::twa_graph_ptr result)
-      {
-        // Keep the established residual construction on exact ties. A
-        // successful LDGBA is a candidate, not a minimality certificate.
-        if (ldgba && no_larger(ldgba, result) && !no_larger(result, ldgba))
-          { ++stats_.ldgba_components; return ldgba; }
-        return result;
-      };
-
     // Recognize the post-commitment Master-Theorem shape before Delta2
     // normalization can obscure its individual recurrence obligations.
     if (options_.use_master_profiles)
@@ -2160,30 +2137,14 @@ namespace cola
         auto special =
           compile_master_bundle(f, depth, used, handled, profile);
         if (handled)
-          return finish(special);
+          return special;
       }
 
     // Try the exact derivative construction before heuristic profile splits
     // and Delta2 normalization can obscure the original mu obligations.
     // Keep easy fragments on their existing specialized translation path.
     if (!is_direct_fragment(f))
-      if (auto advised = compile_x_advice(f))
-        {
-          // A successful derivative construction is not a size certificate.
-          // In portfolio mode let an independently checked SLAA compete.
-          if (options_.slaa_portfolio)
-            {
-              bool negative = false;
-              auto slaa = try_slaa(f, negative);
-              if (slaa && no_larger(slaa, advised))
-                {
-                  ++stats_.slaa_components;
-                  if (negative) ++stats_.slaa_negative_components;
-                  return finish(slaa);
-                }
-            }
-          return finish(advised);
-        }
+      if (auto advised = compile_x_advice(f)) return advised;
 
     // Before building any Buchi automaton, perform the most direct
     // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
@@ -2218,7 +2179,7 @@ namespace cola
                                 next_used, false, left_profile);
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
-            return finish(compose(left, right, true));
+            return compose(left, right, true);
           }
       }
 
@@ -2253,7 +2214,7 @@ namespace cola
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
             ++stats_.profile_leaves;
-            return finish(compose(left, right, true));
+            return compose(left, right, true);
           }
       }
 
@@ -2279,30 +2240,84 @@ namespace cola
         auto res = compile(f[0], depth, used, true, profile);
         for (unsigned i = 1; i < f.size(); ++i)
           res = compose(res, compile(f[i], depth, used, true, profile), disjunction);
-        return finish(res);
+        return res;
       }
 
-    // Explicit direct monitors have already run. A generic-acceptance
-    // residual can now avoid the NBA intermediate. Known syntactic classes
-    // still compare against their established deterministic construction.
+    // A prepared residual can expose a fragment hidden before Delta2.
+    // Recheck it before admitting either external generic frontend.
+    if (options_.use_specialized_fragments)
+      if (auto special = compile_specialized(f)) return special;
+
+    // Checked DBA recognition takes priority over generic dealternation.
+    // Reuse its BA if recognition fails and native elevator analysis is needed.
+    spot::twa_graph_ptr ba;
+    if (options_.use_dba)
+      {
+        ba = translate_buchi(f);
+        if (auto dba = try_dba(f, ba))
+          {
+            ++stats_.dba_components;
+            return dba;
+          }
+      }
+
+    // Exhaust available profile decompositions before generic frontends.
+    // Each child repeats the specialized checks with its refined context.
+    if (!ba) ba = translate_buchi(f);
+    auto h = analyze(ba);
+    if (!h.elevator)
+      {
+        ++stats_.hard_buchi_components;
+
+        // Refine only difficult residuals.  Note that recursive profile branches
+        // are not Boolean-decomposed at their top level: doing so would throw away
+        // the stabilizing context we just introduced.
+        if (options_.use_profiles
+            && depth < options_.profile_depth
+            && stats_.profile_splits < options_.profile_budget)
+          {
+            auto choice = choose_separator(f, ba, h, used);
+            if (choice.valid)
+              {
+                ++stats_.profile_splits;
+                auto branches = profile_split(f, choice.sep.guard);
+                auto next_used = used;
+                next_used.push_back(choice.sep.guard);
+
+                if (options_.verbose >= 1)
+                  std::cerr << "ltl2dela: profile split on "
+                            << choice.sep.guard
+                            << " (NA states " << h.na_states
+                            << " -> worst " << choice.worst_na_states
+                            << ")\n";
+
+                auto left_profile = profile;
+                auto right_profile = profile;
+                add_profile_fact(left_profile, choice.sep.guard, true);
+                add_profile_fact(right_profile, choice.sep.guard, false);
+
+                auto left = compile(branches.first, depth + 1,
+                                    next_used, false, left_profile);
+                auto right = compile(branches.second, depth + 1,
+                                     next_used, false, right_profile);
+                ++stats_.profile_leaves;
+                return compose(left, right, true);
+              }
+          }
+      }
+
+    auto ldgba = try_ldgba(f);
+    auto finish = [&](spot::twa_graph_ptr result)
+      {
+        // Keep the established residual construction on exact ties. A
+        // successful LDGBA is a candidate, not a minimality certificate.
+        if (ldgba && no_larger(ldgba, result) && !no_larger(result, ldgba))
+          { ++stats_.ldgba_components; return ldgba; }
+        return result;
+      };
+
     bool negative = false;
     auto slaa = try_slaa(f, negative);
-
-    // Spot first: exploit its specialized translations for known easy
-    // fragments instead of forcing them through Buchi.
-    if (is_direct_fragment(f))
-      {
-        ++stats_.direct_formula_components;
-        auto direct = normalize_deterministic(translate_deterministic(f));
-        if (slaa && no_larger(slaa, direct))
-          {
-            ++stats_.slaa_components;
-            if (negative) ++stats_.slaa_negative_components;
-            return finish(slaa);
-          }
-        return finish(direct);
-      }
-
     if (slaa)
       {
         ++stats_.slaa_components;
@@ -2310,15 +2325,16 @@ namespace cola
         return finish(slaa);
       }
 
+    // With early specialization disabled, retain a direct fallback after
+    // the explicitly requested generic experiments.
+    if (is_direct_fragment(f))
+      {
+        ++stats_.direct_formula_components;
+        return finish(normalize_deterministic(translate_deterministic(f)));
+      }
+
     // Try the small-Buchi route.  We only use CoLA's local elevator
     // determinizer if the generated SCC structure is certified suitable.
-    auto ba = translate_buchi(f);
-    if (auto dba = try_dba(f, ba))
-      {
-        ++stats_.dba_components;
-        return finish(dba);
-      }
-    auto h = analyze(ba);
     if (h.elevator)
       {
         ++stats_.elevator_components;
@@ -2352,44 +2368,6 @@ namespace cola
         ++stats_.elevator_validation_fallbacks;
         ++stats_.deterministic_fallbacks;
         return finish(normalize_deterministic(translate_deterministic(f)));
-      }
-
-    ++stats_.hard_buchi_components;
-
-    // Refine only difficult residuals.  Note that recursive profile branches
-    // are not Boolean-decomposed at their top level: doing so would throw away
-    // the stabilizing context we just introduced.
-    if (options_.use_profiles
-        && depth < options_.profile_depth
-        && stats_.profile_splits < options_.profile_budget)
-      {
-        auto choice = choose_separator(f, ba, h, used);
-        if (choice.valid)
-          {
-            ++stats_.profile_splits;
-            auto branches = profile_split(f, choice.sep.guard);
-            auto next_used = used;
-            next_used.push_back(choice.sep.guard);
-
-            if (options_.verbose >= 1)
-              std::cerr << "ltl2dela: profile split on "
-                        << choice.sep.guard
-                        << " (NA states " << h.na_states
-                        << " -> worst " << choice.worst_na_states
-                        << ")\n";
-
-            auto left_profile = profile;
-            auto right_profile = profile;
-            add_profile_fact(left_profile, choice.sep.guard, true);
-            add_profile_fact(right_profile, choice.sep.guard, false);
-
-            auto left = compile(branches.first, depth + 1,
-                                next_used, false, left_profile);
-            auto right = compile(branches.second, depth + 1,
-                                 next_used, false, right_profile);
-            ++stats_.profile_leaves;
-            return finish(compose(left, right, true));
-          }
       }
 
     // Total, Safra-free-at-the-LTL-level fallback: ask Spot to translate this

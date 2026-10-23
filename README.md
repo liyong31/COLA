@@ -112,6 +112,16 @@ COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
 alone has severe regressions and three timeouts on the full corpus; this is
 an experimental comparison, not a change to translator defaults.
 
+Specialized constructions now have strict priority. Recurrence and finite-witness
+monitors, recognized GF/FG and other fragments, X-advice, checked DBA recognition,
+and available profile decompositions run before external generic frontends.
+Each refined child repeats these checks. SLAA/LDGBA candidates are admitted only
+for remaining residuals, even when polarity portfolios are enabled. Explicit
+`--no-specialized` / `--no-dba` switches remain useful for construction ablations.
+The [priority regression report](tests/specialized-priority-report.md) records
+681 checked outputs and the resulting residual coverage. The portfolio totals
+below describe earlier routing and remain historical measurements.
+
 The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
 candidate that preserves generic acceptance and uses COLA's native elevator
 determiniser. Configure the pinned LTL3TELA executable explicitly:
@@ -135,7 +145,8 @@ This first milestone does not yet implement new elevator-aware dealternation
 rules or local SCC semi-determinisation.
 
 Add `--slaa-portfolio` to try both SLAA polarities and compare eligible
-X-advice/elevator results with alternative constructions. Negative results
+residual elevator results with alternative constructions. Successful X-advice
+constructions now return before these generic candidates. Negative results
 are completed before acceptance is complemented and checked against the
 original language. On 222 matched literature formulas, this mode totals
 985 states versus positive SLAA mode 1035 and LTL3TELA 991; all 681 outputs
