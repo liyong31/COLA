@@ -1,0 +1,9 @@
+--- a/automaton.cpp
++++ b/automaton.cpp
+@@ -22,2 +21,0 @@
+-template class Automaton<spot::formula>;
+-template class Automaton<unsigned>;
+@@ -1233,0 +1232,3 @@
++
++template class Automaton<spot::formula>;
++template class Automaton<unsigned>;

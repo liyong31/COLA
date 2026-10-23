@@ -22,6 +22,8 @@ config.status
 *.tar.gz
 Makefile
 tools/
+/m4/
+/build-local/
 .dirstamp
 *.lo
 *.la

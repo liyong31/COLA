@@ -1,0 +1,88 @@
+case,formula,mode,states,edges,colours,median_ms,status,witness_monitors,witness_duals,witness_aborts
+flat_fast,GF(c & (a U b)),baseline,2,6,1,5.31,ok,,,
+flat_fast,GF(c & (a U b)),reset,2,6,1,5.036,ok,0,0,0
+flat_fast,GF(c & (a U b)),spot,2,6,1,4.943,ok,,,
+boolean_fast,GF a,baseline,1,2,1,5.606,ok,,,
+boolean_fast,GF a,reset,1,2,1,5.425,ok,0,0,0
+boolean_fast,GF a,spot,1,2,1,4.953,ok,,,
+nested_x,GF(a & X X b),baseline,4,12,1,5.821,ok,,,
+nested_x,GF(a & X X b),reset,4,10,1,6.09,ok,1,0,0
+nested_x,GF(a & X X b),spot,4,12,1,6.038,ok,,,
+next_contradiction,GF(a & X (b & !b)),baseline,1,0,0,5.887,ok,,,
+next_contradiction,GF(a & X (b & !b)),reset,1,0,0,6.264,ok,0,0,0
+next_contradiction,GF(a & X (b & !b)),spot,1,0,0,7.303,ok,,,
+next_true,GF(a & X X 1),baseline,1,2,1,5.393,ok,,,
+next_true,GF(a & X X 1),reset,1,2,1,5.097,ok,0,0,0
+next_true,GF(a & X X 1),spot,1,2,1,4.876,ok,,,
+nested_f,GF(a & X (b & F(c & X d))),baseline,4,12,1,5.358,ok,,,
+nested_f,GF(a & X (b & F(c & X d))),reset,4,11,1,5.307,ok,1,0,0
+nested_f,GF(a & X (b & F(c & X d))),spot,4,12,1,5.464,ok,,,
+nested_u,GF(a & (b U (c & X(d U e)))),baseline,4,24,1,5.704,ok,,,
+nested_u,GF(a & (b U (c & X(d U e)))),reset,4,18,1,7.636,ok,1,0,0
+nested_u,GF(a & (b U (c & X(d U e)))),spot,4,24,1,6.06,ok,,,
+nested_m,GF(a & (b M (c | X(d M e)))),baseline,5,31,1,5.924,ok,,,
+nested_m,GF(a & (b M (c | X(d M e)))),reset,5,25,1,6.046,ok,1,0,0
+nested_m,GF(a & (b M (c | X(d M e)))),spot,5,35,1,7.993,ok,,,
+correlated,GF(a & (b U c) & (d U e)),baseline,4,18,1,5.724,ok,,,
+correlated,GF(a & (b U c) & (d U e)),reset,4,16,1,6.147,ok,1,0,0
+correlated,GF(a & (b U c) & (d U e)),spot,4,18,1,5.402,ok,,,
+mixed,GF(a & X((b U c) & (d M (e | F f)))),baseline,13,94,1,6.509,ok,,,
+mixed,GF(a & X((b U c) & (d M (e | F f)))),reset,13,82,1,6.541,ok,1,0,0
+mixed,GF(a & X((b U c) & (d M (e | F f)))),spot,13,94,1,7.576,ok,,,
+dual_x,FG(!a | X X !b),baseline,4,12,1,6.173,ok,,,
+dual_x,FG(!a | X X !b),reset,4,10,1,6.385,ok,1,1,0
+dual_x,FG(!a | X X !b),spot,4,12,1,5.935,ok,,,
+dual_nested,!(GF(a & X((b U c) & (d M e)))),baseline,4,18,1,7.366,ok,,,
+dual_nested,!(GF(a & X((b U c) & (d M e)))),reset,4,15,1,6.821,ok,1,1,0
+dual_nested,!(GF(a & X((b U c) & (d M e)))),spot,4,18,1,7.347,ok,,,
+dual_flat,!(GF(c & (a U b))),baseline,2,6,1,5.399,ok,,,
+dual_flat,!(GF(c & (a U b))),reset,2,6,1,5.4,ok,0,0,0
+dual_flat,!(GF(c & (a U b))),spot,2,6,1,5.212,ok,,,
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),baseline,8,64,2,8.866,ok,,,
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),reset,8,64,2,8.92,ok,0,0,0
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),spot,8,64,2,8.528,ok,,,
+stable_guard,GF((G z | F y) & a & X(b U c)),baseline,2,22,4,21.779,ok,,,
+stable_guard,GF((G z | F y) & a & X(b U c)),reset,2,22,4,20.883,ok,0,0,0
+stable_guard,GF((G z | F y) & a & X(b U c)),spot,25,227,3,8.154,ok,,,
+overlap,GF(a & X(a & X !a)),baseline,3,6,1,5.316,ok,,,
+overlap,GF(a & X(a & X !a)),reset,3,6,1,5.254,ok,1,0,0
+overlap,GF(a & X(a & X !a)),spot,3,6,1,5.036,ok,,,
+impossible,GF(a & !a & X b),baseline,1,0,0,5.0,ok,,,
+impossible,GF(a & !a & X b),reset,1,0,0,5.094,ok,0,0,0
+impossible,GF(a & !a & X b),spot,1,0,0,4.973,ok,,,
+window_3,GF(a & X X X b),baseline,8,24,1,5.079,ok,,,
+window_3,GF(a & X X X b),reset,8,20,1,5.39,ok,1,0,0
+window_3,GF(a & X X X b),spot,8,24,1,5.006,ok,,,
+window_4,GF(a & X X X X b),baseline,16,48,1,5.272,ok,,,
+window_4,GF(a & X X X X b),reset,16,40,1,5.727,ok,1,0,0
+window_4,GF(a & X X X X b),spot,16,48,1,5.19,ok,,,
+window_5,GF(a & X X X X X b),baseline,32,96,1,5.424,ok,,,
+window_5,GF(a & X X X X X b),reset,32,80,1,5.883,ok,1,0,0
+window_5,GF(a & X X X X X b),spot,32,96,1,5.433,ok,,,
+window_6,GF(a & X X X X X X b),baseline,64,192,1,5.815,ok,,,
+window_6,GF(a & X X X X X X b),reset,64,160,1,5.862,ok,1,0,0
+window_6,GF(a & X X X X X X b),spot,64,192,1,6.299,ok,,,
+window_7,GF(a & X X X X X X X b),baseline,128,384,1,8.19,ok,,,
+window_7,GF(a & X X X X X X X b),reset,128,320,1,7.257,ok,1,0,0
+window_7,GF(a & X X X X X X X b),spot,128,384,1,6.67,ok,,,
+window_8,GF(a & X X X X X X X X b),baseline,256,768,1,9.43,ok,,,
+window_8,GF(a & X X X X X X X X b),reset,256,640,1,8.043,ok,1,0,0
+window_8,GF(a & X X X X X X X X b),spot,256,768,1,7.323,ok,,,
+window_9,GF(a & X X X X X X X X X b),baseline,512,1536,1,17.018,ok,,,
+window_9,GF(a & X X X X X X X X X b),reset,512,1280,1,13.043,ok,1,0,0
+window_9,GF(a & X X X X X X X X X b),spot,512,1536,1,12.096,ok,,,
+window_10,GF(a & X X X X X X X X X X b),baseline,1024,3072,1,46.444,ok,,,
+window_10,GF(a & X X X X X X X X X X b),reset,1024,2560,1,31.863,ok,1,0,0
+window_10,GF(a & X X X X X X X X X X b),spot,1024,3072,1,26.522,ok,,,
+until_width_2,GF(t & (g0 U h0) & (g1 U h1)),baseline,4,18,1,5.562,ok,,,
+until_width_2,GF(t & (g0 U h0) & (g1 U h1)),reset,4,16,1,5.226,ok,1,0,0
+until_width_2,GF(t & (g0 U h0) & (g1 U h1)),spot,4,18,1,5.191,ok,,,
+until_width_3,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2)),baseline,8,54,1,5.794,ok,,,
+until_width_3,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2)),reset,8,42,1,5.813,ok,1,0,0
+until_width_3,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2)),spot,8,54,1,6.146,ok,,,
+until_width_4,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3)),baseline,16,162,1,9.356,ok,,,
+until_width_4,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3)),reset,16,112,1,6.974,ok,1,0,0
+until_width_4,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3)),spot,16,162,1,9.403,ok,,,
+until_width_5,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3) & (g4 U h4)),baseline,32,486,1,63.097,ok,,,
+until_width_5,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3) & (g4 U h4)),reset,32,306,1,12.369,ok,1,0,0
+until_width_5,GF(t & (g0 U h0) & (g1 U h1) & (g2 U h2) & (g3 U h3) & (g4 U h4)),spot,32,486,1,58.491,ok,,,

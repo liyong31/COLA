@@ -1,0 +1,137 @@
+{
+  "timeout-spot-probes": [
+    {
+      "line": 2,
+      "mode": "wdba_off",
+      "code": "timeout",
+      "seconds": 8.009
+    },
+    {
+      "line": 2,
+      "mode": "wdba_syntactic",
+      "code": "timeout",
+      "seconds": 8.071
+    },
+    {
+      "line": 2,
+      "mode": "low",
+      "code": "timeout",
+      "seconds": 8.063
+    },
+    {
+      "line": 2,
+      "mode": "nba",
+      "code": 0,
+      "seconds": 0.01,
+      "metrics": "26,59,1,0"
+    },
+    {
+      "line": 4,
+      "mode": "wdba_off",
+      "code": "timeout",
+      "seconds": 8.007
+    },
+    {
+      "line": 4,
+      "mode": "wdba_syntactic",
+      "code": "timeout",
+      "seconds": 8.015
+    },
+    {
+      "line": 4,
+      "mode": "low",
+      "code": "timeout",
+      "seconds": 8.013
+    },
+    {
+      "line": 4,
+      "mode": "nba",
+      "code": 0,
+      "seconds": 0.01,
+      "metrics": "45,97,1,0"
+    }
+  ],
+  "timeout-routing-probes": [
+    {
+      "line": 2,
+      "mode": "no_wdba_tbadet",
+      "code": "timeout",
+      "seconds": 12.007
+    },
+    {
+      "line": 2,
+      "mode": "no_split",
+      "code": 0,
+      "seconds": 0.02,
+      "metrics": "83,225,1,1"
+    },
+    {
+      "line": 2,
+      "mode": "low_no_wdba_tbadet",
+      "code": 0,
+      "seconds": 2.992,
+      "metrics": "83,225,1,1"
+    },
+    {
+      "line": 4,
+      "mode": "no_wdba_tbadet",
+      "code": "timeout",
+      "seconds": 12.007
+    },
+    {
+      "line": 4,
+      "mode": "no_split",
+      "code": 0,
+      "seconds": 0.077,
+      "metrics": "148,355,1,1"
+    },
+    {
+      "line": 4,
+      "mode": "low_no_wdba_tbadet",
+      "code": "timeout",
+      "seconds": 12.008
+    }
+  ],
+  "samples": {
+    "hard_2_cola": {
+      "physical_footprint": "1.2G",
+      "hot_functions": [
+        "!           33 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 3316,3144,...  [0x101ba7060,0x101ba6fb4,...]",
+        "!           11 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)::$_1::operator()(spot::bitvect*) const  (in libspot.0.dylib) + 636,176,...  [0x101ba8cb8,0x101ba8aec,...]"
+      ]
+    },
+    "hard_2_spot": {
+      "physical_footprint": "2.2G",
+      "hot_functions": [
+        "48 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 3316,3096,...  [0x10108b060,0x10108af84,...]",
+        "48 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)::$_1::operator()(spot::bitvect*) const  (in libspot.0.dylib) + 636,512,...  [0x10108ccb8,0x10108cc3c,...]"
+      ]
+    },
+    "hard_4_cola": {
+      "physical_footprint": "690.6M",
+      "hot_functions": [
+        "60 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 3264,4832,...  [0x10303f02c,0x10303f64c,...]",
+        "18 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 4784  [0x10303f61c]"
+      ]
+    },
+    "hard_4_spot": {
+      "physical_footprint": "368.1M",
+      "hot_functions": [
+        "56 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 3264,3624,...  [0x10166702c,0x101667194,...]",
+        "16 spot::tgba_powerset(std::shared_ptr<spot::twa_graph const> const&, spot::power_map&, bool, spot::output_aborter const*, std::vector<unsigned int>*)  (in libspot.0.dylib) + 5464  [0x1016678c4]"
+      ]
+    }
+  },
+  "notes": {
+    "spot_version": "2.14.1",
+    "original_translation_limit_seconds": 30,
+    "initial_probe_limit_seconds": 8,
+    "routing_probe_limit_seconds": 12,
+    "sample_command": "sample PID 2 10 -file OUTPUT",
+    "samples_began_after_launch_seconds": 1,
+    "no_split_command": "ltl2tgba -D -G -x ltl-split=0 -f FORMULA",
+    "nba_command": "ltl2tgba -b --low -f FORMULA",
+    "formulas": "tests/ltl-size-corpus/Parametrised-Hardness.ltl lines 2 and 4",
+    "caveat": "Short probe timeouts are not replacements for original 30-second measurements; samples are early snapshots, not whole-run peak memory."
+  }
+}

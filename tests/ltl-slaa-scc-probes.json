@@ -1,0 +1,38 @@
+[
+  {
+    "case": "5d33eedf410a0c15",
+    "sources": "Parametrised.ltl:15",
+    "scc_pruning": false,
+    "states": 11,
+    "edges": 79,
+    "colours": 1,
+    "positive_equivalent": true
+  },
+  {
+    "case": "5d33eedf410a0c15",
+    "sources": "Parametrised.ltl:15",
+    "scc_pruning": true,
+    "states": 10,
+    "edges": 74,
+    "colours": 1,
+    "positive_equivalent": true
+  },
+  {
+    "case": "2390fff7a43455f0",
+    "sources": "Liberouter04.ltl:36",
+    "scc_pruning": false,
+    "states": 35,
+    "edges": 355,
+    "colours": 1,
+    "positive_equivalent": true
+  },
+  {
+    "case": "2390fff7a43455f0",
+    "sources": "Liberouter04.ltl:36",
+    "scc_pruning": true,
+    "states": 34,
+    "edges": 353,
+    "colours": 1,
+    "positive_equivalent": true
+  }
+]

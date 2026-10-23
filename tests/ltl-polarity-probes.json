@@ -1,0 +1,29 @@
+[
+  {
+    "sources": "Parametrised-Hardness.ltl:2",
+    "configuration": "Spot negative, ltl-split=0",
+    "status": 0,
+    "elapsed_ms": 36.267,
+    "metrics": "83,225,1,1,1",
+    "positive_equivalent": true,
+    "reference_tool": "delag"
+  },
+  {
+    "sources": "Parametrised-Hardness.ltl:4",
+    "configuration": "Spot negative, ltl-split=0",
+    "status": 0,
+    "elapsed_ms": 77.057,
+    "metrics": "148,355,1,1,1",
+    "positive_equivalent": true,
+    "reference_tool": "delag"
+  },
+  {
+    "sources": "Parametrised-Hardness.ltl:6",
+    "configuration": "Spot negative, ltl-split=0",
+    "status": 0,
+    "elapsed_ms": 132.351,
+    "metrics": "107,440,1,1,1",
+    "positive_equivalent": true,
+    "reference_tool": "spot"
+  }
+]

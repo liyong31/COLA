@@ -1,0 +1,352 @@
+case,formula,mode,states,edges,colours,median_ms,status,witness_monitors,witness_duals,witness_aborts
+flat_fast,GF(c & (a U b)),baseline,2,6,1,6.458,ok,,,
+flat_fast,GF(c & (a U b)),reset,2,6,1,5.153,ok,0,0,0
+flat_fast,GF(c & (a U b)),spot,2,6,1,5.226,ok,,,
+boolean_fast,GF a,baseline,1,2,1,5.038,ok,,,
+boolean_fast,GF a,reset,1,2,1,5.125,ok,0,0,0
+boolean_fast,GF a,spot,1,2,1,4.901,ok,,,
+nested_x,GF(a & X X b),baseline,4,12,1,7.004,ok,,,
+nested_x,GF(a & X X b),reset,4,10,1,5.66,ok,1,0,0
+nested_x,GF(a & X X b),spot,4,12,1,5.13,ok,,,
+next_contradiction,GF(a & X (b & !b)),baseline,1,0,0,7.348,ok,,,
+next_contradiction,GF(a & X (b & !b)),reset,1,0,0,5.84,ok,0,0,0
+next_contradiction,GF(a & X (b & !b)),spot,1,0,0,5.849,ok,,,
+next_true,GF(a & X X 1),baseline,1,2,1,6.203,ok,,,
+next_true,GF(a & X X 1),reset,1,2,1,6.029,ok,0,0,0
+next_true,GF(a & X X 1),spot,1,2,1,5.764,ok,,,
+nested_f,GF(a & X (b & F(c & X d))),baseline,4,12,1,5.611,ok,,,
+nested_f,GF(a & X (b & F(c & X d))),reset,4,11,1,5.448,ok,1,0,0
+nested_f,GF(a & X (b & F(c & X d))),spot,4,12,1,5.853,ok,,,
+nested_u,GF(a & (b U (c & X(d U e)))),baseline,4,24,1,5.604,ok,,,
+nested_u,GF(a & (b U (c & X(d U e)))),reset,4,18,1,6.336,ok,1,0,0
+nested_u,GF(a & (b U (c & X(d U e)))),spot,4,24,1,6.407,ok,,,
+nested_m,GF(a & (b M (c | X(d M e)))),baseline,5,31,1,5.593,ok,,,
+nested_m,GF(a & (b M (c | X(d M e)))),reset,5,25,1,5.843,ok,1,0,0
+nested_m,GF(a & (b M (c | X(d M e)))),spot,5,35,1,5.819,ok,,,
+correlated,GF(a & (b U c) & (d U e)),baseline,4,18,1,5.621,ok,,,
+correlated,GF(a & (b U c) & (d U e)),reset,4,16,1,5.752,ok,1,0,0
+correlated,GF(a & (b U c) & (d U e)),spot,4,18,1,5.488,ok,,,
+mixed,GF(a & X((b U c) & (d M (e | F f)))),baseline,13,94,1,6.982,ok,,,
+mixed,GF(a & X((b U c) & (d M (e | F f)))),reset,13,82,1,6.164,ok,1,0,0
+mixed,GF(a & X((b U c) & (d M (e | F f)))),spot,13,94,1,6.415,ok,,,
+dual_x,FG(!a | X X !b),baseline,4,12,1,5.463,ok,,,
+dual_x,FG(!a | X X !b),reset,4,10,1,5.795,ok,1,1,0
+dual_x,FG(!a | X X !b),spot,4,12,1,5.807,ok,,,
+dual_nested,!(GF(a & X((b U c) & (d M e)))),baseline,4,18,1,5.652,ok,,,
+dual_nested,!(GF(a & X((b U c) & (d M e)))),reset,4,15,1,5.793,ok,1,1,0
+dual_nested,!(GF(a & X((b U c) & (d M e)))),spot,4,18,1,5.579,ok,,,
+dual_flat,!(GF(c & (a U b))),baseline,2,6,1,5.247,ok,,,
+dual_flat,!(GF(c & (a U b))),reset,2,6,1,5.52,ok,0,0,0
+dual_flat,!(GF(c & (a U b))),spot,2,6,1,6.219,ok,,,
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),baseline,8,64,2,9.224,ok,,,
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),reset,8,64,2,9.6,ok,0,0,0
+boolean_product,GF(a & X X b) & !(GF(c & X(d U e))),spot,8,64,2,6.189,ok,,,
+stable_guard,GF((G z | F y) & a & X(b U c)),baseline,2,22,4,21.917,ok,,,
+stable_guard,GF((G z | F y) & a & X(b U c)),reset,2,22,4,23.445,ok,0,0,0
+stable_guard,GF((G z | F y) & a & X(b U c)),spot,25,227,3,8.329,ok,,,
+overlap,GF(a & X(a & X !a)),baseline,3,6,1,5.45,ok,,,
+overlap,GF(a & X(a & X !a)),reset,3,6,1,5.817,ok,1,0,0
+overlap,GF(a & X(a & X !a)),spot,3,6,1,5.481,ok,,,
+impossible,GF(a & !a & X b),baseline,1,0,0,5.136,ok,,,
+impossible,GF(a & !a & X b),reset,1,0,0,5.134,ok,0,0,0
+impossible,GF(a & !a & X b),spot,1,0,0,5.013,ok,,,
+random_0,GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a)))),baseline,2,4,1,6.374,ok,,,
+random_0,GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a)))),reset,2,4,1,6.242,ok,1,0,0
+random_0,GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a)))),spot,2,4,1,5.748,ok,,,
+random_dual_0,!(GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a))))),baseline,2,4,1,6.265,ok,,,
+random_dual_0,!(GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a))))),reset,2,4,1,6.727,ok,1,1,0
+random_dual_0,!(GF(a & (((!a | b) | (a M 1)) M (X(b) M X(!a))))),spot,2,4,1,6.568,ok,,,
+random_1,GF(a & (F(X(b)) & (X(0) M F(1)))),baseline,1,0,0,6.943,ok,,,
+random_1,GF(a & (F(X(b)) & (X(0) M F(1)))),reset,1,0,0,6.04,ok,0,0,0
+random_1,GF(a & (F(X(b)) & (X(0) M F(1)))),spot,1,0,0,5.995,ok,,,
+random_dual_1,!(GF(a & (F(X(b)) & (X(0) M F(1))))),baseline,1,1,1,7.364,ok,,,
+random_dual_1,!(GF(a & (F(X(b)) & (X(0) M F(1))))),reset,1,1,1,5.444,ok,0,0,0
+random_dual_1,!(GF(a & (F(X(b)) & (X(0) M F(1))))),spot,1,1,0,5.073,ok,,,
+random_2,GF(a & ((F(b) & X(a)) | F(X(1)))),baseline,1,2,1,5.305,ok,,,
+random_2,GF(a & ((F(b) & X(a)) | F(X(1)))),reset,1,2,1,5.466,ok,0,0,0
+random_2,GF(a & ((F(b) & X(a)) | F(X(1)))),spot,1,2,1,5.091,ok,,,
+random_dual_2,!(GF(a & ((F(b) & X(a)) | F(X(1))))),baseline,1,2,1,5.482,ok,,,
+random_dual_2,!(GF(a & ((F(b) & X(a)) | F(X(1))))),reset,1,2,1,5.2,ok,0,0,0
+random_dual_2,!(GF(a & ((F(b) & X(a)) | F(X(1))))),spot,1,2,1,4.862,ok,,,
+random_3,GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a)))),baseline,1,2,1,5.328,ok,,,
+random_3,GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a)))),reset,1,2,1,5.165,ok,0,0,0
+random_3,GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a)))),spot,1,2,1,5.09,ok,,,
+random_dual_3,!(GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a))))),baseline,1,2,1,5.053,ok,,,
+random_dual_3,!(GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a))))),reset,1,2,1,5.536,ok,0,0,0
+random_dual_3,!(GF(a & (((!b M !a) U F(1)) | ((1 | a) M (b U a))))),spot,1,2,1,4.847,ok,,,
+random_4,GF(a & (((a & 0) & F(!b)) | F((!a M b)))),baseline,1,3,2,5.485,ok,,,
+random_4,GF(a & (((a & 0) & F(!b)) | F((!a M b)))),reset,1,3,2,5.564,ok,0,0,0
+random_4,GF(a & (((a & 0) & F(!b)) | F((!a M b)))),spot,1,3,2,6.935,ok,,,
+random_dual_4,!(GF(a & (((a & 0) & F(!b)) | F((!a M b))))),baseline,1,3,2,5.773,ok,,,
+random_dual_4,!(GF(a & (((a & 0) & F(!b)) | F((!a M b))))),reset,1,3,2,5.579,ok,0,0,0
+random_dual_4,!(GF(a & (((a & 0) & F(!b)) | F((!a M b))))),spot,1,3,2,5.492,ok,,,
+random_5,GF(a & (((b & a) & X(!a)) U X(F(1)))),baseline,1,2,1,5.307,ok,,,
+random_5,GF(a & (((b & a) & X(!a)) U X(F(1)))),reset,1,2,1,5.23,ok,0,0,0
+random_5,GF(a & (((b & a) & X(!a)) U X(F(1)))),spot,1,2,1,5.408,ok,,,
+random_dual_5,!(GF(a & (((b & a) & X(!a)) U X(F(1))))),baseline,1,2,1,5.534,ok,,,
+random_dual_5,!(GF(a & (((b & a) & X(!a)) U X(F(1))))),reset,1,2,1,6.079,ok,0,0,0
+random_dual_5,!(GF(a & (((b & a) & X(!a)) U X(F(1))))),spot,1,2,1,5.174,ok,,,
+random_6,GF(a & X(((b | a) M (1 & !b)))),baseline,2,5,1,5.372,ok,,,
+random_6,GF(a & X(((b | a) M (1 & !b)))),reset,2,5,1,5.418,ok,1,0,0
+random_6,GF(a & X(((b | a) M (1 & !b)))),spot,2,5,1,6.317,ok,,,
+random_dual_6,!(GF(a & X(((b | a) M (1 & !b))))),baseline,2,5,1,6.774,ok,,,
+random_dual_6,!(GF(a & X(((b | a) M (1 & !b))))),reset,2,5,1,7.313,ok,1,1,0
+random_dual_6,!(GF(a & X(((b | a) M (1 & !b))))),spot,2,5,1,5.23,ok,,,
+random_7,GF(a & (((!b & 0) | F(1)) & F((!b M b)))),baseline,1,0,0,5.411,ok,,,
+random_7,GF(a & (((!b & 0) | F(1)) & F((!b M b)))),reset,1,0,0,7.147,ok,0,0,0
+random_7,GF(a & (((!b & 0) | F(1)) & F((!b M b)))),spot,1,0,0,6.984,ok,,,
+random_dual_7,!(GF(a & (((!b & 0) | F(1)) & F((!b M b))))),baseline,1,1,1,7.103,ok,,,
+random_dual_7,!(GF(a & (((!b & 0) | F(1)) & F((!b M b))))),reset,1,1,1,8.48,ok,0,0,0
+random_dual_7,!(GF(a & (((!b & 0) | F(1)) & F((!b M b))))),spot,1,1,0,7.243,ok,,,
+random_8,GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a)))),baseline,1,2,2,5.747,ok,,,
+random_8,GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a)))),reset,1,2,2,6.163,ok,0,0,0
+random_8,GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a)))),spot,1,2,2,7.806,ok,,,
+random_dual_8,!(GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a))))),baseline,1,2,2,5.775,ok,,,
+random_dual_8,!(GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a))))),reset,1,2,2,5.716,ok,0,0,0
+random_dual_8,!(GF(a & ((F(!a) | (!a M !b)) | ((!b M b) M F(a))))),spot,1,2,2,5.579,ok,,,
+random_9,GF(a & X((F(a) & (1 | 1)))),baseline,1,2,1,9.14,ok,,,
+random_9,GF(a & X((F(a) & (1 | 1)))),reset,1,2,1,6.494,ok,0,0,0
+random_9,GF(a & X((F(a) & (1 | 1)))),spot,1,2,1,5.658,ok,,,
+random_dual_9,!(GF(a & X((F(a) & (1 | 1))))),baseline,1,2,1,5.682,ok,,,
+random_dual_9,!(GF(a & X((F(a) & (1 | 1))))),reset,1,2,1,5.3,ok,0,0,0
+random_dual_9,!(GF(a & X((F(a) & (1 | 1))))),spot,1,2,1,5.316,ok,,,
+random_10,GF(a & ((F(!a) & F(a)) & X((1 | b)))),baseline,1,2,2,6.114,ok,,,
+random_10,GF(a & ((F(!a) & F(a)) & X((1 | b)))),reset,1,2,2,5.751,ok,0,0,0
+random_10,GF(a & ((F(!a) & F(a)) & X((1 | b)))),spot,1,2,2,8.058,ok,,,
+random_dual_10,!(GF(a & ((F(!a) & F(a)) & X((1 | b))))),baseline,1,2,2,5.825,ok,,,
+random_dual_10,!(GF(a & ((F(!a) & F(a)) & X((1 | b))))),reset,1,2,2,5.667,ok,0,0,0
+random_dual_10,!(GF(a & ((F(!a) & F(a)) & X((1 | b))))),spot,1,2,2,5.837,ok,,,
+random_11,GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1)))),baseline,1,0,0,5.742,ok,,,
+random_11,GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1)))),reset,1,0,0,6.622,ok,0,0,0
+random_11,GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1)))),spot,1,0,0,5.542,ok,,,
+random_dual_11,!(GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1))))),baseline,1,1,1,6.057,ok,,,
+random_dual_11,!(GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1))))),reset,1,1,1,6.507,ok,0,0,0
+random_dual_11,!(GF(a & (((0 M b) & (a U 1)) M ((!a U !a) | (!b | 1))))),spot,1,1,0,5.779,ok,,,
+random_12,GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a)))),baseline,1,0,0,6.22,ok,,,
+random_12,GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a)))),reset,1,0,0,6.244,ok,0,0,0
+random_12,GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a)))),spot,1,0,0,6.546,ok,,,
+random_dual_12,!(GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a))))),baseline,1,1,1,5.401,ok,,,
+random_dual_12,!(GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a))))),reset,1,1,1,5.399,ok,0,0,0
+random_dual_12,!(GF(a & (((b | !b) & (!a M b)) M ((a | !a) M (!b M a))))),spot,1,1,0,5.292,ok,,,
+random_13,GF(a & (X((0 M 1)) | ((!b & a) M F(!b)))),baseline,1,2,1,5.213,ok,,,
+random_13,GF(a & (X((0 M 1)) | ((!b & a) M F(!b)))),reset,1,2,1,6.012,ok,1,0,0
+random_13,GF(a & (X((0 M 1)) | ((!b & a) M F(!b)))),spot,1,2,1,5.163,ok,,,
+random_dual_13,!(GF(a & (X((0 M 1)) | ((!b & a) M F(!b))))),baseline,1,2,1,5.961,ok,,,
+random_dual_13,!(GF(a & (X((0 M 1)) | ((!b & a) M F(!b))))),reset,1,2,1,5.557,ok,1,1,0
+random_dual_13,!(GF(a & (X((0 M 1)) | ((!b & a) M F(!b))))),spot,1,2,1,5.387,ok,,,
+random_14,GF(a & F((X(!b) & (!b U 1)))),baseline,1,4,2,5.648,ok,,,
+random_14,GF(a & F((X(!b) & (!b U 1)))),reset,1,4,2,5.803,ok,0,0,0
+random_14,GF(a & F((X(!b) & (!b U 1)))),spot,1,4,2,5.418,ok,,,
+random_dual_14,!(GF(a & F((X(!b) & (!b U 1))))),baseline,1,4,2,5.585,ok,,,
+random_dual_14,!(GF(a & F((X(!b) & (!b U 1))))),reset,1,4,2,5.653,ok,0,0,0
+random_dual_14,!(GF(a & F((X(!b) & (!b U 1))))),spot,1,4,2,5.422,ok,,,
+random_15,GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b)))),baseline,1,0,0,7.155,ok,,,
+random_15,GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b)))),reset,1,0,0,5.216,ok,0,0,0
+random_15,GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b)))),spot,1,0,0,5.323,ok,,,
+random_dual_15,!(GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b))))),baseline,1,1,1,5.37,ok,,,
+random_dual_15,!(GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b))))),reset,1,1,1,5.617,ok,0,0,0
+random_dual_15,!(GF(a & ((X(!b) M (a U 0)) M ((0 M 0) U (0 M b))))),spot,1,1,0,5.33,ok,,,
+random_16,GF(a & X(F((a | b)))),baseline,1,2,1,5.951,ok,,,
+random_16,GF(a & X(F((a | b)))),reset,1,2,1,5.363,ok,0,0,0
+random_16,GF(a & X(F((a | b)))),spot,1,2,1,5.231,ok,,,
+random_dual_16,!(GF(a & X(F((a | b))))),baseline,1,2,1,5.473,ok,,,
+random_dual_16,!(GF(a & X(F((a | b))))),reset,1,2,1,5.794,ok,0,0,0
+random_dual_16,!(GF(a & X(F((a | b))))),spot,1,2,1,5.635,ok,,,
+random_17,GF(a & F(((0 U b) U X(0)))),baseline,1,0,0,5.467,ok,,,
+random_17,GF(a & F(((0 U b) U X(0)))),reset,1,0,0,5.255,ok,0,0,0
+random_17,GF(a & F(((0 U b) U X(0)))),spot,1,0,0,5.2,ok,,,
+random_dual_17,!(GF(a & F(((0 U b) U X(0))))),baseline,1,1,1,6.757,ok,,,
+random_dual_17,!(GF(a & F(((0 U b) U X(0))))),reset,1,1,1,5.371,ok,0,0,0
+random_dual_17,!(GF(a & F(((0 U b) U X(0))))),spot,1,1,0,4.993,ok,,,
+random_18,GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b)))),baseline,1,2,1,5.279,ok,,,
+random_18,GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b)))),reset,1,2,1,5.014,ok,0,0,0
+random_18,GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b)))),spot,1,2,1,5.209,ok,,,
+random_dual_18,!(GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b))))),baseline,1,2,1,5.724,ok,,,
+random_dual_18,!(GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b))))),reset,1,2,1,6.878,ok,0,0,0
+random_dual_18,!(GF(a & (((1 U !b) | X(b)) | ((a U b) & (1 U !b))))),spot,1,2,1,5.186,ok,,,
+random_19,GF(a & F(((!b | 1) U (a U b)))),baseline,1,4,2,5.594,ok,,,
+random_19,GF(a & F(((!b | 1) U (a U b)))),reset,1,4,2,5.441,ok,0,0,0
+random_19,GF(a & F(((!b | 1) U (a U b)))),spot,1,4,2,6.455,ok,,,
+random_dual_19,!(GF(a & F(((!b | 1) U (a U b))))),baseline,1,4,2,5.327,ok,,,
+random_dual_19,!(GF(a & F(((!b | 1) U (a U b))))),reset,1,4,2,5.328,ok,0,0,0
+random_dual_19,!(GF(a & F(((!b | 1) U (a U b))))),spot,1,4,2,5.235,ok,,,
+random_20,GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a)))),baseline,1,2,1,5.919,ok,,,
+random_20,GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a)))),reset,1,2,1,5.473,ok,0,0,0
+random_20,GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a)))),spot,1,2,1,5.161,ok,,,
+random_dual_20,!(GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a))))),baseline,1,2,1,5.108,ok,,,
+random_dual_20,!(GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a))))),reset,1,2,1,5.281,ok,0,0,0
+random_dual_20,!(GF(a & (((!b M 1) | F(a)) | ((!b U !a) M (!b | a))))),spot,1,2,1,5.224,ok,,,
+random_21,GF(a & (((b & !b) U (b M b)) M X(X(0)))),baseline,1,0,0,5.239,ok,,,
+random_21,GF(a & (((b & !b) U (b M b)) M X(X(0)))),reset,1,0,0,5.193,ok,0,0,0
+random_21,GF(a & (((b & !b) U (b M b)) M X(X(0)))),spot,1,0,0,4.93,ok,,,
+random_dual_21,!(GF(a & (((b & !b) U (b M b)) M X(X(0))))),baseline,1,1,1,4.985,ok,,,
+random_dual_21,!(GF(a & (((b & !b) U (b M b)) M X(X(0))))),reset,1,1,1,5.077,ok,0,0,0
+random_dual_21,!(GF(a & (((b & !b) U (b M b)) M X(X(0))))),spot,1,1,0,5.007,ok,,,
+random_22,GF(a & (X(X(a)) & (F(b) & (0 & !a)))),baseline,1,0,0,5.181,ok,,,
+random_22,GF(a & (X(X(a)) & (F(b) & (0 & !a)))),reset,1,0,0,5.129,ok,0,0,0
+random_22,GF(a & (X(X(a)) & (F(b) & (0 & !a)))),spot,1,0,0,5.09,ok,,,
+random_dual_22,!(GF(a & (X(X(a)) & (F(b) & (0 & !a))))),baseline,1,1,1,5.443,ok,,,
+random_dual_22,!(GF(a & (X(X(a)) & (F(b) & (0 & !a))))),reset,1,1,1,4.938,ok,0,0,0
+random_dual_22,!(GF(a & (X(X(a)) & (F(b) & (0 & !a))))),spot,1,1,0,4.739,ok,,,
+random_23,GF(a & ((X(1) U X(1)) | (X(!a) U X(b)))),baseline,1,2,1,5.165,ok,,,
+random_23,GF(a & ((X(1) U X(1)) | (X(!a) U X(b)))),reset,1,2,1,4.958,ok,0,0,0
+random_23,GF(a & ((X(1) U X(1)) | (X(!a) U X(b)))),spot,1,2,1,4.962,ok,,,
+random_dual_23,!(GF(a & ((X(1) U X(1)) | (X(!a) U X(b))))),baseline,1,2,1,4.946,ok,,,
+random_dual_23,!(GF(a & ((X(1) U X(1)) | (X(!a) U X(b))))),reset,1,2,1,5.155,ok,0,0,0
+random_dual_23,!(GF(a & ((X(1) U X(1)) | (X(!a) U X(b))))),spot,1,2,1,4.894,ok,,,
+random_24,GF(a & X((X(1) M (1 | !a)))),baseline,1,2,1,5.261,ok,,,
+random_24,GF(a & X((X(1) M (1 | !a)))),reset,1,2,1,5.1,ok,0,0,0
+random_24,GF(a & X((X(1) M (1 | !a)))),spot,1,2,1,5.032,ok,,,
+random_dual_24,!(GF(a & X((X(1) M (1 | !a))))),baseline,1,2,1,5.082,ok,,,
+random_dual_24,!(GF(a & X((X(1) M (1 | !a))))),reset,1,2,1,5.504,ok,0,0,0
+random_dual_24,!(GF(a & X((X(1) M (1 | !a))))),spot,1,2,1,5.041,ok,,,
+random_25,GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b)))),baseline,1,2,1,5.184,ok,,,
+random_25,GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b)))),reset,1,2,1,5.05,ok,0,0,0
+random_25,GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b)))),spot,1,2,1,5.149,ok,,,
+random_dual_25,!(GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b))))),baseline,1,2,1,5.386,ok,,,
+random_dual_25,!(GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b))))),reset,1,2,1,5.299,ok,0,0,0
+random_dual_25,!(GF(a & (((a & 1) | (b | b)) | (X(!b) U (a U !b))))),spot,1,2,1,5.075,ok,,,
+random_26,GF(a & ((X(!b) M (b & a)) | X((b U !a)))),baseline,3,9,1,5.393,ok,,,
+random_26,GF(a & ((X(!b) M (b & a)) | X((b U !a)))),reset,3,9,1,5.498,ok,2,0,0
+random_26,GF(a & ((X(!b) M (b & a)) | X((b U !a)))),spot,3,9,1,5.54,ok,,,
+random_dual_26,!(GF(a & ((X(!b) M (b & a)) | X((b U !a))))),baseline,3,9,1,5.487,ok,,,
+random_dual_26,!(GF(a & ((X(!b) M (b & a)) | X((b U !a))))),reset,3,8,1,5.527,ok,1,1,0
+random_dual_26,!(GF(a & ((X(!b) M (b & a)) | X((b U !a))))),spot,3,9,1,5.573,ok,,,
+random_27,GF(a & (X((0 U 0)) | ((0 M !b) U F(0)))),baseline,1,0,0,5.238,ok,,,
+random_27,GF(a & (X((0 U 0)) | ((0 M !b) U F(0)))),reset,1,0,0,5.184,ok,0,0,0
+random_27,GF(a & (X((0 U 0)) | ((0 M !b) U F(0)))),spot,1,0,0,5.03,ok,,,
+random_dual_27,!(GF(a & (X((0 U 0)) | ((0 M !b) U F(0))))),baseline,1,1,1,5.086,ok,,,
+random_dual_27,!(GF(a & (X((0 U 0)) | ((0 M !b) U F(0))))),reset,1,1,1,5.128,ok,0,0,0
+random_dual_27,!(GF(a & (X((0 U 0)) | ((0 M !b) U F(0))))),spot,1,1,0,4.863,ok,,,
+random_28,GF(a & (X((!a U 0)) & ((b | a) | X(!a)))),baseline,1,0,0,5.214,ok,,,
+random_28,GF(a & (X((!a U 0)) & ((b | a) | X(!a)))),reset,1,0,0,5.388,ok,0,0,0
+random_28,GF(a & (X((!a U 0)) & ((b | a) | X(!a)))),spot,1,0,0,11.792,ok,,,
+random_dual_28,!(GF(a & (X((!a U 0)) & ((b | a) | X(!a))))),baseline,1,1,1,5.565,ok,,,
+random_dual_28,!(GF(a & (X((!a U 0)) & ((b | a) | X(!a))))),reset,1,1,1,5.184,ok,0,0,0
+random_dual_28,!(GF(a & (X((!a U 0)) & ((b | a) | X(!a))))),spot,1,1,0,5.0,ok,,,
+random_29,GF(a & (((b U b) | F(1)) U X((0 M !b)))),baseline,1,0,0,5.227,ok,,,
+random_29,GF(a & (((b U b) | F(1)) U X((0 M !b)))),reset,1,0,0,4.891,ok,0,0,0
+random_29,GF(a & (((b U b) | F(1)) U X((0 M !b)))),spot,1,0,0,4.992,ok,,,
+random_dual_29,!(GF(a & (((b U b) | F(1)) U X((0 M !b))))),baseline,1,1,1,5.356,ok,,,
+random_dual_29,!(GF(a & (((b U b) | F(1)) U X((0 M !b))))),reset,1,1,1,5.316,ok,0,0,0
+random_dual_29,!(GF(a & (((b U b) | F(1)) U X((0 M !b))))),spot,1,1,0,4.906,ok,,,
+random_30,GF(a & X(((!a U 0) & (0 U !b)))),baseline,1,0,0,5.15,ok,,,
+random_30,GF(a & X(((!a U 0) & (0 U !b)))),reset,1,0,0,5.18,ok,0,0,0
+random_30,GF(a & X(((!a U 0) & (0 U !b)))),spot,1,0,0,4.808,ok,,,
+random_dual_30,!(GF(a & X(((!a U 0) & (0 U !b))))),baseline,1,1,1,5.058,ok,,,
+random_dual_30,!(GF(a & X(((!a U 0) & (0 U !b))))),reset,1,1,1,5.056,ok,0,0,0
+random_dual_30,!(GF(a & X(((!a U 0) & (0 U !b))))),spot,1,1,0,4.862,ok,,,
+random_31,GF(a & (((!b U b) | X(0)) U F((!a & !b)))),baseline,1,3,2,5.475,ok,,,
+random_31,GF(a & (((!b U b) | X(0)) U F((!a & !b)))),reset,1,3,2,5.551,ok,0,0,0
+random_31,GF(a & (((!b U b) | X(0)) U F((!a & !b)))),spot,1,3,2,5.215,ok,,,
+random_dual_31,!(GF(a & (((!b U b) | X(0)) U F((!a & !b))))),baseline,1,3,2,5.628,ok,,,
+random_dual_31,!(GF(a & (((!b U b) | X(0)) U F((!a & !b))))),reset,1,3,2,5.571,ok,0,0,0
+random_dual_31,!(GF(a & (((!b U b) | X(0)) U F((!a & !b))))),spot,1,3,2,5.292,ok,,,
+random_32,GF(a & F(((!a & !a) | (1 | !b)))),baseline,1,2,1,5.179,ok,,,
+random_32,GF(a & F(((!a & !a) | (1 | !b)))),reset,1,2,1,5.245,ok,0,0,0
+random_32,GF(a & F(((!a & !a) | (1 | !b)))),spot,1,2,1,5.178,ok,,,
+random_dual_32,!(GF(a & F(((!a & !a) | (1 | !b))))),baseline,1,2,1,5.279,ok,,,
+random_dual_32,!(GF(a & F(((!a & !a) | (1 | !b))))),reset,1,2,1,4.996,ok,0,0,0
+random_dual_32,!(GF(a & F(((!a & !a) | (1 | !b))))),spot,1,2,1,4.869,ok,,,
+random_33,GF(a & F(((b U 1) & (b U !b)))),baseline,1,4,2,5.691,ok,,,
+random_33,GF(a & F(((b U 1) & (b U !b)))),reset,1,4,2,5.474,ok,0,0,0
+random_33,GF(a & F(((b U 1) & (b U !b)))),spot,1,4,2,5.183,ok,,,
+random_dual_33,!(GF(a & F(((b U 1) & (b U !b))))),baseline,1,4,2,5.481,ok,,,
+random_dual_33,!(GF(a & F(((b U 1) & (b U !b))))),reset,1,4,2,5.789,ok,0,0,0
+random_dual_33,!(GF(a & F(((b U 1) & (b U !b))))),spot,1,4,2,5.294,ok,,,
+random_34,GF(a & F(((!b M 1) U (a & !a)))),baseline,1,0,0,5.091,ok,,,
+random_34,GF(a & F(((!b M 1) U (a & !a)))),reset,1,0,0,5.051,ok,0,0,0
+random_34,GF(a & F(((!b M 1) U (a & !a)))),spot,1,0,0,4.872,ok,,,
+random_dual_34,!(GF(a & F(((!b M 1) U (a & !a))))),baseline,1,1,1,5.194,ok,,,
+random_dual_34,!(GF(a & F(((!b M 1) U (a & !a))))),reset,1,1,1,5.031,ok,0,0,0
+random_dual_34,!(GF(a & F(((!b M 1) U (a & !a))))),spot,1,1,0,4.88,ok,,,
+random_35,GF(a & F(((!a U 1) & F(b)))),baseline,1,4,2,5.396,ok,,,
+random_35,GF(a & F(((!a U 1) & F(b)))),reset,1,4,2,5.354,ok,0,0,0
+random_35,GF(a & F(((!a U 1) & F(b)))),spot,1,4,2,5.016,ok,,,
+random_dual_35,!(GF(a & F(((!a U 1) & F(b))))),baseline,1,4,2,5.702,ok,,,
+random_dual_35,!(GF(a & F(((!a U 1) & F(b))))),reset,1,4,2,5.444,ok,0,0,0
+random_dual_35,!(GF(a & F(((!a U 1) & F(b))))),spot,1,4,2,5.18,ok,,,
+random_36,GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0)))),baseline,1,0,0,5.19,ok,,,
+random_36,GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0)))),reset,1,0,0,5.334,ok,0,0,0
+random_36,GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0)))),spot,1,0,0,4.848,ok,,,
+random_dual_36,!(GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0))))),baseline,1,1,1,5.299,ok,,,
+random_dual_36,!(GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0))))),reset,1,1,1,5.083,ok,0,0,0
+random_dual_36,!(GF(a & ((F(a) U (!a & !b)) M ((0 M !a) | (!b U 0))))),spot,1,1,0,4.828,ok,,,
+random_37,GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0)))),baseline,1,0,0,5.191,ok,,,
+random_37,GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0)))),reset,1,0,0,4.958,ok,0,0,0
+random_37,GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0)))),spot,1,0,0,4.789,ok,,,
+random_dual_37,!(GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0))))),baseline,1,1,1,5.154,ok,,,
+random_dual_37,!(GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0))))),reset,1,1,1,5.136,ok,0,0,0
+random_dual_37,!(GF(a & ((X(0) & (b & a)) & ((!b U !b) M (a M 0))))),spot,1,1,0,4.821,ok,,,
+random_38,GF(a & X(((b U 1) & X(1)))),baseline,1,2,1,5.085,ok,,,
+random_38,GF(a & X(((b U 1) & X(1)))),reset,1,2,1,5.349,ok,0,0,0
+random_38,GF(a & X(((b U 1) & X(1)))),spot,1,2,1,4.894,ok,,,
+random_dual_38,!(GF(a & X(((b U 1) & X(1))))),baseline,1,2,1,5.314,ok,,,
+random_dual_38,!(GF(a & X(((b U 1) & X(1))))),reset,1,2,1,5.094,ok,0,0,0
+random_dual_38,!(GF(a & X(((b U 1) & X(1))))),spot,1,2,1,4.977,ok,,,
+random_39,GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a)))),baseline,1,2,1,5.193,ok,,,
+random_39,GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a)))),reset,1,2,1,5.211,ok,0,0,0
+random_39,GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a)))),spot,1,2,1,5.031,ok,,,
+random_dual_39,!(GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a))))),baseline,1,2,1,5.268,ok,,,
+random_dual_39,!(GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a))))),reset,1,2,1,5.154,ok,0,0,0
+random_dual_39,!(GF(a & (X((!a M !b)) U ((!a M !b) | (0 U a))))),spot,1,2,1,5.057,ok,,,
+random_40,GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b)))),baseline,1,0,0,4.983,ok,,,
+random_40,GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b)))),reset,1,0,0,4.937,ok,0,0,0
+random_40,GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b)))),spot,1,0,0,4.781,ok,,,
+random_dual_40,!(GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b))))),baseline,1,1,1,5.544,ok,,,
+random_dual_40,!(GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b))))),reset,1,1,1,5.191,ok,0,0,0
+random_dual_40,!(GF(a & (((1 U b) & (!b M 0)) & ((1 U 0) M X(b))))),spot,1,1,0,4.891,ok,,,
+random_41,GF(a & (F((b U !a)) & (F(!b) | (b | !b)))),baseline,1,2,2,5.464,ok,,,
+random_41,GF(a & (F((b U !a)) & (F(!b) | (b | !b)))),reset,1,2,2,5.243,ok,0,0,0
+random_41,GF(a & (F((b U !a)) & (F(!b) | (b | !b)))),spot,1,2,2,5.124,ok,,,
+random_dual_41,!(GF(a & (F((b U !a)) & (F(!b) | (b | !b))))),baseline,1,2,2,5.605,ok,,,
+random_dual_41,!(GF(a & (F((b U !a)) & (F(!b) | (b | !b))))),reset,1,2,2,5.366,ok,0,0,0
+random_dual_41,!(GF(a & (F((b U !a)) & (F(!b) | (b | !b))))),spot,1,2,2,5.497,ok,,,
+random_42,GF(a & X(X((1 U b)))),baseline,1,4,2,5.544,ok,,,
+random_42,GF(a & X(X((1 U b)))),reset,1,4,2,5.317,ok,0,0,0
+random_42,GF(a & X(X((1 U b)))),spot,1,4,2,5.143,ok,,,
+random_dual_42,!(GF(a & X(X((1 U b))))),baseline,1,4,2,5.455,ok,,,
+random_dual_42,!(GF(a & X(X((1 U b))))),reset,1,4,2,5.39,ok,0,0,0
+random_dual_42,!(GF(a & X(X((1 U b))))),spot,1,4,2,5.35,ok,,,
+random_43,GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b)))),baseline,2,8,2,5.901,ok,,,
+random_43,GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b)))),reset,2,8,2,5.892,ok,0,0,0
+random_43,GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b)))),spot,2,8,2,5.222,ok,,,
+random_dual_43,!(GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b))))),baseline,2,8,2,5.627,ok,,,
+random_dual_43,!(GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b))))),reset,2,8,2,5.421,ok,0,0,0
+random_dual_43,!(GF(a & (((b U !b) M (b | 1)) & ((!a & 0) U X(b))))),spot,2,8,2,5.403,ok,,,
+random_44,GF(a & (((!a U 0) & (b & a)) M X(F(1)))),baseline,1,0,0,4.928,ok,,,
+random_44,GF(a & (((!a U 0) & (b & a)) M X(F(1)))),reset,1,0,0,4.981,ok,0,0,0
+random_44,GF(a & (((!a U 0) & (b & a)) M X(F(1)))),spot,1,0,0,4.815,ok,,,
+random_dual_44,!(GF(a & (((!a U 0) & (b & a)) M X(F(1))))),baseline,1,1,1,5.235,ok,,,
+random_dual_44,!(GF(a & (((!a U 0) & (b & a)) M X(F(1))))),reset,1,1,1,5.422,ok,0,0,0
+random_dual_44,!(GF(a & (((!a U 0) & (b & a)) M X(F(1))))),spot,1,1,0,5.027,ok,,,
+random_45,GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a)))),baseline,1,2,1,5.181,ok,,,
+random_45,GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a)))),reset,1,2,1,5.143,ok,0,0,0
+random_45,GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a)))),spot,1,2,1,5.106,ok,,,
+random_dual_45,!(GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a))))),baseline,1,2,1,5.166,ok,,,
+random_dual_45,!(GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a))))),reset,1,2,1,5.103,ok,0,0,0
+random_dual_45,!(GF(a & (((0 U a) & (!a | 1)) | ((0 | b) | (a | a))))),spot,1,2,1,5.072,ok,,,
+random_46,GF(a & (((b U a) & F(!b)) | X(F(0)))),baseline,1,4,2,5.698,ok,,,
+random_46,GF(a & (((b U a) & F(!b)) | X(F(0)))),reset,1,4,2,5.49,ok,0,0,0
+random_46,GF(a & (((b U a) & F(!b)) | X(F(0)))),spot,1,4,2,5.455,ok,,,
+random_dual_46,!(GF(a & (((b U a) & F(!b)) | X(F(0))))),baseline,1,4,2,5.321,ok,,,
+random_dual_46,!(GF(a & (((b U a) & F(!b)) | X(F(0))))),reset,1,4,2,5.477,ok,0,0,0
+random_dual_46,!(GF(a & (((b U a) & F(!b)) | X(F(0))))),spot,1,4,2,8.431,ok,,,
+random_47,GF(a & ((X(!a) M X(0)) & X((0 U a)))),baseline,1,0,0,5.017,ok,,,
+random_47,GF(a & ((X(!a) M X(0)) & X((0 U a)))),reset,1,0,0,5.033,ok,0,0,0
+random_47,GF(a & ((X(!a) M X(0)) & X((0 U a)))),spot,1,0,0,4.812,ok,,,
+random_dual_47,!(GF(a & ((X(!a) M X(0)) & X((0 U a))))),baseline,1,1,1,5.228,ok,,,
+random_dual_47,!(GF(a & ((X(!a) M X(0)) & X((0 U a))))),reset,1,1,1,5.093,ok,0,0,0
+random_dual_47,!(GF(a & ((X(!a) M X(0)) & X((0 U a))))),spot,1,1,0,4.829,ok,,,
+random_48,GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a)))),baseline,1,2,1,11.008,ok,,,
+random_48,GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a)))),reset,1,2,1,7.364,ok,0,0,0
+random_48,GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a)))),spot,1,2,1,5.455,ok,,,
+random_dual_48,!(GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a))))),baseline,1,2,1,5.499,ok,,,
+random_dual_48,!(GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a))))),reset,1,2,1,7.437,ok,0,0,0
+random_dual_48,!(GF(a & (((1 U 1) U (a & !b)) & ((1 & a) | (1 M a))))),spot,1,2,1,5.39,ok,,,
+random_49,GF(a & F((X(b) U F(!b)))),baseline,1,4,2,5.492,ok,,,
+random_49,GF(a & F((X(b) U F(!b)))),reset,1,4,2,7.736,ok,0,0,0
+random_49,GF(a & F((X(b) U F(!b)))),spot,1,4,2,5.401,ok,,,
+random_dual_49,!(GF(a & F((X(b) U F(!b))))),baseline,1,4,2,5.53,ok,,,
+random_dual_49,!(GF(a & F((X(b) U F(!b))))),reset,1,4,2,5.781,ok,0,0,0
+random_dual_49,!(GF(a & F((X(b) U F(!b))))),spot,1,4,2,5.535,ok,,,

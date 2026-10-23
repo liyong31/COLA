@@ -1,0 +1,43 @@
+{
+  "base_commit": "66b6486747a68a4f0c7982419d18df2a6971e8c8",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "3890b935271a65521df9f1cf87546c35e206cf8830f99514022b4b75df901f9b",
+    "build-local/tests/.libs/tela-elevator-driver": "27cc5e168838624e73993485c7ef45c1db124d2a1d5773439b49747de4c25970",
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/src/.libs/libcola.0.dylib": "1b30db8d32f8746865af37b39949def2ccc32953bc5cfad41cc6ecd8d466857c",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "src/ltl2dela.cpp": "712b84e7998563368c617f6517ae8aa509b62fa76adfeeb6850889b1e8f7d9ec",
+    "src/ltl2dela.hpp": "dcf2e4dfee2efbcbca757f06c16e6d2ab4ecd70bb2818e65aaa042ddbc7b1f63",
+    "src/ltl2dela_main.cpp": "28bf7000b9c7b98c07587c1daa4ac80331ced9e92e390518529136b957d37d88",
+    "src/slaa_frontend.cpp": "3c36b4d70c59c563e86e51974c2aa33f8e33538235c0a0c062b4276d85e70f9d",
+    "src/slaa_frontend.hpp": "ecc3e02cc9d0017309caff5ff5a062ca826f025a7e17476de8eda34198231105",
+    "tests/tela-elevator-driver.cpp": "fe5abe5f122fe0b357c64035b5fa3915dbbff56731480a8442007de34430dae8",
+    "tests/generic-elevator.cpp": "9ac6d920fcffb07fd1b86109ca75775ea3ea6d330cfaf13972bb2516cbc3c23e",
+    "tests/slaa-route.py": "4dc53e2404708626ac3b74ca7e09ae3e5cc448ca8a26507c7c2e221b8c84002c",
+    "tests/benchmark-slaa.py": "35c4a8d0ff9b853339883be63912312f0d06f4b40c2ffe80f2c4a20e55864d1a"
+  },
+  "frontend_flags": [
+    "-D0",
+    "-b0",
+    "-n0",
+    "-l0",
+    "-t0",
+    "-p2"
+  ],
+  "modes": [
+    "cola_current",
+    "cola_slaa",
+    "cola_slaa_portfolio"
+  ],
+  "frontend_timeout_seconds": 5,
+  "integrated_input_state_limit": 256,
+  "outer_timeout_seconds": 30,
+  "raw_driver_codes": {
+    "2": "non-elevator",
+    "3": "frontend-inequivalent",
+    "4": "backend-inequivalent",
+    "5": "input-budget",
+    "6": "backend-error"
+  }
+}

@@ -46,6 +46,8 @@ src_libcola_la_SOURCES =			\
   src/optimizer.cpp				\
   src/ltl2dela.hpp				\
   src/ltl2dela.cpp				\
+  src/slaa_frontend.cpp                 \
+  src/slaa_frontend.hpp                 \
   src/simulation.cpp			\
   src/simulation.hpp			\
   src/types.hpp
@@ -55,8 +57,59 @@ cola_SOURCES = src/main.cpp
 ltl2dela_SOURCES = src/ltl2dela_main.cpp
 ltl2dela_LDADD = -L$(SPOTPREFIX)/lib src/libcola.la -lspot -lbddx
 
-check_PROGRAMS = tests/elevator-acceptance
+check_PROGRAMS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator tests/tela-elevator-driver
 tests_elevator_acceptance_SOURCES = tests/elevator-acceptance.cpp
 tests_elevator_acceptance_LDADD = $(ltl2dela_LDADD)
-TESTS = tests/elevator-acceptance
-EXTRA_DIST = tests/ltl2dela-smoke.sh
+tests_specialized_fragments_SOURCES = tests/specialized-fragments.cpp
+tests_specialized_fragments_LDADD = $(ltl2dela_LDADD)
+tests_generic_elevator_SOURCES = tests/generic-elevator.cpp
+tests_generic_elevator_LDADD = $(ltl2dela_LDADD)
+tests_tela_elevator_driver_SOURCES = tests/tela-elevator-driver.cpp
+tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
+TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
+TESTS += tests/slaa-route.py
+TESTS += tests/ldgba-route.py
+TESTS_ENVIRONMENT = LTLD='$(abs_builddir)/ltl2dela'; export LTLD;
+EXTRA_DIST = tests/ltl2dela-smoke.sh tests/finite-witness.py \
+  tests/finite-witness-benchmarks.md tests/finite-witness-results.csv \
+  tests/finite-witness-random-results.csv tests/finite-witness-large-results.csv
+
+EXTRA_DIST += tests/compare-ltl-sizes.py tests/summarize-ltl-sizes.py \
+  tests/ltl-size-comparison.md tests/ltl-size-summary.md \
+  tests/ltl-size-results.csv tests/ltl-size-environment.json \
+  tests/ltl3tela-clang.patch tests/ltl-size-corpus/README.md \
+  tests/ltl-size-corpus/DwyerAC98.ltl tests/ltl-size-corpus/EtessamiH00.ltl \
+  tests/ltl-size-corpus/Liberouter04.ltl tests/ltl-size-corpus/Parametrised.ltl \
+  tests/ltl-size-corpus/Parametrised-Hardness.ltl tests/ltl-size-corpus/Pelanek07.ltl \
+  tests/ltl-size-corpus/SickertEJK16.ltl tests/ltl-size-corpus/SomenziB00.ltl
+
+EXTRA_DIST += tests/diagnose-ltl-sizes.py tests/recheck-cola-fragments.py \
+  tests/ltl-routing-diagnosis.md tests/ltl-size-ablations.csv \
+  tests/ltl-timeout-probes.json tests/ltl-fragment-results.csv \
+  tests/ltl-fragment-summary.md tests/ltl-fragment-environment.json \
+  tests/finite-witness-specialized-results.csv \
+  tests/finite-witness-specialized-large-results.csv \
+  tests/finite-witness-specialized-random-results.csv
+
+EXTRA_DIST += tests/compare-cola-polarities.py tests/summarize-cola-polarities.py \
+  tests/ltl-polarity-results.csv tests/ltl-polarity-results.json \
+  tests/ltl-polarity-summary.md tests/ltl-polarity-probes.json
+
+EXTRA_DIST += tests/slaa-route.py
+EXTRA_DIST += tests/ldgba-route.py
+EXTRA_DIST += tests/benchmark-slaa.py tests/summarize-slaa.py \
+  tests/ltl-slaa-results.csv tests/ltl-slaa-results.json tests/ltl-slaa-report.md \
+  tests/finite-witness-slaa-regressions.csv
+
+EXTRA_DIST += tests/diagnose-slaa-shapes.py tests/summarize-slaa-shapes.py \
+  tests/ltl-slaa-shapes.csv tests/ltl-slaa-shapes.json \
+  tests/ltl-slaa-winner-ablations.csv tests/ltl-slaa-scc-probes.json \
+  tests/ltl-slaa-shape-diagnosis.md tests/ltl-slaa-portfolio-results.csv \
+  tests/ltl-slaa-portfolio-results.json \
+  tests/finite-witness-slaa-portfolio-regressions.csv
+
+EXTRA_DIST += tests/benchmark-ldgba.py tests/summarize-ldgba.py \
+  tests/ltl-ldgba-raw-results.csv tests/ltl-ldgba-raw-results.json \
+  tests/ltl-ldgba-results.csv tests/ltl-ldgba-results.json \
+  tests/ltl-ldgba-optimizations.csv tests/ltl-ldgba-optimizations.json \
+  tests/ltl-ldgba-report.md tests/finite-witness-ldgba-regressions.csv

@@ -23,7 +23,13 @@
 #include <map>
 #include <set>
 #include <bitset>
-#include <bits/stdc++.h>
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -1107,7 +1113,7 @@ namespace cola
           }
           else
           {
-            assert(false);
+            throw std::runtime_error("elevator successor has an unclassified SCC");
           }
         }
       }
@@ -1540,7 +1546,6 @@ namespace cola
                           true         // stutter inv
                       });
       if (aut_->prop_complete().is_true()) {
-          std::cout << "complete automaton " << res_->prop_complete() << std::endl;
           res_->prop_complete(true);
       }
       // Generate bdd supports and compatible options for each state.
@@ -1656,6 +1661,19 @@ namespace cola
       for (unsigned i = 0; i < acc_detsccs_.size(); i++) {
         num_scc_states[i] = si_.states_of(acc_detsccs_[i]).size();
       }
+      if (om_.get(USE_OBSERVED_RANKS) > 0)
+        {
+          // Only after graph exploration is complete do we know the exact
+          // maximum number of concurrent rank slots in each component.
+          // A never-present slot has its discontinuation colour on every
+          // transition, hence Fin(discontinued) is false. Its whole shifted
+          // acceptance disjunct and all of its colours may be omitted.
+          std::fill(num_scc_states.begin(), num_scc_states.end(), 0);
+          for (const auto& entry : rank2n_)
+            for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+              num_scc_states[i] = std::max(num_scc_states[i],
+                static_cast<unsigned>(entry.first.detscc_labels_[i].size()));
+        }
       unsigned num_colours_plus_one = num_colours_plus_one_;
       // this is fixed, we can just compute it without max and min colours
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
@@ -1694,7 +1712,9 @@ namespace cola
           // std::cout << "scc " << i << std::endl;
           // DAC i: base + colour
           for (auto& c : det_colours[i]) {
-            t.acc.set(color_bases[i] + c );
+            // Relative colours for never-present slots were recorded during
+            // exploration but are absent from the compacted acceptance.
+            if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c);
           }
           // should be set to the relative color
         }

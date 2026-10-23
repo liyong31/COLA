@@ -28,8 +28,8 @@ R"(Usage:
   ltl2dela [OPTIONS] -F FILE
 
 Translate LTL to a deterministic automaton with generic (Emerson-Lei)
-acceptance.  The translator first exploits Spot's easy deterministic
-fragments, then tries a Buchi automaton and CoLA's elevator-SCC
+acceptance.  The translator first exploits easy deterministic monitors,
+optionally tries an SLAA-derived elevator TELA, then a Buchi automaton and CoLA's elevator-SCC
 construction.  Hard residuals are refined with asymptotic profiles
 FG(gamma) / GF(!gamma) before falling back to direct deterministic
 formula translation.
@@ -45,6 +45,22 @@ Options:
   --no-profiles           disable SCC-guided profile refinement
   --no-delta2             disable Spot's Delta2 normalization
   --no-recurrence         disable structural GF recurrence compilation
+  --no-specialized        disable early GF/FG and fragment routing
+  --no-dba                disable checked weak/transition-Buchi attempts
+  --dba-state-limit=N     maximum states in bounded DBA attempts (default: 512)
+  --dba-cycle-limit=N     maximum cycles per SCC in TBA attempts (default: 4096)
+  --slaa-tool=PATH        opt-in LTL3TELA SLAA/TELA residual candidate
+  --slaa-portfolio        try both SLAA polarities and competing residual paths
+  --slaa-timeout-ms=N     frontend process timeout (default: 5000; zero skips)
+  --slaa-state-limit=N    maximum input TELA states (default: 256; zero skips)
+  --ldgba-tool=PATH       opt-in OWL LDGBA -> native elevator candidate
+  --ldgba-construction=NAME  SEJK16, EKS20, or both (default: both)
+  --ldgba-timeout-ms=N    deadline per frontend attempt (default: 5000)
+  --ldgba-state-limit=N   maximum input LDGBA states (default: 256; zero skips)
+  --ldgba-attempt-limit=N maximum frontend attempts per formula (default: 8)
+  --finite-witness       enable bounded LTLf reset monitors (default: off)
+  --finite-witness-state-limit=N  maximum reset states (default: 256)
+  --finite-witness-work-limit=N   maximum MTBDD visits (default: 16384)
   --no-master-profiles     disable explicit Master-profile propagation
   --no-x-advice           disable exact X-advice progression
   --x-advice-max-mu=N     enumerate at most N mu-subformulas (default: 3)
@@ -166,14 +182,103 @@ int main(int argc, char** argv)
               opts.use_recurrence_compiler = false;
               continue;
             }
-          if (a == "--no-master-profiles")
+          if (a == "--no-specialized")
             {
-              opts.use_master_profiles = false;
+              opts.use_specialized_fragments = false;
+              continue;
+            }
+          if (a == "--no-dba")
+            {
+              opts.use_dba = false;
+              continue;
+            }
+          if (a.rfind("--slaa-tool=", 0) == 0)
+            {
+              opts.slaa_tool = value_after("--slaa-tool=");
+              continue;
+            }
+          if (a == "--slaa-portfolio")
+            {
+              opts.slaa_portfolio = true;
+              continue;
+            }
+          if (a.rfind("--ldgba-tool=", 0) == 0)
+            {
+              opts.ldgba_tool = value_after("--ldgba-tool=");
+              continue;
+            }
+          if (a.rfind("--ldgba-construction=", 0) == 0)
+            {
+              opts.ldgba_construction = value_after("--ldgba-construction=");
+              if (opts.ldgba_construction != "SEJK16" && opts.ldgba_construction != "EKS20"
+                  && opts.ldgba_construction != "both")
+                throw std::runtime_error("invalid LDGBA construction: " + opts.ldgba_construction);
+              continue;
+            }
+          if (a.rfind("--ldgba-timeout-ms=", 0) == 0)
+            {
+              opts.ldgba_timeout_ms = parse_uint(value_after("--ldgba-timeout-ms="),
+                                                "--ldgba-timeout-ms");
+              continue;
+            }
+          if (a.rfind("--ldgba-state-limit=", 0) == 0)
+            {
+              opts.ldgba_state_limit = parse_uint(value_after("--ldgba-state-limit="),
+                                                 "--ldgba-state-limit");
+              continue;
+            }
+          if (a.rfind("--ldgba-attempt-limit=", 0) == 0)
+            {
+              opts.ldgba_attempt_limit = parse_uint(value_after("--ldgba-attempt-limit="),
+                                                   "--ldgba-attempt-limit");
+              continue;
+            }
+          if (a.rfind("--slaa-timeout-ms=", 0) == 0)
+            {
+              opts.slaa_timeout_ms = parse_uint(value_after("--slaa-timeout-ms="),
+                                               "--slaa-timeout-ms");
+              continue;
+            }
+          if (a.rfind("--slaa-state-limit=", 0) == 0)
+            {
+              opts.slaa_state_limit = parse_uint(value_after("--slaa-state-limit="),
+                                                "--slaa-state-limit");
+              continue;
+            }
+          if (a.rfind("--dba-state-limit=", 0) == 0)
+            {
+              opts.dba_state_limit = parse_uint(value_after("--dba-state-limit="),
+                                                "--dba-state-limit");
+              continue;
+            }
+          if (a.rfind("--dba-cycle-limit=", 0) == 0)
+            {
+              opts.dba_cycle_limit = parse_uint(value_after("--dba-cycle-limit="),
+                                                "--dba-cycle-limit");
               continue;
             }
           if (a == "--no-master-profiles")
             {
               opts.use_master_profiles = false;
+              continue;
+            }
+          if (a == "--finite-witness")
+            {
+              opts.use_finite_witness = true;
+              continue;
+            }
+          if (a.rfind("--finite-witness-state-limit=", 0) == 0)
+            {
+              opts.finite_witness_state_limit = parse_uint(
+                value_after("--finite-witness-state-limit="),
+                "--finite-witness-state-limit");
+              continue;
+            }
+          if (a.rfind("--finite-witness-work-limit=", 0) == 0)
+            {
+              opts.finite_witness_work_limit = parse_uint(
+                value_after("--finite-witness-work-limit="),
+                "--finite-witness-work-limit");
               continue;
             }
           if (a == "--no-x-advice")
@@ -337,7 +442,19 @@ int main(int argc, char** argv)
       for (const auto& text: input)
         {
           auto f = parse(text);
-          auto aut = translator.run(f);
+          spot::twa_graph_ptr aut;
+          try
+            {
+              aut = translator.run(f);
+            }
+          catch (const std::exception&)
+            {
+              // Preserve routing diagnostics if a fallback hits a resource
+              // limit in the established translator.
+              if (show_stats || opts.verbose)
+                translator.stats().print(std::cerr);
+              throw;
+            }
 
           if (!first)
             *out << '\n';

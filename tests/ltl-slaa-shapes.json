@@ -1,0 +1,77 @@
+{
+  "base_commit": "66b6486747a68a4f0c7982419d18df2a6971e8c8",
+  "timeout_seconds_per_process": 5,
+  "workers": 2,
+  "variants": {
+    "baseline": [],
+    "u_min_na": [
+      "-F1"
+    ],
+    "u_no_alternating_loop": [
+      "-F3"
+    ],
+    "no_merging": [
+      "-F0",
+      "-G0",
+      "-c0"
+    ],
+    "no_g_merge": [
+      "-G0"
+    ],
+    "g_single": [
+      "-G1"
+    ],
+    "no_reduction": [
+      "-c0"
+    ],
+    "no_dominance": [
+      "-d0"
+    ],
+    "basic_dominance": [
+      "-d1"
+    ],
+    "single_x": [
+      "-X1"
+    ],
+    "merge_disjunction": [
+      "-O1"
+    ],
+    "single_initial": [
+      "-i1"
+    ],
+    "tgba_acceptance": [
+      "-t1"
+    ],
+    "no_simplification": [
+      "-s0"
+    ],
+    "no_na_equivalence": [
+      "-e0"
+    ]
+  },
+  "sha256": {
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/tests/.libs/tela-elevator-driver": "27cc5e168838624e73993485c7ef45c1db124d2a1d5773439b49747de4c25970",
+    "build-local/src/.libs/libcola.0.dylib": "1b30db8d32f8746865af37b39949def2ccc32953bc5cfad41cc6ecd8d466857c",
+    "/Users/liyong/Desktop/verify/COLA/tests/diagnose-slaa-shapes.py": "6cd77dc40c9bcae66f35fef2fa644da0fc6061586670d1af9d7148aabc932406",
+    "tests/tela-elevator-driver.cpp": "fe5abe5f122fe0b357c64035b5fa3915dbbff56731480a8442007de34430dae8",
+    "src/determinize_teba.cpp": "679d73b3b4c551149586818c8d875424578ef85b27d9ab380a7db4e5fd56bf3e",
+    "src/cola.cpp": "c2402cf8f7ea1fa03f8d20199ede243a8165fb0d75f1e2afe6862cb709813dc9"
+  },
+  "cases": [
+    "eb8d0b47cd70f12a",
+    "d1193c48d4fe2cba",
+    "49cf1fe33c1dad4a",
+    "bdb8a2475cefa703",
+    "2390fff7a43455f0",
+    "bd023c3b886bbe56",
+    "5d33eedf410a0c15",
+    "6579b4099b70345a",
+    "5efdf92ac413c3a2",
+    "2f498f3476d84120"
+  ],
+  "raw_input_limit": 256,
+  "native_driver_options": "--integrated (SCC pruning enabled as in the translator)",
+  "normalization": "Generic, Deterministic, Low; complete before acceptance complement",
+  "generic_diagnostic": "Non-elevator TELA -> Spot Generic Deterministic High; separate from native route"
+}

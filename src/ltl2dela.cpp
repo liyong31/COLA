@@ -3,8 +3,10 @@
 // Profile-guided LTL -> deterministic Emerson-Lei translation.
 
 #include "ltl2dela.hpp"
+#include "slaa_frontend.hpp"
 
 #include <spot/tl/print.hh>
+#include <spot/twaalgos/ltlf2dfa.hh>
 #include <spot/tl/delta2.hh>
 #include <spot/twaalgos/translate.hh>
 #include <spot/twaalgos/postproc.hh>
@@ -12,12 +14,17 @@
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/isdet.hh>
 #include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/gfguarantee.hh>
+#include <spot/twaalgos/minimize.hh>
+#include <spot/twaalgos/degen.hh>
+#include <spot/twaalgos/complete.hh>
 #include <spot/twaalgos/sccinfo.hh>
 #include <spot/twaalgos/matchstates.hh>
 #include <spot/twa/formula2bdd.hh>
 #include <spot/twa/twagraph.hh>
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -180,6 +187,36 @@ namespace cola
       ob << b;
       return oa.str() < ob.str();
     }
+
+    bool boolean_gf_fg(spot::formula f)
+    {
+      if (f.is_tt() || f.is_ff()) return true;
+      if (f.is(spot::op::And) || f.is(spot::op::Or))
+        {
+          for (auto c: f) if (!boolean_gf_fg(c)) return false;
+          return true;
+        }
+      if (f.is(spot::op::Not)) return boolean_gf_fg(f[0]);
+      return ((f.is(spot::op::G) && f[0].is(spot::op::F))
+              || (f.is(spot::op::F) && f[0].is(spot::op::G)))
+        && f[0][0].is_boolean();
+    }
+
+    bool guarded_conjunction(spot::formula f)
+    {
+      if (!f.is(spot::op::And)) return false;
+      bool safety = false, other = false;
+      for (auto c: f) (c.is_syntactic_safety() ? safety : other) = true;
+      return safety && other;
+    }
+
+    bool no_larger(const spot::twa_graph_ptr& left,
+                   const spot::twa_graph_ptr& right)
+    {
+      auto l = spot::complete(left), r = spot::complete(right);
+      return std::make_tuple(l->num_states(), l->num_sets(), l->num_edges())
+          <= std::make_tuple(r->num_states(), r->num_sets(), r->num_edges());
+    }
   }
 
   void
@@ -198,6 +235,40 @@ namespace cola
         << "  recurrence rewrites: " << recurrence_rewrites << '\n'
         << "  recurrence splits: " << recurrence_splits << '\n'
         << "  flat-Until monitors: " << flat_until_monitors << '\n'
+        << "  finite-witness monitors: " << finite_witness_monitors << '\n'
+        << "  finite-witness duals: " << finite_witness_duals << '\n'
+        << "  finite-witness aborts: " << finite_witness_aborts << '\n'
+        << "  Boolean GF/FG components: " << boolean_gf_fg_components << '\n'
+        << "  specialized GF components: " << specialized_gf_components << '\n'
+        << "  specialized FG components: " << specialized_fg_components << '\n'
+        << "  DBA attempts: " << dba_attempts << '\n'
+        << "  DBA components: " << dba_components << '\n'
+        << "  DBA candidates constructed: " << dba_candidates << '\n'
+        << "  DBA attempts without result: " << dba_fallbacks << '\n'
+        << "  guarded conjunctions retained: " << guarded_conjunctions << '\n'
+        << "  acceptance-limit fallbacks: " << acceptance_limit_fallbacks << '\n'
+        << "  SLAA attempts: " << slaa_attempts << '\n'
+        << "  SLAA frontend failures: " << slaa_failures << '\n'
+        << "  SLAA non-elevator candidates: " << slaa_non_elevator << '\n'
+        << "  SLAA validation failures: " << slaa_validation_failures << '\n'
+        << "  SLAA backend attempts: " << slaa_backend_attempts << '\n'
+        << "  SLAA candidates: " << slaa_candidates << '\n'
+        << "  SLAA components: " << slaa_components << '\n'
+        << "  SLAA negative attempts: " << slaa_negative_attempts << '\n'
+        << "  SLAA negative candidates: " << slaa_negative_candidates << '\n'
+        << "  SLAA negative components: " << slaa_negative_components << '\n'
+        << "  SLAA formula candidates: " << slaa_formula_candidates << '\n'
+        << "  SLAA formula components: " << slaa_formula_components << '\n'
+        << "  SLAA formula failures: " << slaa_formula_failures << '\n'
+        << "  LDGBA attempts: " << ldgba_attempts << '\n'
+        << "  LDGBA frontend/construction failures: " << ldgba_failures << '\n'
+        << "  LDGBA rejected candidates: " << ldgba_rejected << '\n'
+        << "  LDGBA backend attempts: " << ldgba_backend_attempts << '\n'
+        << "  LDGBA validation failures: " << ldgba_validation_failures << '\n'
+        << "  LDGBA candidates: " << ldgba_candidates << '\n'
+        << "  LDGBA components: " << ldgba_components << '\n'
+        << "  LDGBA cache hits: " << ldgba_cache_hits << '\n'
+        << "  LDGBA budget skips: " << ldgba_budget_skips << '\n'
         << "  Master Y-advice rewrites: " << master_advice_rewrites << '\n'
         << "  X-advice components: " << x_advice_components << '\n'
         << "  X-advice profiles: " << x_advice_profiles << '\n'
@@ -1211,6 +1282,129 @@ namespace cola
     return nullptr;
   }
 
+  namespace
+  {
+    struct finite_witness_limit {};
+
+    // Convert only after infinite-word NNF.  Never apply the ordinary LTL
+    // simplifier afterwards: X tt and strong_X tt differ on finite traces.
+    spot::formula strong_finite_next(spot::formula f)
+    {
+      if (f.is(spot::op::X))
+        return spot::formula::strong_X(strong_finite_next(f[0]));
+      return f.map(strong_finite_next);
+    }
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::make_finite_witness_monitor(spot::formula body,
+                                                 bool persistence)
+  {
+    try
+      {
+        if (!options_.finite_witness_state_limit
+            || !options_.finite_witness_work_limit)
+          throw finite_witness_limit{};
+        auto aut = spot::make_twa_graph(dict_);
+        body.traverse([&](spot::formula x) {
+          if (x.is(spot::op::ap)) aut->register_ap(x);
+          return false;
+        });
+        auto initial = spot::formula::F(strong_finite_next(body));
+        // Spot's terminal has both a continuation formula and a may-stop bit.
+        // The latter, not the continuation's infinite-word truth value, says
+        // whether the finite prefix just consumed is accepted.
+        spot::ltlf_translator trans(dict_);
+        std::map<spot::formula, unsigned> ids;
+        std::vector<spot::formula> pending;
+        auto state = [&](spot::formula f) -> unsigned {
+          auto old = ids.find(f);
+          if (old != ids.end()) return old->second;
+          if (pending.size() >= options_.finite_witness_state_limit)
+            throw finite_witness_limit{};
+          unsigned id = aut->new_state();
+          ids.emplace(f, id);
+          pending.push_back(f);
+          return id;
+        };
+        state(initial);
+        aut->set_init_state(0);
+        aut->set_acceptance(1, persistence ? spot::acc_cond::acc_code::cobuchi()
+                                           : spot::acc_cond::acc_code::buchi());
+        unsigned work = 0;
+        for (unsigned src = 0; src < pending.size(); ++src)
+          {
+            bdd root = trans.ltlf_to_mtbdd(pending[src]);
+            std::vector<std::pair<bdd, bdd>> todo{{root, bddtrue}};
+            while (!todo.empty())
+              {
+                if (++work > options_.finite_witness_work_limit)
+                  throw finite_witness_limit{};
+                auto node = todo.back();
+                todo.pop_back();
+                bdd b = node.first;
+                bdd guard = node.second;
+                if (b == bddtrue || b == bddfalse || bdd_is_terminal(b))
+                  {
+                    auto leaf = trans.leaf_to_formula(b.id(),
+                      bdd_is_terminal(b) ? bdd_get_terminal(b) : 0);
+                    // Accepting destinations are redirected immediately; no
+                    // letter is consumed twice and no pending witness survives.
+                    unsigned dst = leaf.second ? 0 : state(leaf.first);
+                    aut->new_edge(src, dst, guard,
+                      leaf.second ? spot::acc_cond::mark_t{0}
+                                  : spot::acc_cond::mark_t{});
+                  }
+                else
+                  {
+                    bdd var = bdd_ithvar(bdd_var(b));
+                    todo.emplace_back(bdd_low(b), guard & !var);
+                    todo.emplace_back(bdd_high(b), guard & var);
+                  }
+              }
+          }
+        aut->prop_universal(true);
+        aut->prop_complete(true);
+        aut->prop_state_acc(false);
+        aut->merge_edges();
+        ++stats_.finite_witness_monitors;
+        if (persistence) ++stats_.finite_witness_duals;
+        return aut;
+      }
+    catch (const finite_witness_limit&)
+      {
+        ++stats_.finite_witness_aborts;
+        return nullptr;
+      }
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::compile_finite_witness(spot::formula f)
+  {
+    spot::formula body;
+    bool persistence = false;
+    if (!match_gf(f, body))
+      {
+        if (!match_fg(f, body)) return nullptr;
+        persistence = true;
+        body = spot::formula::Not(body);
+      }
+    body = simplifier_.negative_normal_form(body);
+    // Keep propositional recurrence/persistence on Spot's one-state path.
+    if (body.is_boolean() || !body.is_syntactic_guarantee()) return nullptr;
+    // The dual should retain the existing flat monitor as a fast path too.
+    spot::formula lambda, guard, goal;
+    if (persistence && options_.use_recurrence_compiler
+        && match_flat_until(body, lambda, guard, goal))
+      {
+        auto aut = make_flat_until_monitor(lambda, guard, goal);
+        aut->set_acceptance(1, spot::acc_cond::acc_code::cobuchi());
+        ++stats_.flat_until_monitors;
+        return aut;
+      }
+    return make_finite_witness_monitor(body, persistence);
+  }
+
   bool
   ltl2dela_translator::is_direct_fragment(spot::formula f) const
   {
@@ -1225,13 +1419,247 @@ namespace cola
   }
 
   spot::twa_graph_ptr
+  ltl2dela_translator::compile_specialized(spot::formula f)
+  {
+    // Boolean combinations of GF/FG over propositional predicates admit
+    // one-state Emerson-Lei monitors.  Compile them together before profile
+    // commitments turn FG predicates into multi-state products.
+    if (!f.is_boolean() && boolean_gf_fg(f))
+      {
+        spot::option_map om;
+        om.set("gf-guarantee", 1);
+        spot::translator trans(dict_, &om);
+        trans.set_type(spot::postprocessor::Generic);
+        trans.set_pref(spot::postprocessor::Deterministic);
+        trans.set_level(spot::postprocessor::Low);
+        ++stats_.boolean_gf_fg_components;
+        return normalize_deterministic(trans.run(f));
+      }
+
+    spot::formula body;
+    if (match_gf(f, body) && body.is_syntactic_guarantee())
+      if (auto aut = spot::gf_guarantee_to_ba_maybe(f, dict_, true, false))
+        {
+          ++stats_.specialized_gf_components;
+          return normalize_deterministic(aut);
+        }
+    if (match_fg(f, body) && body.is_syntactic_safety())
+      if (auto aut = spot::fg_safety_to_dca_maybe(f, dict_, false))
+        {
+          ++stats_.specialized_fg_components;
+          return normalize_deterministic(aut);
+        }
+
+    // Syntactic recurrence is sufficient for DBA recognizability, but does
+    // not exhaust it.  Other residuals get the same checked attempt after
+    // their small BA is available, below.
+    if (is_direct_fragment(f) && !match_gf(f, body) && !match_fg(f, body))
+      {
+        spot::twa_graph_ptr dba;
+        if (options_.use_dba && f.is_syntactic_recurrence()
+            && !f.is_syntactic_obligation())
+          dba = try_dba(f, translate_buchi(f));
+        if (guarded_conjunction(f)) ++stats_.guarded_conjunctions;
+        ++stats_.direct_formula_components;
+        auto direct = normalize_deterministic(translate_deterministic(f));
+        // Pure obligations keep their existing direct construction. More
+        // general recurrence/persistence languages may have a cheaper DGBA.
+        auto ldgba = f.is_syntactic_obligation() ? nullptr : try_ldgba(f);
+        bool negative = false;
+        auto slaa = try_slaa(f, negative);
+        if (ldgba && no_larger(ldgba, direct) && !no_larger(direct, ldgba)
+            && (!dba || !no_larger(dba, ldgba)) && (!slaa || !no_larger(slaa, ldgba)))
+          { ++stats_.ldgba_components; return ldgba; }
+        if (slaa && no_larger(slaa, direct)
+            && (!dba || no_larger(slaa, dba)))
+          {
+            ++stats_.slaa_components;
+            if (negative) ++stats_.slaa_negative_components;
+            return slaa;
+          }
+        if (dba && no_larger(dba, direct))
+          {
+            ++stats_.dba_components;
+            return dba;
+          }
+        return direct;
+      }
+    return nullptr;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_dba(spot::formula f, spot::twa_graph_ptr ba)
+  {
+    if (!options_.use_dba || !options_.dba_state_limit
+        || !options_.dba_cycle_limit || ba->num_states() > options_.dba_input_limit
+        || ba->num_states() > options_.dba_state_limit)
+      return nullptr;
+    ++stats_.dba_attempts;
+    auto accept = [&](spot::twa_graph_ptr aut)
+      {
+        ++stats_.dba_candidates;
+        return normalize_deterministic(aut);
+      };
+    if (spot::is_deterministic(ba)) return accept(ba);
+
+    // Bound the subset graph AND the follow-up products in the weak-DBA
+    // attempt.  Spot's default deterministic preference does not apply its
+    // ordinary wdba-det-max bound.
+    spot::output_aborter aborter(options_.dba_state_limit);
+    auto weak = spot::minimize_obligation(ba, f, nullptr, false, &aborter);
+    if (weak && spot::is_deterministic(weak)) return accept(weak);
+
+    // A bounded semantic attempt also covers DBA languages outside the
+    // syntactically recognized recurrence fragment.  The checked API rejects
+    // inequivalent acceptance assignments; an unchecked powerset is unsound.
+    if (!ba->acc().is_buchi()) ba = spot::degeneralize_tba(ba);
+    if (ba->num_states() <= options_.dba_input_limit
+        && ba->num_states() <= options_.dba_state_limit)
+      {
+        unsigned factor = options_.dba_state_limit / ba->num_states();
+        auto det = spot::tba_determinize_check(ba, factor,
+                                             options_.dba_cycle_limit, f);
+        if (det && spot::is_deterministic(det)) return accept(det);
+      }
+    ++stats_.dba_fallbacks;
+    return nullptr;
+  }
+
+  spot::twa_graph_ptr
   ltl2dela_translator::translate_deterministic(spot::formula f)
   {
-    spot::translator trans(dict_);
+    // COLA decides which Boolean components may be separated.  Preserve
+    // safety guards in the residual handed to Spot: splitting them away can
+    // make a tiny constrained BA have an enormous intermediate powerset.
+    spot::option_map om;
+    om.set("ltl-split", guarded_conjunction(f) ? 0 : 1);
+    om.set("gf-guarantee", 1);
+    spot::translator trans(dict_, &om);
     trans.set_type(spot::postprocessor::Generic);
     trans.set_pref(spot::postprocessor::Deterministic);
+    // More optimization is not a monotone size improvement: on literature
+    // examples Low yields 8/50 states where High yields 20/65.  Retain both
+    // candidates and compare complete reachable sizes, then marks and edges.
     trans.set_level(spot::postprocessor::Low);
-    return trans.run(f);
+    auto low = trans.run(f);
+    trans.set_level(spot::postprocessor::High);
+    auto high = trans.run(f);
+    return no_larger(low, high) ? low : high;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_slaa(spot::formula f, bool& negative)
+  {
+    negative = false;
+    if (options_.slaa_tool.empty() || !options_.slaa_timeout_ms
+        || !options_.slaa_state_limit) return nullptr;
+    auto candidate = [&](bool negate) -> spot::twa_graph_ptr
+      {
+        ++stats_.slaa_attempts;
+        if (negate) ++stats_.slaa_negative_attempts;
+        try
+          {
+            auto source = negate ? spot::formula::Not(f) : f;
+            auto tela = slaa_frontend(source, dict_, options_.slaa_tool,
+                                     options_.slaa_timeout_ms, options_.slaa_state_limit);
+            if (!tela) { ++stats_.slaa_failures; return nullptr; }
+            if (!cola::is_elevator_automaton(tela))
+              { ++stats_.slaa_non_elevator; return nullptr; }
+            // Certify both boundaries. In particular, a deterministic but wrong
+            // frontend result must not bypass validation.
+            if (!spot::are_equivalent(tela, source))
+              { ++stats_.slaa_validation_failures; return nullptr; }
+            auto generic_options = cola_options_;
+            // The existing delayed simulation is a Buchi-specific algorithm.
+            // Neither it nor the optional simulation preprocessing certifies
+            // pruning for arbitrary Fin/Inf acceptance on this new boundary.
+            generic_options.set(USE_SIMULATION, 0);
+            generic_options.set(USE_DELAYED_SIMULATION, 0);
+            generic_options.set(USE_STUTTER, 0);
+            if (!spot::is_deterministic(tela)) ++stats_.slaa_backend_attempts;
+            auto result = spot::is_deterministic(tela) ? tela
+              : cola::determinize_televator(tela, generic_options);
+            if (!spot::is_deterministic(result) || !spot::are_equivalent(result, tela))
+              { ++stats_.slaa_validation_failures; return nullptr; }
+            result = normalize_deterministic(result);
+            if (negate)
+              {
+                // Missing transitions reject the negative language. They must
+                // reach a rejecting sink BEFORE acceptance is complemented.
+                result = spot::complete(result);
+                result->set_acceptance(result->num_sets(),
+                                       result->acc().get_acceptance().complement());
+                if (!spot::are_equivalent(result, f))
+                  { ++stats_.slaa_validation_failures; return nullptr; }
+                ++stats_.slaa_negative_candidates;
+              }
+            ++stats_.slaa_candidates;
+            return result;
+          }
+        catch (const std::runtime_error&)
+          {
+            // An optional candidate (including acceptance-capacity exhaustion)
+            // never replaces or discards any branch of the residual language.
+            ++stats_.slaa_failures;
+            return nullptr;
+          }
+      };
+    auto positive = candidate(false);
+    if (!options_.slaa_portfolio) return positive;
+    auto dual = candidate(true);
+    // Exact size ties retain positive polarity; never lose an available
+    // positive result because the additional attempt fails or is larger.
+    if (dual && (!positive || (no_larger(dual, positive) && !no_larger(positive, dual))))
+      { negative = true; return dual; }
+    return positive;
+  }
+
+  spot::twa_graph_ptr
+  ltl2dela_translator::try_ldgba(spot::formula f)
+  {
+    if (options_.ldgba_tool.empty() || !options_.ldgba_timeout_ms
+        || !options_.ldgba_state_limit || !options_.ldgba_attempt_limit) return nullptr;
+    auto cached = ldgba_cache_.find(f);
+    if (cached != ldgba_cache_.end())
+      { ++stats_.ldgba_cache_hits; return cached->second; }
+    spot::twa_graph_ptr best;
+    for (const std::string construction : {"SEJK16", "EKS20"})
+      {
+        if (options_.ldgba_construction != "both"
+            && options_.ldgba_construction != construction) continue;
+        if (stats_.ldgba_attempts >= options_.ldgba_attempt_limit)
+          { ++stats_.ldgba_budget_skips; break; }
+        ++stats_.ldgba_attempts;
+        try
+          {
+            auto input = owl_ldgba_frontend(f, dict_, options_.ldgba_tool, construction,
+                                           options_.ldgba_timeout_ms, options_.ldgba_state_limit);
+            if (!input) { ++stats_.ldgba_failures; continue; }
+            if (!input->acc().is_generalized_buchi() || !cola::is_elevator_automaton(input))
+              { ++stats_.ldgba_rejected; continue; }
+            if (!spot::are_equivalent(input, f))
+              { ++stats_.ldgba_validation_failures; continue; }
+            auto om = cola_options_;
+            om.set(USE_SIMULATION, 0);
+            om.set(USE_DELAYED_SIMULATION, 0);
+            om.set(USE_STUTTER, 0);
+            om.set(USE_OBSERVED_RANKS, 1);
+            bool deterministic = spot::is_deterministic(input);
+            if (!deterministic) ++stats_.ldgba_backend_attempts;
+            auto result = deterministic ? input : cola::determinize_televator(input, om);
+            result = normalize_deterministic(result);
+            if (!spot::is_deterministic(result) || !spot::are_equivalent(result, input))
+              { ++stats_.ldgba_validation_failures; continue; }
+            ++stats_.ldgba_candidates;
+            if (!best || (no_larger(result, best) && !no_larger(best, result))) best = result;
+          }
+        catch (const std::runtime_error&)
+          { ++stats_.ldgba_failures; }
+      }
+    // Cache failed attempts too: profile refinement often revisits the same
+    // residual without changing its language. Reset this cache for each run.
+    ldgba_cache_.emplace(f, best);
+    return best;
   }
 
   spot::twa_graph_ptr
@@ -1578,6 +2006,11 @@ namespace cola
     bool allow_boolean_split,
     const std::vector<profile_fact>& profile)
   {
+    // Basic simplification can fold Boolean GF/FG combinations into G/F
+    // bodies, hiding this fragment before its one-state route sees it.
+    if (options_.use_specialized_fragments && !f.is_boolean()
+        && boolean_gf_fg(f))
+      return compile_specialized(f);
     // Preserve GF(mu)-style syntax long enough for exact structural
     // recurrence rules and small hand-built deterministic monitors.
     f = simplifier_.simplify(f);
@@ -1600,6 +2033,23 @@ namespace cola
           return special;
       }
 
+    if (options_.use_finite_witness)
+      if (auto witness = compile_finite_witness(f))
+        return normalize_deterministic(witness);
+
+    if (options_.use_specialized_fragments)
+      if (auto special = compile_specialized(f)) return special;
+
+    auto ldgba = try_ldgba(f);
+    auto finish = [&](spot::twa_graph_ptr result)
+      {
+        // Keep the established residual construction on exact ties. A
+        // successful LDGBA is a candidate, not a minimality certificate.
+        if (ldgba && no_larger(ldgba, result) && !no_larger(result, ldgba))
+          { ++stats_.ldgba_components; return ldgba; }
+        return result;
+      };
+
     // Recognize the post-commitment Master-Theorem shape before Delta2
     // normalization can obscure its individual recurrence obligations.
     if (options_.use_master_profiles)
@@ -1608,7 +2058,7 @@ namespace cola
         auto special =
           compile_master_bundle(f, depth, used, handled, profile);
         if (handled)
-          return special;
+          return finish(special);
       }
 
     // Try the exact derivative construction before heuristic profile splits
@@ -1616,7 +2066,22 @@ namespace cola
     // Keep easy fragments on their existing specialized translation path.
     if (!is_direct_fragment(f))
       if (auto advised = compile_x_advice(f))
-        return advised;
+        {
+          // A successful derivative construction is not a size certificate.
+          // In portfolio mode let an independently checked SLAA compete.
+          if (options_.slaa_portfolio)
+            {
+              bool negative = false;
+              auto slaa = try_slaa(f, negative);
+              if (slaa && no_larger(slaa, advised))
+                {
+                  ++stats_.slaa_components;
+                  if (negative) ++stats_.slaa_negative_components;
+                  return finish(slaa);
+                }
+            }
+          return finish(advised);
+        }
 
     // Before building any Buchi automaton, perform the most direct
     // Master-Theorem-style refinement: if a G(gamma) occurs inside a GF
@@ -1629,7 +2094,7 @@ namespace cola
         && stats_.profile_splits < options_.profile_budget)
       {
         auto gamma = find_master_separator(f, used, profile);
-        if (gamma)
+        if (!gamma.is_ff())
           {
             ++stats_.profile_splits;
             ++stats_.master_profile_splits;
@@ -1651,7 +2116,7 @@ namespace cola
                                 next_used, false, left_profile);
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
@@ -1686,17 +2151,25 @@ namespace cola
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
             ++stats_.profile_leaves;
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
     // Only now apply optional Delta2 normalization.
     f = prepare(f);
 
+    // Retain safety constraints with the other conjuncts.  Their labels
+    // prune impossible histories during translation; a later product cannot
+    // recover the time/memory spent exploring unconstrained components.
+    bool retain_guard = options_.use_specialized_fragments
+      && guarded_conjunction(f);
+    if (retain_guard) ++stats_.guarded_conjunctions;
+
     // Boolean decomposition is safe because the deterministic results are
     // combined directly with Emerson-Lei acceptance instead of first forcing
     // their conjunction/disjunction through a monolithic Buchi automaton.
     if (allow_boolean_split && options_.boolean_decomposition
+        && !retain_guard
         && (f.is(spot::op::And) || f.is(spot::op::Or))
         && f.size() > 1)
       {
@@ -1704,20 +2177,45 @@ namespace cola
         auto res = compile(f[0], depth, used, true, profile);
         for (unsigned i = 1; i < f.size(); ++i)
           res = compose(res, compile(f[i], depth, used, true, profile), disjunction);
-        return res;
+        return finish(res);
       }
+
+    // Explicit direct monitors have already run. A generic-acceptance
+    // residual can now avoid the NBA intermediate. Known syntactic classes
+    // still compare against their established deterministic construction.
+    bool negative = false;
+    auto slaa = try_slaa(f, negative);
 
     // Spot first: exploit its specialized translations for known easy
     // fragments instead of forcing them through Buchi.
     if (is_direct_fragment(f))
       {
         ++stats_.direct_formula_components;
-        return normalize_deterministic(translate_deterministic(f));
+        auto direct = normalize_deterministic(translate_deterministic(f));
+        if (slaa && no_larger(slaa, direct))
+          {
+            ++stats_.slaa_components;
+            if (negative) ++stats_.slaa_negative_components;
+            return finish(slaa);
+          }
+        return finish(direct);
+      }
+
+    if (slaa)
+      {
+        ++stats_.slaa_components;
+        if (negative) ++stats_.slaa_negative_components;
+        return finish(slaa);
       }
 
     // Try the small-Buchi route.  We only use CoLA's local elevator
     // determinizer if the generated SCC structure is certified suitable.
     auto ba = translate_buchi(f);
+    if (auto dba = try_dba(f, ba))
+      {
+        ++stats_.dba_components;
+        return finish(dba);
+      }
     auto h = analyze(ba);
     if (h.elevator)
       {
@@ -1731,10 +2229,27 @@ namespace cola
         // only after an exact check against its source BA; otherwise use the
         // generic formula translation.  Annotations never certify this gate.
         if (spot::are_equivalent(result, ba))
-          return result;
+          {
+            // An elevator certificate establishes applicability, not minimal
+            // size. Dwyer 50 is 12 via this BA but 11 via formula translation.
+            if (options_.slaa_portfolio && !options_.slaa_tool.empty()
+                && options_.slaa_timeout_ms && options_.slaa_state_limit)
+              {
+                ++stats_.slaa_formula_candidates;
+                try
+                  {
+                    auto direct = normalize_deterministic(translate_deterministic(f));
+                    if (no_larger(direct, result))
+                      { ++stats_.slaa_formula_components; return finish(direct); }
+                  }
+                catch (const std::runtime_error&)
+                  { ++stats_.slaa_formula_failures; }
+              }
+            return finish(result);
+          }
         ++stats_.elevator_validation_fallbacks;
         ++stats_.deterministic_fallbacks;
-        return normalize_deterministic(translate_deterministic(f));
+        return finish(normalize_deterministic(translate_deterministic(f)));
       }
 
     ++stats_.hard_buchi_components;
@@ -1771,7 +2286,7 @@ namespace cola
             auto right = compile(branches.second, depth + 1,
                                  next_used, false, right_profile);
             ++stats_.profile_leaves;
-            return compose(left, right, true);
+            return finish(compose(left, right, true));
           }
       }
 
@@ -1782,7 +2297,7 @@ namespace cola
     if (options_.verbose >= 1)
       std::cerr << "ltl2dela: deterministic formula fallback for "
                 << f << '\n';
-    return normalize_deterministic(translate_deterministic(f));
+    return finish(normalize_deterministic(translate_deterministic(f)));
   }
 
   spot::twa_graph_ptr
@@ -1792,9 +2307,24 @@ namespace cola
       throw std::runtime_error("ltl2dela requires an LTL formula");
 
     stats_ = {};
+    ldgba_cache_.clear();
     std::vector<spot::formula> used;
     // Do not normalize to Delta2 here: compile() must see the original
     // GF/profile syntax before deciding which structural compiler to use.
-    return compile(simplifier_.simplify(f), 0, used, true, {});
+    try
+      {
+        return compile(f, 0, used, true, {});
+      }
+    catch (const std::runtime_error& e)
+      {
+        // A profile product can exceed the installed acceptance-set limit
+        // even when the whole formula has a small deterministic translation.
+        // Abandon every partial branch and translate the original formula.
+        if (std::string(e.what()).find("Too many acceptance sets used.") != 0)
+          throw;
+        ++stats_.acceptance_limit_fallbacks;
+        ++stats_.deterministic_fallbacks;
+        return normalize_deterministic(translate_deterministic(f));
+      }
   }
 }

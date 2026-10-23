@@ -50,39 +50,129 @@ Buchi determinization whenever possible.
 
 The current pipeline is:
 
-1. simplify the original formula, but deliberately preserve its recurrent
-   `GF(...)` structure;
-2. apply exact structural recurrence rules before any general automaton
+1. recognize Boolean combinations of propositional `GF`/`FG` predicates
+   before simplification can hide their one-state Emerson-Lei structure;
+2. simplify the remaining formula while preserving recurrent structure, then
+   apply exact structural recurrence rules before any general automaton
    construction, including
    `GF X p = GF p`, `GF F p = GF p`, `GF(a U b) = GF b`,
    `GF(a M b) = GF(a & b)`, `GF G p = FG p`, distribution over
    disjunction, extraction of top-level `G`/`F` obligations from
    conjunctions, and a two-state deterministic monitor for flat
    `GF(lambda & (g U h))`;
-3. recognize explicit post-commitment bundles of the form
+3. use specialized `GF(co-safety)` DBA and `FG(safety)` DCA constructions,
+   retaining the optional finite-witness path when enabled; known easy
+   fragments reach their direct translator before heuristic profiles, with
+   bounded checked DBA candidates competing on complete automaton size;
+4. recognize explicit post-commitment bundles of the form
    `S & GF(theta_1) & ...` together with `FG gamma` / `GF !gamma`
    profile facts, and compile all conjuncts under the same asymptotic context;
-4. if a recurrent kernel still contains a nested `G gamma`, synthesize a
+5. if a recurrent kernel still contains a nested `G gamma`, synthesize a
    bounded pre-Buchi Y-profile split
    `FG gamma | GF !gamma` before building an NBA;
-5. use the chosen profile context to simplify recurrent temporal guards.
+6. use the chosen profile context to simplify recurrent temporal guards.
    For example, under `FG g`, late suffixes satisfy
    `g U h = F h`, `a M g = F a`, `g W h = true`, and
    `a R g = true`; under `GF !g`, weak-until/release reduce to their
    strong counterparts;
-6. only after these structural steps, use Spot's `to_delta2()`
+7. only after these structural steps, use Spot's `to_delta2()`
    normalization when its growth stays within the configured bound;
-7. let Spot directly compile remaining syntactically easy fragments;
-8. for a genuinely residual formula, ask Spot for a small Buchi automaton,
-   annotate hard states with `match_states()`, and inspect its SCCs;
-9. if the BA is elevator, use CoLA's elevator determinizer; otherwise perform
-   SCC-scored profile refinement, and finally fall back to direct
-   deterministic formula translation if the bounded refinement budget is
-   exhausted.
+8. retain safety constraints with other conjuncts rather than translating
+   unconstrained components first; for generic deterministic residuals,
+   compare Spot's Low and High results instead of assuming High is smaller;
+9. for a genuinely residual formula, ask Spot for a small Buchi automaton,
+   try bounded, language-checked weak/transition-Buchi constructions, and
+   inspect its SCCs;
+10. if the remaining BA is elevator, use CoLA's checked elevator determinizer;
+    otherwise annotate hard states with `match_states()` and perform
+    SCC-scored profile refinement, finally falling back to direct
+    deterministic formula translation when refinement is exhausted.
 
 Because every profile split is a tautological partition of the language, the
-profile heuristic affects only automaton size, not correctness.  The fallback
-makes the translator total.
+profile heuristic affects only automaton size, not correctness. Fallbacks
+retain the entire source/residual language, including when a profile product
+exhausts the installed acceptance-set capacity.
+
+The default DBA attempt accepts at most 64 input BA states and bounds its
+constructed graphs/products to 512 states and TBA cycles to 4096 per SCC.
+Use `--no-specialized`, `--no-dba`, `--dba-state-limit=N`, and
+`--dba-cycle-limit=N` for routing ablations; zero budgets skip DBA attempts.
+The checks are sound but do not decide DBA recognizability for every LTL
+formula, and do not impose a whole-process time/memory limit.
+
+The [routing diagnosis and updated experiments](tests/ltl-routing-diagnosis.md)
+explain the former shared timeouts, LTL3TELA's polarity/composition gains,
+and the resulting GF/FG/DBA policy. All 454 updated COLA literature outputs
+pass determinism and equivalence; both former timeouts now complete.
+
+The [COLA polarity experiment](tests/ltl-polarity-summary.md) also translates
+negated formulas and complements the completed deterministic results back.
+On the common 222-formula cohort, selecting the smaller polarity reduces
+COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
+alone has severe regressions and three timeouts on the full corpus; this is
+an experimental comparison, not a change to translator defaults.
+
+The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
+candidate that preserves generic acceptance and uses COLA's native elevator
+determiniser. Configure the pinned LTL3TELA executable explicitly:
+
+```sh
+./build-local/ltl2dela \
+  --slaa-tool="$PWD/build-local/external/ltl3tela-master/ltl3tela" \
+  --stats -f 'F!a & F!b & (F(!a & FG!c) | F(!b & FGc))'
+```
+
+This example improves from five complete states to four. All 227 integrated
+literature outputs pass equivalence, with no state-count regressions. The
+external front end runs as an isolated POSIX process with a five-second
+deadline and an 8 MiB output cap; `--slaa-timeout-ms=N` and
+`--slaa-state-limit=N` (default 256) control admission. Zero budgets skip the
+candidate. Native determinisation and language checks have no hard resource
+bound. Non-elevator inputs and failed attempts retain the existing fallback;
+direct recurrence, GF/FG and optional finite-witness monitors keep priority.
+The tool is an optional runtime dependency, with no additional build dependency.
+This first milestone does not yet implement new elevator-aware dealternation
+rules or local SCC semi-determinisation.
+
+Add `--slaa-portfolio` to try both SLAA polarities and compare eligible
+X-advice/elevator results with alternative constructions. Negative results
+are completed before acceptance is complemented and checked against the
+original language. On 222 matched literature formulas, this mode totals
+985 states versus positive SLAA mode 1035 and LTL3TELA 991; all 681 outputs
+from the three COLA modes pass equivalence. See the
+[SLAA shape and winner diagnosis](tests/ltl-slaa-shape-diagnosis.md) for the
+80 full-tool ablations and 300 SLAA experiments. Extra U/G/initial-state
+variants did not improve the best native result across both polarities in
+this grid, so they are not enabled by default. The frontend deadline applies
+to each polarity attempt; native construction and checking remain unbounded.
+
+The [LDGBA route and TACAS/OWL experiments](tests/ltl-ldgba-report.md) add
+another optional residual candidate:
+
+```sh
+./build-local/ltl2dela \
+  --ldgba-tool="$PWD/build-local/external/owl-21.0/bin/owl" \
+  --slaa-tool="$PWD/build-local/external/ltl3tela-master/ltl3tela" \
+  --slaa-portfolio --stats -f 'G(!a | F(b & XF c))'
+```
+
+OWL constructs a limit-deterministic generalized Büchi automaton; COLA
+certifies its elevator structure and language, then uses its native
+Emerson–Lei determiniser with the generalized acceptance retained.
+`--ldgba-construction=SEJK16|EKS20|both` selects the algorithms (default both).
+The route compares final completed sizes, keeps established results on ties,
+and preserves direct-monitor priority. The combined portfolio totals 984
+states on the same 222-formula cohort, versus SLAA portfolio 985 and
+LTL3TELA 991. All 908 outputs across four COLA modes pass equivalence.
+
+The frontend has a five-second per-call deadline, an 8 MiB output cap and
+256-state input limit (`--ldgba-timeout-ms` and `--ldgba-state-limit`).
+`--ldgba-attempt-limit=8` bounds calls across one input formula; cached
+residual results avoid repeated profile work. Zero time, state or attempt
+budget skips this route. Native construction and language checks remain
+unbounded. Observed rank widths reduce acceptance allocation at this
+boundary; this Spot build’s acceptance capacity can still reject candidates.
+See the report for 1135 raw GBA/BA/DPA comparisons and 60 optimization controls.
 
 ### Build
 
@@ -439,3 +529,71 @@ automaton and uses the generic formula translation if the check fails.
 runtime cost; it contains the existing error rather than claiming to repair
 the underlying elevator algorithm. The smoke suite includes an independent
 Spot-reference regression for this case.
+
+### Optional finite-witness reset translation
+
+With Spot **2.14 or newer**, `--finite-witness` enables a direct deterministic
+path for `GF mu`, where `mu` is syntactic co-safety (NNF with X, F, U, M), and
+for its dual `FG nu`, where `nu` is syntactic safety. The option defaults to
+off. Existing recurrence identities and the flat-until monitor take priority;
+propositional recurrence and persistence retain their existing one-state path.
+
+```sh
+./ltl2dela --finite-witness --stats -f 'GF(a & X((b U c) & (d M e)))'
+./ltl2dela --finite-witness -f 'FG(!a | X X !b)'
+python3 tests/finite-witness.py --csv reset-results.csv --stress 10
+```
+
+The implementation explores the finite-word DFA for `F mu` using Spot's
+`ltlf_translator::ltlf_to_mtbdd()`. Infinite-trace `X` is converted recursively
+to `strong_X` **after** infinite-word negation normalisation. No infinite-word
+simplification is applied to the converted formula. Spot's MTBDD terminal
+contains a continuation formula and a finite acceptance (`may_stop`) bit.
+An accepting transition emits colour 0 and returns to the initial state;
+otherwise it follows the continuation. This is the reachable reset graph,
+so accepting DFA destinations need not be materialised. The initial state is
+never treated as accepting without consuming a letter. For persistence, the
+monitor is built for `F !nu` and uses `Fin(0)` instead of `Inf(0)`.
+
+Each emission witnesses a nonempty segment containing a suffix satisfying
+`mu` under strong finite-trace semantics. Infinitely many disjoint marked
+segments imply `GF mu`; conversely, recurrence supplies another finite witness
+after every reset. Complementing this deterministic, complete monitor proves
+the persistence construction. Correlated obligations remain in a single DFA:
+we never distribute GF over an arbitrary conjunction.
+
+`--finite-witness-state-limit=N` (default 256) bounds explored reset states;
+`--finite-witness-work-limit=N` (default 16384) bounds MTBDD node visits while
+extracting guarded transitions. Exceeding either limit discards the entire
+attempt and resumes the established translator. Zero disables attempts by
+immediate fallback. These limits do **not** bound the time or memory inside
+one call to Spot's symbolic derivative routine. They are practical exploration
+budgets, not hard resource isolation. A timeout is still appropriate for
+untrusted or very large input formulas.
+
+`--stats` reports completed finite-witness monitors, persistence duals, and
+aborted attempts. `--no-recurrence` disables existing structural fast paths
+but does not disable the separately enabled finite-witness path. Tests compare
+the optional path, the unchanged default, and independent `ltl2tgba -D -G`
+translations using language equivalence, including both budget fallbacks.
+Timing measurements are medians of fresh processes and include startup and
+HOA output; state counts are after each tool's normal post-processing.
+
+The completed [local validation and benchmark report](tests/finite-witness-benchmarks.md)
+includes the fixed and seeded equivalence campaigns, default and increased
+state budgets, and CSV measurements. The driver records completed monitors,
+duals and aborted attempts separately. Scaling cases that exceed the installed
+Spot acceptance-set capacity are recorded as `acceptance-limit`; required
+regressions and unexpected command failures still fail the run. An `ok` CSV
+row has passed determinism and independent Spot language equivalence checks.
+
+For a broader comparison against DELAG, LTL3TELA and OWL SLM21, see the
+[original OWL literature size experiment](tests/ltl-size-comparison.md) and
+[updated fragment-routing results](tests/ltl-fragment-summary.md). They retain
+the corpus, per-formula results, tool versions, common-cohort and paired
+size rankings, and explicit failure statuses.
+
+Spot references: [finite-trace translation tutorial](https://spot.lre.epita.fr/ipynb/ltlf2dfa.html),
+[`ltlf2dfa.hh` API](https://spot.lre.epita.fr/doxygen/ltlf2dfa_8hh_source.html).
+The construction follows the finite-witness section of
+[`factored.tex`](https://github.com/liyong31/ltl2dela-scc-decomp/blob/main/factored.tex).

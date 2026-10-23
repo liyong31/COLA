@@ -41,6 +41,9 @@ namespace cola
   is_elevator_automaton(const spot::const_twa_graph_ptr &aut)
   {
     spot::scc_info si(aut);
+    // Fin conditions may leave SCC acceptance undecided. Weakness tests
+    // assume the rejecting/accepting status has already been resolved.
+    si.determine_unknown_acceptance();
     unsigned nc = si.scc_count();
     for (unsigned scc = 0; scc < nc; ++scc)
     {
@@ -312,6 +315,10 @@ namespace cola
   std::string
   get_scc_types(spot::scc_info &si)
   {
+    // In particular, an SCC with Fin(0)&Fin(1) and one of these colours on
+    // every edge is rejecting even when its edge marks differ. Classifying
+    // it before this exact check can leave it neither weak nor accepting.
+    si.determine_unknown_acceptance();
     unsigned nc = si.scc_count();
     std::string res(nc, 0);
     for (unsigned sc = 0; sc < nc; ++sc)

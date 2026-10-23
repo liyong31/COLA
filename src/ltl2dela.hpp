@@ -17,6 +17,8 @@
 #include <spot/twa/bdddict.hh>
 
 #include <iosfwd>
+#include <map>
+#include <string>
 #include <vector>
 
 namespace cola
@@ -27,6 +29,25 @@ namespace cola
     bool use_profiles = true;
     bool use_delta2 = true;
     bool use_recurrence_compiler = true;
+    bool use_specialized_fragments = true;
+    bool use_dba = true;
+    unsigned dba_state_limit = 512;
+    unsigned dba_cycle_limit = 4096;
+    unsigned dba_input_limit = 64;
+    // Optional isolated LTL3TELA SLAA -> generic TELA front-end.
+    std::string slaa_tool;
+    bool slaa_portfolio = false;
+    unsigned slaa_timeout_ms = 5000;
+    unsigned slaa_state_limit = 256;
+    std::string ldgba_tool;
+    std::string ldgba_construction = "both";
+    unsigned ldgba_timeout_ms = 5000;
+    unsigned ldgba_state_limit = 256;
+    unsigned ldgba_attempt_limit = 8;
+    // Optional Spot LTLf reset construction; limits abandon the whole attempt.
+    bool use_finite_witness = false;
+    unsigned finite_witness_state_limit = 256;
+    unsigned finite_witness_work_limit = 16384;
     bool use_master_profiles = true;
     bool use_x_advice = true;
     unsigned x_advice_max_mu = 3;
@@ -71,6 +92,40 @@ namespace cola
     unsigned recurrence_rewrites = 0;
     unsigned recurrence_splits = 0;
     unsigned flat_until_monitors = 0;
+    unsigned finite_witness_monitors = 0;
+    unsigned finite_witness_duals = 0;
+    unsigned finite_witness_aborts = 0;
+    unsigned boolean_gf_fg_components = 0;
+    unsigned specialized_gf_components = 0;
+    unsigned specialized_fg_components = 0;
+    unsigned dba_attempts = 0;
+    unsigned dba_components = 0;
+    unsigned dba_candidates = 0;
+    unsigned dba_fallbacks = 0;
+    unsigned guarded_conjunctions = 0;
+    unsigned acceptance_limit_fallbacks = 0;
+    unsigned slaa_attempts = 0;
+    unsigned slaa_failures = 0;
+    unsigned slaa_non_elevator = 0;
+    unsigned slaa_validation_failures = 0;
+    unsigned slaa_backend_attempts = 0;
+    unsigned slaa_candidates = 0;
+    unsigned slaa_components = 0;
+    unsigned slaa_negative_attempts = 0;
+    unsigned slaa_negative_candidates = 0;
+    unsigned slaa_negative_components = 0;
+    unsigned slaa_formula_candidates = 0;
+    unsigned slaa_formula_components = 0;
+    unsigned slaa_formula_failures = 0;
+    unsigned ldgba_attempts = 0;
+    unsigned ldgba_failures = 0;
+    unsigned ldgba_rejected = 0;
+    unsigned ldgba_backend_attempts = 0;
+    unsigned ldgba_validation_failures = 0;
+    unsigned ldgba_candidates = 0;
+    unsigned ldgba_components = 0;
+    unsigned ldgba_cache_hits = 0;
+    unsigned ldgba_budget_skips = 0;
     unsigned master_advice_rewrites = 0;
     unsigned x_advice_components = 0;
     unsigned x_advice_profiles = 0;
@@ -102,6 +157,9 @@ namespace cola
   /// If bounded profile refinement cannot remove all nondeterministic
   /// accepting SCCs, translation falls back to Spot's deterministic generic
   /// LTL translation for that residual only.  Therefore the procedure is total.
+  /// An explicitly configured SLAA front end can supply an elevator TELA
+  /// candidate before the residual NBA route. Both semantic boundaries are
+  /// checked; direct monitors retain priority and all failures keep fallback.
   class ltl2dela_translator
   {
   public:
@@ -229,8 +287,16 @@ namespace cola
       spot::formula guard,
       spot::formula goal);
 
+    spot::twa_graph_ptr compile_finite_witness(spot::formula f);
+    spot::twa_graph_ptr compile_specialized(spot::formula f);
+    spot::twa_graph_ptr try_dba(spot::formula f, spot::twa_graph_ptr ba);
+    spot::twa_graph_ptr make_finite_witness_monitor(spot::formula body,
+                                                 bool persistence);
+
     spot::twa_graph_ptr translate_deterministic(spot::formula f);
     spot::twa_graph_ptr translate_buchi(spot::formula f);
+    spot::twa_graph_ptr try_slaa(spot::formula f, bool& negative);
+    spot::twa_graph_ptr try_ldgba(spot::formula f);
     spot::twa_graph_ptr normalize_deterministic(spot::twa_graph_ptr aut);
 
     spot::twa_graph_ptr compose(const spot::twa_graph_ptr& left,
@@ -267,5 +333,6 @@ namespace cola
     spot::tl_simplifier simplifier_;
     spot::option_map cola_options_;
     ltl2dela_stats stats_;
+    std::map<spot::formula, spot::twa_graph_ptr> ldgba_cache_;
   };
 }

@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-21",
+  "machine": {
+    "chip": "Apple M3",
+    "cores": 8,
+    "ram_gb": 16,
+    "os": "macOS 26.6.2",
+    "architecture": "arm64"
+  },
+  "cola_commit": "e1ed0936e21e51a1500d7bc643cb51f3e4b9b9c9",
+  "spot_version": "2.14.1",
+  "spot_max_acceptance_sets": 32,
+  "owl_version": "21.0",
+  "owl_release": "https://github.com/owl-toolkit/owl/releases/tag/release-21.0",
+  "owl_runtime": "macOS amd64 native release via Rosetta 2",
+  "owl_formula_commit": "632c2da3ec982cdda340305afb9a3ddf45000491",
+  "ltl3tela_version": "2.1.1",
+  "ltl3tela_commit": "02092adca492678407bd74b5d3bbe103d8c2b400",
+  "ltl3tela_local_patch": "ltl3tela-clang.patch (move explicit template instantiations after definitions)",
+  "compiler": "Apple Clang 17.0.0",
+  "compiler_flags": "-std=c++17 -O2 (COLA also -g)",
+  "translation_timeout_seconds": 30,
+  "validation_timeout_seconds": 30,
+  "tool_binary_sha256": {
+    "spot_ltl2tgba": "a96b6fd2c03f599f4992d91b152850bfb5e26ed5f1bbe587f0a01925e8c9b4af",
+    "spot_autfilt": "7201dec61d0daae672a7ce33b7b9c3789e0bfe9c1b531d988e577a13fb439939",
+    "cola": "bb2341fe5a32791187d4f068b28698227150a74d124a94863e1a53fb27d7c5ce",
+    "cola_library": "67211d11721a08b1d107040f713d75c588b1e74d62d48d9de080bc25d5c81381",
+    "owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220"
+  },
+  "download_sha256": {
+    "owl_source_tar_gz": "7c2e9988995e27d7fde97e26b1df1a251c46dc6aa9460b57094baa9c899605d9",
+    "owl_macos_release_zip": "cbc65b0c9f4c170445f01a488759ccb169d972bfff49827b70f12990f2b385a9",
+    "ltl3tela_source_tar_gz": "404e3180321511d53ad9d87f79985df4558e25e68c8871d8ef229d19801363ed"
+  },
+  "corpus_sha256": {
+    "DwyerAC98.ltl": "c1d7ed016adda10eecac6cc9619ae70fe782d7c7e416e5f3a11eef248156978a",
+    "EtessamiH00.ltl": "5bf87be15081bc6c67f24b28dd63509463664be558e77ea5363390fefd043507",
+    "Liberouter04.ltl": "0470f56eb3ddc057d5b6f39fd0a2d730aff40055c3e5817fcdd947133b9ec501",
+    "Parametrised-Hardness.ltl": "224b6680131196e2d85e48ca04e5dc272ed39ebc8f66a190533f619a92d6d34c",
+    "Parametrised.ltl": "913ac34513144fced91fdf942d9f6567684050130cf4b98b73396019fe81ddaf",
+    "Pelanek07.ltl": "4e73ae22eb4e17e93e2eaa31fff869be8257d6dbfe3746ea4d287e681f2394ec",
+    "SickertEJK16.ltl": "bc8bf96971b5b1bdaf81c9c387161a83d1c935567c678a1de50b94bdfb5e22c5",
+    "SomenziB00.ltl": "71fb3a36fa6cfa810b4042cb8dd3b9791ce329839bb410968511a7fcf3388815"
+  }
+}
