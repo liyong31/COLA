@@ -1,0 +1,45 @@
+(a U b) U c
+((a U b) U c) U d
+(((a U b) U c) U d) U e
+(a R b) R c
+((a R b) R c) R d
+(((a R b) R c) R d) R e
+a U (b U c)
+a U (b U (c U d))
+a U (b U (c U (d U e)))
+a R (b R c)
+a R (b R (c R d))
+a R (b R (c R (d R e)))
+G(!a | (a U b))
+G(!a | (a U (b & (b U c))))
+G(!a | (a U (b & (b U (c & (c U d))))))
+(Fa | Gb) & (Fb | Gc)
+(Fa | Gb) & (Fb | Gc) & (Fc | Gd)
+(Fa | Gb) & (Fb | Gc) & (Fc | Gd) & (Fd | Ge)
+FGa & FGb & FGc
+FGa & FGb & FGc & FGd
+FGa & FGb & FGc & FGd & FGe
+GFa & GFb & GFc
+GFa & GFb & GFc & GFd
+GFa & GFb & GFc & GFd & GFe
+FGa | FGb | FGc
+FGa | FGb | FGc | FGd
+FGa | FGb | FGc | FGd | FGe
+GFa | GFb | GFc
+GFa | GFb | GFc | GFd
+GFa | GFb | GFc | GFd | GFe
+GFa | FG!b | FG!c
+GFa | FG!b | FG!c | FG!d
+GFa | FG!b | FG!c | FG!d | FG!e
+(GFa & GFb & GFc) | ((FG!a | FG!b) & FG!c)
+(GFa & GFb & GFc & GFd) | ((FG!a | FG!b | FG!d) & FG!c)
+(GFa & GFb & GFc & GFd & GFe) | ((FG!a | FG!b | FG!d | FG!e) & FG!c)
+(FGa | GFb) & (FGc | GFa)
+(FGa | GFb) & (FGc | GFa) & (FGd | GFc)
+(FGa | GFb) & (FGc | GFa) & (FGd | GFc) & (FGe | GFd)
+GF((a & XXa) | (!a & XX!a))
+GF((a & XXXa) | (!a & XXX!a))
+GF((a & XXXXa) | (!a & XXXX!a))
+FG(a | b) | FG(!a | Xb)
+FG(a | b) | FG(!a | Xb) | FG(a | XXb)
+FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb)

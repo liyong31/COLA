@@ -1,0 +1,11 @@
+{
+  "sha256": {
+    "build-local/tests/late-monitor": "7e45135d25a7dedae77b75043f94ecf3ea797fdb023744b690827e20a6bfad97",
+    "build-local/tests/.libs/late-monitor": "7625581168709ba6f08a0ae4da6e352b8c82b37de785ca8173fd064f4fb97211",
+    "tests/late-monitor.cpp": "4171fa62e108421d8a7988eeef2f2068d1636ec0e7ab197d5a53def043b64ba8",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-late-monitors.py": "251d69ab1a3f92c73785add390f90938d7f0a1d8c0c6d02b90609ba0eddcb33d",
+    "build-local/src/.libs/libcola.0.dylib": "f851de9f2ed500d671415a25a4db2af9f4372bdfc9eb87b19f58ee704e1fd3cd"
+  },
+  "method": "Fresh process per route/depth; construction timer excludes source oracle and equivalence; macOS time -l RSS",
+  "scope": "Boolean conjunction with a deterministic global monitor, not arbitrary acceptance-parametric pruning"
+}

@@ -15,6 +15,7 @@
 
 //#include "optimizer.hpp"
 #include "cola.hpp"
+#include "owl_annotations.hpp"
 #include "simulation.hpp"
 #include "types.hpp"
 //#include "struct.hpp"
@@ -23,7 +24,13 @@
 #include <map>
 #include <set>
 #include <bitset>
-#include <bits/stdc++.h>
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <spot/misc/hashfunc.hh>
 #include <spot/twaalgos/isdet.hh>
@@ -36,6 +43,11 @@
 #include <spot/twaalgos/parity.hh>
 #include <spot/twaalgos/cleanacc.hh>
 #include <spot/twaalgos/postproc.hh>
+#include <spot/twaalgos/matchstates.hh>
+#include <spot/twaalgos/contains.hh>
+#include <spot/twaalgos/product.hh>
+#include <spot/tl/print.hh>
+#include <spot/tl/simplify.hh>
 
 #include <spot/parseaut/public.hh>
 #include <spot/twaalgos/hoa.hh>
@@ -65,7 +77,7 @@ namespace cola
   struct
   {
     size_t
-    operator()(label &p1, label &p2) const noexcept
+    operator()(const label &p1, const label &p2) const noexcept
     {
       if (p1.second == p2.second)
       {
@@ -353,8 +365,517 @@ namespace cola
     // the index of each deterministic accepting SCCs
     std::vector<unsigned> acc_detsccs_;
 
+    // Optional LTL annotations for source states.  These are sound
+    // over-approximations returned by Spot::match_states(); they are used only
+    // to order simultaneously new runs, never to delete runs.
+    std::vector<spot::formula> state_annotations_;
+    bool use_formula_annotations_;
+    spot::tl_simplifier annotation_simplifier_;
+    std::unique_ptr<owl_language_oracle> owl_oracle_;
+
+    // Fixed semantic order for states in deterministic accepting SCCs.
+    // Existing runs keep their historical labels; this order is consulted
+    // only for runs that enter a deterministic accepting SCC without an
+    // inherited label in the current step.
+    std::vector<unsigned> semantic_order_rank_;
+    std::vector<unsigned> annotation_coverage_;
+
+    // Bounded exact state-language containment.  The cache stores
+    //   1  : L(q) subseteq L(p)
+    //   0  : containment disproved
+    //  -1  : not queried / unavailable
+    std::vector<spot::twa_graph_ptr> state_language_automata_;
+    std::map<std::pair<unsigned, unsigned>, char> exact_containment_cache_;
+    unsigned exact_containment_queries_ = 0;
+    unsigned exact_containment_hits_ = 0;
+    unsigned exact_union_queries_ = 0;
+    unsigned exact_union_pruned_ = 0;
+    // A proof depends on the target and covering state languages, not their
+    // ranks or the macrostate. Reusing it must not consume the query budget.
+    std::map<std::pair<unsigned, std::vector<unsigned>>, bool> exact_union_cache_;
+
+    // Adaptive exact-query accounting.  Static semantic-order construction
+    // receives only a small reserved slice of the global budget.  Runtime
+    // union-cover checks receive per-SCC allowances that grow with observed
+    // macrostate pressure (visit count and maximum concurrent rank width).
+    bool building_semantic_order_ = true;
+    std::vector<unsigned> scc_macro_visits_;
+    std::vector<unsigned> scc_max_rank_width_;
+    std::vector<unsigned> scc_runtime_exact_queries_;
+
     // Show Rank states in state name to help debug
     bool show_names_;
+
+    unsigned
+    static_exact_budget() const
+    {
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (budget == 0)
+        return 0;
+      // Reserve at most one third for precomputing the static order.
+      return std::max(1U, budget / 3U);
+    }
+
+    unsigned
+    runtime_exact_allowance(unsigned scc) const
+    {
+      if (scc >= scc_macro_visits_.size())
+        return 0;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      if (budget == 0)
+        return 0;
+
+      unsigned runtime_budget = budget - std::min(budget, static_exact_budget());
+
+      // Width matters more than raw visit count: a wide SCC creates more
+      // ordered-run combinations.  Visits increase the allowance slowly.
+      unsigned visits = scc_macro_visits_[scc];
+      unsigned width = scc_max_rank_width_[scc];
+      unsigned allowance = 1U + 2U * width + visits / 8U;
+      return std::min(runtime_budget, allowance);
+    }
+
+    void
+    note_scc_activity(const elevator_mstate& ms)
+    {
+      for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+        {
+          unsigned scc = acc_detsccs_[i];
+          unsigned width =
+            static_cast<unsigned>(ms.detscc_labels_[i].size());
+          if (width == 0)
+            continue;
+          ++scc_macro_visits_[scc];
+          scc_max_rank_width_[scc] =
+            std::max(scc_max_rank_width_[scc], width);
+        }
+    }
+
+    spot::twa_graph_ptr
+    state_language_automaton(unsigned init)
+    {
+      if (state_language_automata_[init])
+        return state_language_automata_[init];
+
+      auto a = spot::make_twa_graph(aut_, spot::twa::prop_set::all(), false);
+      a->set_init_state(init);
+      state_language_automata_[init] = a;
+      return a;
+    }
+
+    bool
+    exact_language_dominance(unsigned p, unsigned q)
+    {
+      if (p == q)
+        return false;
+
+      unsigned scc = si_.scc_of(p);
+      if (scc != si_.scc_of(q))
+        return false;
+
+      if (owl_oracle_ && owl_oracle_->covers(q, {p}))
+        { ++owl_oracle_->stats.pair_proofs; return true; }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
+
+      unsigned limit = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
+      if (si_.states_of(scc).size() > limit)
+        return false;
+
+      auto key = std::make_pair(p, q);
+      auto it = exact_containment_cache_.find(key);
+      if (it != exact_containment_cache_.end())
+        return it->second == 1;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      unsigned phase_budget = building_semantic_order_
+        ? static_exact_budget()
+        : budget;
+      if (exact_containment_queries_ >= phase_budget)
+        return false;
+
+      // During static ordering, use annotations only to decide which exact
+      // unresolved pairs are worth spending budget on.  The annotation never
+      // proves inclusion itself.
+      if (building_semantic_order_ && use_formula_annotations_)
+        {
+          bool suggested =
+            annotation_simplifier_.syntactic_implication(
+              state_annotations_[q], state_annotations_[p])
+            || annotation_coverage_[p] > annotation_coverage_[q];
+          if (!suggested)
+            return false;
+        }
+
+      ++exact_containment_queries_;
+
+      // spot::contains(left,right) checks L(right) subseteq L(left).
+      // Thus p dominates q exactly iff contains(A_p,A_q).
+      bool yes = spot::contains(state_language_automaton(p),
+                                state_language_automaton(q));
+      exact_containment_cache_.emplace(key, yes ? 1 : 0);
+      if (yes)
+        ++exact_containment_hits_;
+      return yes;
+    }
+
+    bool
+    exact_union_covers(const std::vector<label>& ordered, unsigned pos)
+    {
+      if (pos == 0)
+        return false;
+
+      if (owl_oracle_)
+        {
+          std::vector<unsigned> older;
+          for (unsigned j = 0; j < pos; ++j) older.push_back(ordered[j].first);
+          if (owl_oracle_->covers(ordered[pos].first, older))
+            { ++owl_oracle_->stats.union_proofs; return true; }
+        }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
+
+      unsigned target_state = ordered[pos].first;
+      unsigned target_scc = si_.scc_of(target_state);
+      unsigned scc_limit = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
+      if (si_.states_of(target_scc).size() > scc_limit)
+        return false;
+
+      unsigned max_prefix = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_UNION_COVER_LIMIT, 4)));
+      if (max_prefix == 0)
+        return false;
+
+      unsigned budget = static_cast<unsigned>(
+        std::max(0, om_.get(EXACT_CONTAINMENT_BUDGET, 64)));
+      unsigned allowance = runtime_exact_allowance(target_scc);
+
+      // If the full earlier prefix is too large, approximate only the choice
+      // of which earlier runs to test.  Deletion is still guarded by an exact
+      // containment proof against the selected subset union.
+      std::vector<unsigned> candidates;
+      candidates.reserve(pos);
+      for (unsigned j = 0; j < pos; ++j)
+        candidates.push_back(j);
+
+      if (candidates.size() > max_prefix)
+        {
+          unsigned target = target_state;
+          std::stable_sort(candidates.begin(), candidates.end(),
+            [&](unsigned aidx, unsigned bidx)
+            {
+              unsigned a = ordered[aidx].first;
+              unsigned b = ordered[bidx].first;
+
+              bool ta = false;
+              bool tb = false;
+              if (use_formula_annotations_)
+                {
+                  ta = annotation_simplifier_.syntactic_implication(
+                         state_annotations_[target], state_annotations_[a]);
+                  tb = annotation_simplifier_.syntactic_implication(
+                         state_annotations_[target], state_annotations_[b]);
+                }
+              if (ta != tb)
+                return ta > tb;
+
+              if (annotation_coverage_[a] != annotation_coverage_[b])
+                return annotation_coverage_[a] > annotation_coverage_[b];
+
+              // Prefer older runs after semantic hints tie.
+              if (ordered[aidx].second != ordered[bidx].second)
+                return ordered[aidx].second < ordered[bidx].second;
+              return a < b;
+            });
+          candidates.resize(max_prefix);
+          std::stable_sort(candidates.begin(), candidates.end());
+        }
+
+      std::vector<unsigned> covering_states;
+      for (unsigned j : candidates) covering_states.push_back(ordered[j].first);
+      std::sort(covering_states.begin(), covering_states.end());
+      auto key = std::make_pair(target_state, covering_states);
+      auto known = exact_union_cache_.find(key);
+      if (known != exact_union_cache_.end())
+        {
+          if (known->second) ++exact_union_pruned_;
+          return known->second;
+        }
+      if (exact_containment_queries_ >= budget
+          || target_scc >= scc_runtime_exact_queries_.size()
+          || scc_runtime_exact_queries_[target_scc] >= allowance)
+        return false;
+
+      // Build the exact union of the selected retained earlier languages.
+      spot::twa_graph_ptr cover =
+        state_language_automaton(ordered[candidates[0]].first);
+      for (unsigned k = 1; k < candidates.size(); ++k)
+        cover = spot::product_or(
+          cover, state_language_automaton(ordered[candidates[k]].first));
+
+      ++exact_containment_queries_;
+      ++exact_union_queries_;
+      ++scc_runtime_exact_queries_[target_scc];
+      bool covered = spot::contains(
+        cover, state_language_automaton(target_state));
+      exact_union_cache_.emplace(std::move(key), covered);
+      if (covered)
+        ++exact_union_pruned_;
+      return covered;
+    }
+
+    void
+    exact_union_cover_prune(std::vector<label>& nodes)
+    {
+      if ((om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 && !owl_oracle_) || nodes.size() <= 1)
+        return;
+
+      // Kretinsky-style ordered union subsumption: never remove the smallest
+      // run.  Each later run is removed only after an exact proof that its
+      // state language is contained in a union of retained earlier runs.
+      // For large prefixes, annotations choose a promising bounded subset;
+      // the final deletion decision remains exact.  If the budget is
+      // exhausted, keep the run.
+      std::stable_sort(nodes.begin(), nodes.end(), label_compare);
+
+      std::vector<label> kept;
+      kept.reserve(nodes.size());
+      kept.push_back(nodes.front());
+
+      for (unsigned i = 1; i < nodes.size(); ++i)
+        {
+          std::vector<label> trial = kept;
+          trial.push_back(nodes[i]);
+          if (!exact_union_covers(trial,
+                                  static_cast<unsigned>(trial.size() - 1)))
+            kept.push_back(nodes[i]);
+        }
+
+      nodes.swap(kept);
+    }
+
+    bool
+    dominance(unsigned p, unsigned q)
+    {
+      if (p == q)
+        return false;
+
+      // Use cheap sound approximations first.  Exact containment is reserved
+      // for pairs not already decided by simulation so that the query budget
+      // is spent only where it can strengthen the order.
+      bool direct = use_simulation_ && simulator_.simulate(p, q);
+      bool delayed = om_.get(USE_DELAYED_SIMULATION) > 0
+                     && delayed_simulator_.simulate(p, q);
+      if (direct || delayed)
+        return true;
+
+      // Exact language inclusion is strongest, but deliberately bounded.
+      return exact_language_dominance(p, q);
+    }
+
+    void
+    build_semantic_orders()
+    {
+      semantic_order_rank_.assign(nb_states_, 0);
+      annotation_coverage_.assign(nb_states_, 0);
+
+      for (unsigned s = 0; s < nb_states_; ++s)
+        semantic_order_rank_[s] = s;
+
+      for (unsigned scc_id: acc_detsccs_)
+        {
+          std::vector<unsigned> states;
+          for (unsigned s: si_.states_of(scc_id))
+            states.push_back(s);
+          const unsigned n = states.size();
+          if (n <= 1)
+            {
+              if (n == 1)
+                semantic_order_rank_[states[0]] = 0;
+              continue;
+            }
+
+          // Formula coverage is only a priority among incomparable dominance
+          // classes.  It is not a language-inclusion certificate.
+          if (use_formula_annotations_)
+            {
+              for (unsigned p: states)
+                {
+                  unsigned score = 0;
+                  for (unsigned q: states)
+                    if (q != p
+                        && annotation_simplifier_.syntactic_implication(
+                             state_annotations_[q], state_annotations_[p]))
+                      ++score;
+                  annotation_coverage_[p] = score;
+                }
+            }
+
+          // Build the sound dominance graph p -> q when p simulates q.
+          std::vector<std::vector<unsigned>> graph(n);
+          for (unsigned i = 0; i < n; ++i)
+            for (unsigned j = 0; j < n; ++j)
+              if (i != j && dominance(states[i], states[j]))
+                graph[i].push_back(j);
+
+          // Tarjan SCCs quotient mutual-dominance cycles.
+          std::vector<int> index(n, -1);
+          std::vector<int> low(n, -1);
+          std::vector<int> comp_of(n, -1);
+          std::vector<unsigned> stack;
+          std::vector<bool> on_stack(n, false);
+          int next_index = 0;
+          int comp_count = 0;
+
+          std::function<void(unsigned)> visit = [&](unsigned v)
+            {
+              index[v] = low[v] = next_index++;
+              stack.push_back(v);
+              on_stack[v] = true;
+              for (unsigned w: graph[v])
+                {
+                  if (index[w] < 0)
+                    {
+                      visit(w);
+                      low[v] = std::min(low[v], low[w]);
+                    }
+                  else if (on_stack[w])
+                    {
+                      low[v] = std::min(low[v], index[w]);
+                    }
+                }
+              if (low[v] == index[v])
+                {
+                  for (;;)
+                    {
+                      unsigned w = stack.back();
+                      stack.pop_back();
+                      on_stack[w] = false;
+                      comp_of[w] = comp_count;
+                      if (w == v)
+                        break;
+                    }
+                  ++comp_count;
+                }
+            };
+
+          for (unsigned v = 0; v < n; ++v)
+            if (index[v] < 0)
+              visit(v);
+
+          std::vector<std::vector<unsigned>> members(comp_count);
+          for (unsigned i = 0; i < n; ++i)
+            members[comp_of[i]].push_back(states[i]);
+
+          std::vector<std::set<unsigned>> dag(comp_count);
+          std::vector<unsigned> indegree(comp_count, 0);
+          for (unsigned i = 0; i < n; ++i)
+            for (unsigned j: graph[i])
+              {
+                unsigned ci = comp_of[i];
+                unsigned cj = comp_of[j];
+                if (ci != cj && dag[ci].insert(cj).second)
+                  ++indegree[cj];
+              }
+
+          auto state_key = [&](unsigned s)
+            {
+              std::string text =
+                use_formula_annotations_
+                  ? spot::str_psl(state_annotations_[s])
+                  : std::string();
+              return std::make_tuple(
+                static_cast<long long>(-annotation_coverage_[s]),
+                text.size(),
+                text,
+                s);
+            };
+
+          // Give every equivalence class a stable semantic priority.
+          auto sort_members = [&](std::vector<unsigned>& m)
+            {
+              std::stable_sort(m.begin(), m.end(),
+                [&](unsigned a, unsigned b)
+                {
+                  return state_key(a) < state_key(b);
+                });
+            };
+          for (auto& m: members)
+            sort_members(m);
+
+          auto comp_key = [&](unsigned comp)
+            {
+              unsigned best = members[comp].front();
+              return state_key(best);
+            };
+
+          // Topological order: sound dominance edges are hard constraints;
+          // annotation coverage chooses only among incomparable zero-indegree
+          // classes.
+          std::vector<unsigned> comp_order;
+          std::set<unsigned> remaining;
+          for (unsigned cc = 0; cc < static_cast<unsigned>(comp_count); ++cc)
+            remaining.insert(cc);
+
+          while (!remaining.empty())
+            {
+              bool have = false;
+              unsigned best = 0;
+              for (unsigned cc: remaining)
+                {
+                  if (indegree[cc] != 0)
+                    continue;
+                  if (!have || comp_key(cc) < comp_key(best))
+                    {
+                      best = cc;
+                      have = true;
+                    }
+                }
+
+              // The quotient is a DAG, so this should be unreachable.  Keep a
+              // deterministic fallback in release builds.
+              if (!have)
+                best = *remaining.begin();
+
+              comp_order.push_back(best);
+              remaining.erase(best);
+              for (unsigned succ: dag[best])
+                {
+                  assert(indegree[succ] > 0);
+                  --indegree[succ];
+                }
+            }
+
+          unsigned rank = 0;
+          for (unsigned cc: comp_order)
+            for (unsigned s: members[cc])
+              semantic_order_rank_[s] = rank++;
+
+          if (show_names_)
+            {
+              std::cout << "Semantic order for deterministic accepting SCC "
+                        << scc_id << ":";
+              std::vector<unsigned> ordered = states;
+              std::stable_sort(ordered.begin(), ordered.end(),
+                [&](unsigned a, unsigned b)
+                {
+                  return semantic_order_rank_[a] < semantic_order_rank_[b];
+                });
+              for (unsigned s: ordered)
+                {
+                  std::cout << " " << s;
+                  if (use_formula_annotations_)
+                    std::cout << "{" << spot::str_psl(state_annotations_[s])
+                              << ";cov=" << annotation_coverage_[s] << "}";
+                }
+              std::cout << "\n";
+            }
+        }
+    }
 
     std::string
     get_name(const elevator_mstate &ms)
@@ -496,6 +1017,37 @@ namespace cola
       }
     }
 
+    void prune_cross_scc_languages(elevator_mstate& ms)
+    {
+      if (!owl_oracle_ || om_.get(USE_OWL_CROSS_SCC) <= 0) return;
+      auto reached = ms.get_reach_set();
+      std::vector<unsigned> ordered(reached.begin(), reached.end());
+      std::sort(ordered.begin(), ordered.end(), [&](unsigned p, unsigned q)
+        { return std::make_pair(si_.scc_of(p), p) < std::make_pair(si_.scc_of(q), q); });
+      std::vector<unsigned> retained;
+      for (unsigned q : ordered)
+        {
+          std::vector<unsigned> covering;
+          for (unsigned p : retained)
+            if (si_.scc_of(p) < si_.scc_of(q)) covering.push_back(p);
+          if (!covering.empty() && owl_oracle_->covers(q, covering))
+            {
+              ms.weak_set_.erase(q);
+              ms.break_set_.erase(q);
+              for (auto& nodes : ms.detscc_labels_)
+                nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
+                            [&](const label& n) { return n.first == q; }), nodes.end());
+              ++owl_oracle_->stats.cross_scc_proofs;
+            }
+          else retained.push_back(q);
+        }
+      // Spot SCC numbers decrease along proper SCC transitions. Every
+      // replacement is into a strictly lower SCC, so an accepting witness
+      // cannot be discarded infinitely often. Within-SCC rank order and
+      // shifted original acceptance remain unchanged. Never compare local
+      // ranks across SCCs, nor delete mutually covering runs simultaneously.
+    }
+
     int get_detscc_index(unsigned scc)
     {
       for (int idx = 0; idx < acc_detsccs_.size(); idx++)
@@ -620,18 +1172,61 @@ namespace cola
           }
           else
           {
-            assert(false);
+            throw std::runtime_error("elevator successor has an unclassified SCC");
           }
         }
       }
       // std::cout << "After step: " << get_name(succ) << std::endl;
       //2. Compute the labelling successors for deterministic SCCs
       compute_deterministic_successors(ms, succ, next_detstates, det_cache);
+      if (owl_oracle_ && owl_oracle_->stats.prefix_admitted)
+        {
+          std::vector<unsigned> before, after;
+          for (unsigned q : ms.weak_set_) if (owl_oracle_->is_prefix(q)) before.push_back(q);
+          for (unsigned q : succ.weak_set_) if (owl_oracle_->is_prefix(q)) after.push_back(q);
+          if (before.size() == 1 && after.size() == 1
+              && si_.scc_of(before[0]) != si_.scc_of(after[0]))
+            {
+              bool covered = owl_oracle_->known(after[0]);
+              auto reached = succ.get_reach_set();
+              unsigned removed = 0;
+              for (unsigned q : reached)
+                if (!owl_oracle_->is_prefix(q))
+                  { ++removed; covered &= owl_oracle_->covers(q, after); }
+              if (covered && removed)
+                {
+                  // SCC changes along the certified deterministic prefix are
+                  // finite. Every discarded tail is accepted from the retained
+                  // prefix, so a replacement accepting run survives the last
+                  // reset. Never reset indefinitely inside a prefix SCC.
+                  for (auto& nodes : succ.detscc_labels_) nodes.clear();
+                  for (unsigned q : reached)
+                    if (!owl_oracle_->is_prefix(q))
+                      { succ.weak_set_.erase(q); succ.break_set_.erase(q); }
+                  ++owl_oracle_->stats.prefix_resets;
+                  owl_oracle_->stats.reset_runs += removed;
+                }
+            }
+        }
       // std::cout << "After receiving more successors: " << get_name(succ) << std::endl;
       if (use_simulation_)
       {
         make_simulation_state(succ);
       }
+
+      prune_cross_scc_languages(succ);
+
+      // Observe SCC pressure before exact pruning so the runtime budget can
+      // adapt to the unpruned concurrent rank width.
+      note_scc_activity(succ);
+
+      // Exact ordered union-language pruning is optional and bounded.
+      // It is independent of simulation and therefore can still strengthen
+      // macrostates when simulation is disabled or inconclusive.
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0 || owl_oracle_)
+        for (auto& nodes: succ.detscc_labels_)
+          exact_union_cover_prune(nodes);
+
       std::vector<std::set<unsigned>> det_labellings;
       //4. decide the color for deterministic SCCs
       compute_deterministic_color(ms, succ, det_labellings, det_cache);
@@ -697,8 +1292,19 @@ namespace cola
             }
           }
           ++ max_rnk ;
-          // put them into succ
-          for (unsigned p : next_detstates[i])
+          // Existing runs above keep their inherited historical ranks.
+          // Only genuinely fresh runs are appended, using the fixed semantic
+          // order precomputed once for this deterministic accepting SCC.
+          std::vector<unsigned> fresh(next_detstates[i].begin(),
+                                      next_detstates[i].end());
+          std::stable_sort(fresh.begin(), fresh.end(),
+            [&](unsigned a, unsigned b)
+            {
+              if (semantic_order_rank_[a] != semantic_order_rank_[b])
+                return semantic_order_rank_[a] < semantic_order_rank_[b];
+              return a < b;
+            });
+          for (unsigned p : fresh)
           {
             // insertion failed is possible
             succ_nodes.emplace(p, max_rnk);
@@ -990,7 +1596,9 @@ namespace cola
     unsigned num_colours_plus_one_;
 
   public:
-    elevator_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si, spot::option_map &om, std::vector<bdd> &implications)
+    elevator_determinize(const spot::const_twa_graph_ptr &aut, spot::scc_info &si,
+                         spot::option_map &om, std::vector<bdd> &implications,
+                         std::vector<spot::formula> state_annotations = {})
         : aut_(aut),
           om_(om),
           use_simulation_(om.get(USE_SIMULATION) > 0),
@@ -1004,6 +1612,16 @@ namespace cola
           // is_accepting_(nb_states_),
           simulator_(aut, si, implications, om.get(USE_SIMULATION) > 0),
           delayed_simulator_(aut, om),
+          state_annotations_(std::move(state_annotations)),
+          use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
+                                   && state_annotations_.size() == aut->num_states()),
+          annotation_simplifier_(aut->get_dict()),
+          owl_oracle_(om.get(USE_OWL_ANNOTATIONS) > 0
+                      ? std::make_unique<owl_language_oracle>(aut,
+                          om.get(USE_OWL_PREFIX_RESETS) > 0) : nullptr),
+          semantic_order_rank_(nb_states_),
+          annotation_coverage_(nb_states_, 0),
+          state_language_automata_(nb_states_),
           show_names_(om.get(VERBOSE_LEVEL) > 0)
     {
       if (om.get(VERBOSE_LEVEL) >= 2)
@@ -1021,7 +1639,6 @@ namespace cola
                           true         // stutter inv
                       });
       if (aut_->prop_complete().is_true()) {
-          std::cout << "complete automaton " << res_->prop_complete() << std::endl;
           res_->prop_complete(true);
       }
       // Generate bdd supports and compatible options for each state.
@@ -1072,6 +1689,22 @@ namespace cola
         // std::cout << std::endl;
       }
 
+      scc_macro_visits_.assign(si_.scc_count(), 0);
+      scc_max_rank_width_.assign(si_.scc_count(), 0);
+      scc_runtime_exact_queries_.assign(si_.scc_count(), 0);
+
+      // Build one fixed order per deterministic accepting SCC.  This order
+      // respects sound simulation/exact dominance; formula annotations break
+      // ties only between incomparable dominance classes.
+      build_semantic_orders();
+      building_semantic_order_ = false;
+
+      if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+        std::cout << "Exact containment queries after ordering: "
+                  << exact_containment_queries_
+                  << ", successful dominance facts: "
+                  << exact_containment_hits_ << "\n";
+
       // optimize with the fact of being unambiguous
       use_unambiguous_ = use_unambiguous_ && is_unambiguous(aut);
       if (show_names_)
@@ -1121,12 +1754,48 @@ namespace cola
       for (unsigned i = 0; i < acc_detsccs_.size(); i++) {
         num_scc_states[i] = si_.states_of(acc_detsccs_[i]).size();
       }
+      if (om_.get(USE_OBSERVED_RANKS) > 0)
+        {
+          // Only after graph exploration is complete do we know the exact
+          // maximum number of concurrent rank slots in each component.
+          // A never-present slot has its discontinuation colour on every
+          // transition, hence Fin(discontinued) is false. Its whole shifted
+          // acceptance disjunct and all of its colours may be omitted.
+          std::fill(num_scc_states.begin(), num_scc_states.end(), 0);
+          for (const auto& entry : rank2n_)
+            for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+              num_scc_states[i] = std::max(num_scc_states[i],
+                static_cast<unsigned>(entry.first.detscc_labels_[i].size()));
+        }
       unsigned num_colours_plus_one = num_colours_plus_one_;
+      const auto aut_acc = aut_->acc().get_acceptance();
+      bool local_colours = om_.get(USE_LOCAL_COLOURS) > 0;
+      std::vector<unsigned> strides(acc_detsccs_.size(), num_colours_plus_one);
+      std::vector<spot::acc_cond::acc_code> conditions(acc_detsccs_.size(), aut_acc);
+      std::vector<std::vector<int>> colour_maps(acc_detsccs_.size(),
+                                               std::vector<int>(num_colours_, -1));
+      if (local_colours)
+        for (unsigned i = 0; i < acc_detsccs_.size(); ++i)
+          {
+            spot::acc_cond::mark_t occurring{}, common = aut_->acc().all_sets();
+            unsigned sc = acc_detsccs_[i];
+            for (unsigned q : si_.states_of(sc))
+              for (const auto& e : aut_->out(q))
+                if (si_.scc_of(e.dst) == sc && e.cond != bddfalse)
+                  { occurring |= e.acc; common &= e.acc; }
+            auto condition = aut_acc.remove(aut_->acc().all_sets() - occurring, true)
+                                    .remove(common, false);
+            auto used = condition.used_sets();
+            unsigned packed = 0;
+            for (unsigned c : used.sets()) colour_maps[i][c] = packed++;
+            strides[i] = packed + 1;
+            conditions[i] = condition.strip(aut_->acc().all_sets() - used, true);
+          }
       // this is fixed, we can just compute it without max and min colours
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         // we compute for each DAC, how many colours needed
-        num_scc_colours[i] = num_scc_states[i] * num_colours_plus_one;
+        num_scc_colours[i] = num_scc_states[i] * strides[i];
         // should be equal to scc_size * (k + 1)
       }
       // now max_colors_ has the maximal color for each accepting deterministic SCC
@@ -1159,7 +1828,26 @@ namespace cola
           // std::cout << "scc " << i << std::endl;
           // DAC i: base + colour
           for (auto& c : det_colours[i]) {
-            t.acc.set(color_bases[i] + c );
+            // Relative colours for never-present slots were recorded during
+            // exploration but are absent from the compacted acceptance.
+            if (!local_colours)
+              { if (c < num_scc_colours[i]) t.acc.set(color_bases[i] + c); }
+            else
+              {
+                unsigned slot = c / num_colours_plus_one;
+                unsigned source_colour = c % num_colours_plus_one;
+                if (slot >= num_scc_states[i]) continue;
+                unsigned relative;
+                if (source_colour == num_colours_)
+                  relative = strides[i] - 1;
+                else
+                  {
+                    int packed = colour_maps[i][source_colour];
+                    if (packed < 0) continue;
+                    relative = packed;
+                  }
+                t.acc.set(color_bases[i] + slot * strides[i] + relative);
+              }
           }
           // should be set to the relative color
         }
@@ -1172,17 +1860,19 @@ namespace cola
       }
       // now set up the acceptance
       spot::acc_cond::acc_code acceptance = spot::acc_cond::acc_code::f();
-      const auto aut_acc = aut_->acc().get_acceptance();
       for (unsigned i = 0; i < acc_detsccs_.size(); i++)
       {
         unsigned num_scc_i_states = num_scc_states[i];
         // we need to set up the acceptance for every run
         for (unsigned j = 0; j < num_scc_i_states; j ++) {
-          auto base = j * num_colours_plus_one;
+          auto base = j * strides[i];
           // std::cout << "shift " << base << " total " << color_bases[i] + base << std::endl;
-          auto scc_acceptance = aut_acc << color_bases[i] + base;
-          // now we need to add finitely many colours
-          scc_acceptance &= spot::acc_cond::acc_code::fin({base + num_colours_});
+          const auto rank_base = color_bases[i] + base;
+          auto scc_acceptance = conditions[i] << rank_base;
+          // Each rank owns k source colours followed by its discontinuation
+          // colour, all in this SCC's block (as on the transitions above).
+          scc_acceptance &= spot::acc_cond::acc_code::fin(
+            {rank_base + strides[i] - 1});
           // std::cout << "scc " << i << " acc="<< scc_acceptance << std::endl;
           // max_colors are all odd colors, the biggest one
           acceptance |= scc_acceptance;
@@ -1248,6 +1938,22 @@ namespace cola
         }
       }
       
+      if (show_names_ && om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+        {
+          std::cout << "Exact containment total: "
+                    << exact_containment_queries_
+                    << ", union checks: " << exact_union_queries_
+                    << ", union-pruned runs: " << exact_union_pruned_ << "\n";
+          for (unsigned scc: acc_detsccs_)
+            if (scc_macro_visits_[scc] > 0)
+              std::cout << "  DA SCC " << scc
+                        << ": visits=" << scc_macro_visits_[scc]
+                        << ", max-width=" << scc_max_rank_width_[scc]
+                        << ", runtime-exact="
+                        << scc_runtime_exact_queries_[scc]
+                        << "/" << runtime_exact_allowance(scc) << "\n";
+        }
+
       finalize_acceptance();
       res_->prop_state_acc(spot::trival(false));
       res_->prop_universal(true);
@@ -1271,6 +1977,9 @@ namespace cola
       }
       
       simplify_acceptance_here(res_);
+      if (owl_oracle_)
+        res_->set_named_prop("cola-owl-annotation-stats",
+                             new owl_annotation_stats(owl_oracle_->stats));
       // spot::print_hoa(std::cout, res_);
       return res_;
     }
@@ -1311,22 +2020,25 @@ namespace cola
     }
   };
 
-  spot::twa_graph_ptr
-  determinize_televator(const spot::const_twa_graph_ptr &aut, spot::option_map &om)
+  namespace
   {
-    if (!is_elevator_automaton(aut))
-      throw std::runtime_error("determinize_teba() requires a elevator input");
+    spot::twa_graph_ptr
+    determinize_televator_impl(const spot::const_twa_graph_ptr &aut,
+                               spot::option_map &om,
+                               spot::formula source_formula,
+                               bool have_formula)
+    {
+      if (!is_elevator_automaton(aut))
+        throw std::runtime_error("determinize_teba() requires a elevator input");
 
       const int trans_pruning = om.get(NUM_TRANS_PRUNING);
       bool verbose = om.get(VERBOSE_LEVEL) > 0;
-      // now we compute the simulator
       spot::const_twa_graph_ptr aut_reduced;
       std::vector<bdd> implications;
       spot::twa_graph_ptr aut_tmp = nullptr;
       if (verbose)
-      {
         std::cout << "Computing simulation relation...\n";
-      }
+
       if (om.get(USE_SIMULATION) > 0)
       {
         aut_tmp = spot::scc_filter(aut);
@@ -1337,12 +2049,38 @@ namespace cola
         aut_reduced = aut_tmp;
       else
         aut_reduced = aut;
-      if (verbose)
+
+      std::vector<spot::formula> annotations;
+      if (have_formula && om.get(USE_FORMULA_ANNOTATIONS) > 0)
       {
-        std::cout << "Entering determinization procedure...\n";
+        annotations = spot::match_states(aut_reduced, source_formula);
+        if (verbose)
+          std::cout << "Using LTL annotations for "
+                    << annotations.size() << " elevator states.\n";
       }
-    spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
-    auto det = cola::elevator_determinize(aut_reduced, scc, om, implications);
-    return det.run();
+
+      if (verbose)
+        std::cout << "Entering determinization procedure...\n";
+      spot::scc_info scc(aut_reduced, spot::scc_info_options::ALL);
+      auto det = cola::elevator_determinize(aut_reduced, scc, om,
+                                            implications,
+                                            std::move(annotations));
+      return det.run();
+    }
+  }
+
+  spot::twa_graph_ptr
+  determinize_televator(const spot::const_twa_graph_ptr &aut,
+                        spot::option_map &om)
+  {
+    return determinize_televator_impl(aut, om, spot::formula::tt(), false);
+  }
+
+  spot::twa_graph_ptr
+  determinize_televator(const spot::const_twa_graph_ptr &aut,
+                        spot::option_map &om,
+                        spot::formula source_formula)
+  {
+    return determinize_televator_impl(aut, om, source_formula, true);
   }
 }

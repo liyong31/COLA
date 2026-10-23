@@ -1,0 +1,81 @@
+{
+  "base_commit": "5faf7114ebdaf08e637ffd3fc5cc7ac0fbd0d5c6",
+  "variants": {
+    "sejk16_gba": [
+      "ltl2ldgba",
+      "-t",
+      "SEJK16",
+      "--skip-translation-portfolio"
+    ],
+    "sejk16_no_formula_simplifier": [
+      "ltl2ldgba",
+      "-t",
+      "SEJK16",
+      "--skip-translation-portfolio",
+      "--skip-formula-simplifier"
+    ],
+    "sejk16_no_acceptance_simplifier": [
+      "ltl2ldgba",
+      "-t",
+      "SEJK16",
+      "--skip-translation-portfolio",
+      "--skip-acceptance-simplifier"
+    ],
+    "sejk16_portfolio": [
+      "ltl2ldgba",
+      "-t",
+      "SEJK16"
+    ],
+    "sejk16_full_ranks": [
+      "ltl2ldgba",
+      "-t",
+      "SEJK16",
+      "--skip-translation-portfolio"
+    ],
+    "eks20_gba": [
+      "ltl2ldgba",
+      "-t",
+      "EKS20",
+      "--skip-translation-portfolio"
+    ],
+    "eks20_no_formula_simplifier": [
+      "ltl2ldgba",
+      "-t",
+      "EKS20",
+      "--skip-translation-portfolio",
+      "--skip-formula-simplifier"
+    ],
+    "eks20_no_acceptance_simplifier": [
+      "ltl2ldgba",
+      "-t",
+      "EKS20",
+      "--skip-translation-portfolio",
+      "--skip-acceptance-simplifier"
+    ],
+    "eks20_portfolio": [
+      "ltl2ldgba",
+      "-t",
+      "EKS20"
+    ],
+    "eks20_full_ranks": [
+      "ltl2ldgba",
+      "-t",
+      "EKS20",
+      "--skip-translation-portfolio"
+    ]
+  },
+  "timeout_seconds_per_process": 5,
+  "workers": 2,
+  "optimization_probes": true,
+  "native_options": "--integrated --compact-ranks; 256 input-state limit",
+  "sha256": {
+    "build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "build-local/tests/.libs/tela-elevator-driver": "5875364bcd596b91995330de4f63cbc0ff1fa7af5b85ef74aceaea29e664b54f",
+    "build-local/src/.libs/libcola.0.dylib": "25872f1943997f793af2ab0fe6d9f3d1465714cab5a0953412739b7567299ddb",
+    "tests/tela-elevator-driver.cpp": "b3a256ac42324fb016ee6c60e4a33f0a2986de12f009e0fe6b48c60b7ce9514b",
+    "src/determinize_teba.cpp": "e6683ca0dd769ba434686c8e6de242d52573d5ebc8c2cf2d89b464ceb2b1c339",
+    "src/cola.cpp": "c2402cf8f7ea1fa03f8d20199ede243a8165fb0d75f1e2afe6862cb709813dc9",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-ldgba.py": "897a9ee89083544fca7bf8fc74b88c0812989cac6eb61cfc5ab76eb5887b6aa4"
+  },
+  "environment": "tests/ltl-fragment-environment.json"
+}

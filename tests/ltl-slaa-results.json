@@ -1,0 +1,40 @@
+{
+  "base_commit": "e46b07ec84a8a28a8d7cae6e4aae504dc9bc4fdc",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "681b1d07c0d492c6a32da3f351509112b0b4a6acc76e8b9bf9fdbede4c88be9e",
+    "build-local/tests/.libs/tela-elevator-driver": "b2547b549071069d75595316c0f5afa098ee5ec8fcbad74ef4bac275844c976b",
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/src/.libs/libcola.0.dylib": "04b19e4caf0e1a90001618dc9313a206963880370a2fae0677c188bff8b1346a",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "src/cola.cpp": "c2402cf8f7ea1fa03f8d20199ede243a8165fb0d75f1e2afe6862cb709813dc9",
+    "src/determinize_teba.cpp": "679d73b3b4c551149586818c8d875424578ef85b27d9ab380a7db4e5fd56bf3e",
+    "src/ltl2dela.cpp": "248d9ddc48bcffa168d93c6b50a83bd021d4948c01e6991b4f8ea9a5e0105c33",
+    "src/ltl2dela.hpp": "5a3e0ae8bdd6d5d88545ecda47d3ed5cd175d471173e833749a9a68ea51f8820",
+    "src/ltl2dela_main.cpp": "b8ad1893de8ed494a0bca503832e920c0c5d1801193acff5e420633e1c728ba9",
+    "src/slaa_frontend.cpp": "3c36b4d70c59c563e86e51974c2aa33f8e33538235c0a0c062b4276d85e70f9d",
+    "src/slaa_frontend.hpp": "ecc3e02cc9d0017309caff5ff5a062ca826f025a7e17476de8eda34198231105",
+    "tests/tela-elevator-driver.cpp": "7f95e8e0f42b525fb73e1f67bc0291c692c9223d2595f5083b4bc313a6f2079c",
+    "tests/generic-elevator.cpp": "9ac6d920fcffb07fd1b86109ca75775ea3ea6d330cfaf13972bb2516cbc3c23e",
+    "tests/slaa-route.py": "cab73262ccc5e1d87e2cbae4f59de1f84c59b681943b4559c36dcf27215aa531",
+    "tests/benchmark-slaa.py": "831c8dd360d537ecf54c2dd98a86f420e8331bf2c4937b3580ea2ef12652179c"
+  },
+  "frontend_flags": [
+    "-D0",
+    "-b0",
+    "-n0",
+    "-l0",
+    "-t0",
+    "-p2"
+  ],
+  "frontend_timeout_seconds": 5,
+  "integrated_input_state_limit": 256,
+  "outer_timeout_seconds": 30,
+  "raw_driver_codes": {
+    "2": "non-elevator",
+    "3": "frontend-inequivalent",
+    "4": "backend-inequivalent",
+    "5": "input-budget",
+    "6": "backend-error"
+  }
+}

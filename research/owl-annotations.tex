@@ -1,0 +1,23 @@
+\subsection{Certified formula annotations in determinisation}
+The OWL frontend now exports labelled HOA. Reconstructed accepting-state
+formulas are certified by independent rooted-state language equivalence.
+Their Boolean abstractions then prove full older-prefix coverage before
+the bounded exact-query policy. Unsupported annotations retain the existing path.
+The original ranked-run and shifted Emerson--Lei acceptance construction is unchanged.
+
+Identical-input off/on ablations contain 1816 outputs across both polarities:
+\begin{center}\begin{tabular}{llrrr}
+Polarity & Algorithm & Paired & Off states & On states\\\hline
+positive & SEJK16 & 225 & 1753 & 1753\\
+positive & EKS20 & 224 & 1998 & 1932\\
+negative & SEJK16 & 222 & 1898 & 1872\\
+negative & EKS20 & 222 & 1493 & 1460\\
+\end{tabular}\end{center}
+Successful raw outputs record 3329 certified annotations and 10182 union pruning events. These are operational counts, not unique languages.
+All 454 integrated outputs pass independent language checks. The completed
+LDGBA-only total changes from 1337 to 1337,
+and the combined total from 1336 to 1336.
+The 26 new regressions exercise joint coverage, exhausted query budgets,
+invalid labels and the indexed formula syntax. Exact formula certification
+does not yet prove the initial-prefix and total-width hypotheses needed for
+the unrestricted LTL counting bound. Timings are diagnostic only.

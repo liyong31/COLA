@@ -1,0 +1,47 @@
+{
+  "base_commit": "5faf7114ebdaf08e637ffd3fc5cc7ac0fbd0d5c6",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "d160c93ada6ded34e5524e299e2a7277510bdb83940cf2edca7984fb6f16beff",
+    "build-local/tests/.libs/tela-elevator-driver": "5875364bcd596b91995330de4f63cbc0ff1fa7af5b85ef74aceaea29e664b54f",
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/src/.libs/libcola.0.dylib": "25872f1943997f793af2ab0fe6d9f3d1465714cab5a0953412739b7567299ddb",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "src/cola.hpp": "2c245dca30087feeff247481dcc984f62fa520cfcd9a209013e3afb94976b70e",
+    "src/determinize_teba.cpp": "e6683ca0dd769ba434686c8e6de242d52573d5ebc8c2cf2d89b464ceb2b1c339",
+    "src/ltl2dela.cpp": "03f18b3b8453a8211edee687d9b1796fe579347cd95bcc9dac50db57469407c1",
+    "src/ltl2dela.hpp": "5e7e2515a9d34dec6a4d31b5e2d3a51fcd1f5c79c54968bdca1be3235de2a00f",
+    "src/ltl2dela_main.cpp": "26da0ceabd2f3768f99d0fa8ba78565f0d3fb23b52a8f7455aed8fe558572792",
+    "src/slaa_frontend.cpp": "f4b30badfbb8fea51e4432060d3fcd568ee2f1a13001b0c1cba5e336fbdbfd7a",
+    "src/slaa_frontend.hpp": "df9906a565cb98ee77e11e1dc891a59fd3b095f3042a59fc0483df9cd27decc3",
+    "tests/tela-elevator-driver.cpp": "b3a256ac42324fb016ee6c60e4a33f0a2986de12f009e0fe6b48c60b7ce9514b",
+    "tests/generic-elevator.cpp": "c96ec751d58c6c7132e37cb779b99e25d979d85c99c811b7a416032fd5583b79",
+    "tests/slaa-route.py": "4dc53e2404708626ac3b74ca7e09ae3e5cc448ca8a26507c7c2e221b8c84002c",
+    "tests/benchmark-slaa.py": "91e649a21ff899b9805b143318a2b3c30fcf1ba14d09d3a642f614516b4f7485"
+  },
+  "frontend_flags": [
+    "-D0",
+    "-b0",
+    "-n0",
+    "-l0",
+    "-t0",
+    "-p2"
+  ],
+  "modes": [
+    "cola_current",
+    "cola_slaa_portfolio",
+    "cola_ldgba",
+    "cola_combined"
+  ],
+  "frontend_timeout_seconds": 5,
+  "integrated_input_state_limit": 256,
+  "outer_timeout_seconds": 30,
+  "raw_driver_codes": {
+    "2": "non-elevator",
+    "3": "frontend-inequivalent",
+    "4": "backend-inequivalent",
+    "5": "input-budget",
+    "6": "backend-error"
+  }
+}

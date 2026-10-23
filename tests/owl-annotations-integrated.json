@@ -1,0 +1,52 @@
+{
+  "ldgba_pruning": true,
+  "ldgba_portfolio": true,
+  "ldgba_annotations": true,
+  "base_commit": "b01db7936c40a6ac6686488ee19db233f680789b",
+  "environment": "tests/ltl-fragment-environment.json",
+  "sha256": {
+    "build-local/.libs/ltl2dela": "4973c7e478f95901a449903cfe5b620edb2596bbdc4e4ebc452419a3177a1abf",
+    "build-local/tests/.libs/tela-elevator-driver": "3d00806eb3f9dcc2731e33546f97f28e2555948f31cfdd25a4d80f8ba316235c",
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "build-local/src/.libs/libcola.0.dylib": "226bd9ec41e65579bc53e01cada5b0e6938429ad3a7c53140eeae1ffe6466fd5",
+    "tests/ltl-fragment-results.csv": "f65d11edf02c1a1e56c52dc1c37549ed115ce5c937de8d252ca6dd78635491f3",
+    "build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "src/cola.hpp": "d3634a56448b762dd3f08918e522dd0f4d3e077a96ba277f59ffe65f13ab6a8b",
+    "src/determinize_teba.cpp": "c077dc95c492d103977f7299324298699dbf596d5ae93745e98ad666292bf064",
+    "src/ltl2dela.cpp": "47c847c955da2656a1540bb62c8fea483a28b6f041e2260f74178af71ac34b18",
+    "src/ltl2dela.hpp": "0142c1956d3b2c8e25b456a28f51df570c0c2d9f0c3078c4b04d7f9226ce7a9e",
+    "src/ltl2dela_main.cpp": "0191dca807e91518e94fce1283d7e627615e5e97f7173bf2780e058a41a2cebe",
+    "src/slaa_frontend.cpp": "d3e60b57fe00ed462d4cba268c1025ef564d60258b35830fc048f7f957b1f647",
+    "src/slaa_frontend.hpp": "df9906a565cb98ee77e11e1dc891a59fd3b095f3042a59fc0483df9cd27decc3",
+    "tests/tela-elevator-driver.cpp": "172c2443e4e513050f708ff734f71f2c0bdbaa04db8badc19454539605aefe33",
+    "tests/generic-elevator.cpp": "8c89916a131460c4d25320c5a919bc8c2ece097aab6731f6787409093503e0d8",
+    "tests/slaa-route.py": "a83f7633e22ccd1e0f5b1fb8e78777e6dd937f25e03bdf3fa42d227489dec1f9",
+    "tests/benchmark-slaa.py": "4987f26bbe5d433d240bb0356568cd8850f3e496fdd234438712730fb4b99c26",
+    "src/colour_choice.cpp": "3f8277552181077f72548fb52cb8786657bce2ac9f731e998e98712499921d87",
+    "src/colour_choice.hpp": "743b5855fb085195e5dd804d466b282c05d37ffb6ce276d1ea2b04d1f18c8d68",
+    "src/cobuchi_weak.cpp": "2573ca77e3da196fd55c9b03d3784c7f76e945de925c114c7817b2dfc3b34b63",
+    "src/cobuchi_weak.hpp": "9d8c5d9fe10bcef593690f4c08387392f9782e4f1b29c6690e3d312fd4fcca19"
+  },
+  "frontend_flags": [
+    "-D0",
+    "-b0",
+    "-n0",
+    "-l0",
+    "-t0",
+    "-p2"
+  ],
+  "modes": [
+    "cola_ldgba",
+    "cola_combined"
+  ],
+  "frontend_timeout_seconds": 5,
+  "integrated_input_state_limit": 256,
+  "outer_timeout_seconds": 30,
+  "raw_driver_codes": {
+    "2": "non-elevator",
+    "3": "frontend-inequivalent",
+    "4": "backend-inequivalent",
+    "5": "input-budget",
+    "6": "backend-error"
+  }
+}

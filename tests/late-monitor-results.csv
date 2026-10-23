@@ -1,0 +1,29 @@
+depth,mode,monitor_mode,formula,status,states,edges,colours,peak_rss_bytes,construction-ms,input-states,monitor-states,skeleton-deterministic-states,raw-states,raw-colours
+0,early,full-history,F(a & XG b) & GF(y),ok,3,9,2,13762560,0.277625,3,1,0,4,2
+0,late,full-history,F(a & XG b) & GF(y),ok,3,9,2,13697024,0.210834,3,1,4,4,2
+0,early,minimised,F(a & XG b) & GF(y),ok,3,9,2,13778944,0.270167,3,1,0,4,2
+0,late,minimised,F(a & XG b) & GF(y),ok,3,9,2,13713408,0.243667,3,1,4,4,2
+1,early,full-history,F(a & XG b) & GF(x & X(y)),ok,4,16,2,13893632,0.416333,6,2,0,8,2
+1,late,full-history,F(a & XG b) & GF(x & X(y)),ok,4,16,2,13795328,0.256875,3,2,4,8,2
+1,early,minimised,F(a & XG b) & GF(x & X(y)),ok,4,16,2,13910016,0.419459,6,2,0,8,2
+1,late,minimised,F(a & XG b) & GF(x & X(y)),ok,4,16,2,13877248,0.267125,3,2,4,8,2
+2,early,full-history,F(a & XG b) & GF(x & X(x & X(y))),ok,6,30,2,14139392,0.636584,12,4,0,16,2
+2,late,full-history,F(a & XG b) & GF(x & X(x & X(y))),ok,6,30,2,13991936,0.270333,3,4,4,16,2
+2,early,minimised,F(a & XG b) & GF(x & X(x & X(y))),ok,6,30,2,14057472,0.550708,9,3,0,12,2
+2,late,minimised,F(a & XG b) & GF(x & X(x & X(y))),ok,6,30,2,13926400,0.302416,3,3,4,12,2
+3,early,full-history,F(a & XG b) & GF(x & X(x & X(x & X(y)))),ok,9,52,2,14581760,1.25633,24,8,0,32,2
+3,late,full-history,F(a & XG b) & GF(x & X(x & X(x & X(y)))),ok,9,52,2,14368768,0.397958,3,8,4,32,2
+3,early,minimised,F(a & XG b) & GF(x & X(x & X(x & X(y)))),ok,9,52,2,14172160,0.722375,12,4,0,16,2
+3,late,minimised,F(a & XG b) & GF(x & X(x & X(x & X(y)))),ok,9,52,2,14041088,0.352292,3,4,4,16,2
+4,early,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(y))))),ok,12,68,2,15777792,2.99779,48,16,0,64,2
+4,late,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(y))))),ok,12,68,2,15155200,0.58775,3,16,4,64,2
+4,early,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(y))))),ok,12,68,2,14303232,0.835791,15,5,0,20,2
+4,late,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(y))))),ok,12,68,2,14221312,0.402417,3,5,4,20,2
+5,early,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(y)))))),ok,15,84,2,17907712,8.50596,96,32,0,128,2
+5,late,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(y)))))),ok,15,84,2,16007168,1.09187,3,32,4,128,2
+5,early,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(y)))))),ok,15,84,2,14516224,1.03996,18,6,0,24,2
+5,late,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(y)))))),ok,15,84,2,14368768,0.496917,3,6,4,24,2
+6,early,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(x & X(y))))))),ok,18,100,2,23019520,28.714,192,64,0,256,2
+6,late,full-history,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(x & X(y))))))),ok,18,100,2,16171008,1.20121,3,64,4,256,2
+6,early,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(x & X(y))))))),ok,18,100,2,15450112,1.58783,21,7,0,28,2
+6,late,minimised,F(a & XG b) & GF(x & X(x & X(x & X(x & X(x & X(x & X(y))))))),ok,18,100,2,15138816,0.661416,3,7,4,28,2

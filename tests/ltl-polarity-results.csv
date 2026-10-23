@@ -1,0 +1,228 @@
+case,sources,formula,tool,status,raw_states,raw_edges,raw_colours,raw_complete,states,edges,colours,elapsed_ms,witness_monitors,witness_aborts,detail,positive_states,reference_tool,negative_raw_states,negative_raw_complete,transform_ms,validation_ms
+5692120cec3d51d9,DwyerAC98.ltl:1;Liberouter04.ltl:5,G!a,cola_neg,ok,2,3,1,1,2,3,1,10.214,,,,2,spot,2,1,19.931,40.309
+a6d16d8192c6b60c,DwyerAC98.ltl:2,G!a | (!b U a),cola_neg,ok,4,7,1,1,4,7,1,9.68,,,,4,spot,3,0,20.299,39.233
+2866e8255221bd10,DwyerAC98.ltl:3,G(!a | G!b),cola_neg,ok,3,6,1,1,3,6,1,9.995,,,,3,spot,3,1,19.836,39.146
+eead6ce02f51d4ac,DwyerAC98.ltl:4,G(!a | b | G!b | (!c U b)),cola_neg,ok,4,9,1,1,4,9,1,9.764,,,,4,spot,4,1,19.953,40.022
+f66153263ccb85ff,DwyerAC98.ltl:5,G(!a | b | (!c W b)),cola_neg,ok,3,7,1,1,3,7,1,9.773,,,,3,spot,3,1,19.072,39.691
+553dbacbb7e77201,DwyerAC98.ltl:6,Fa,cola_neg,ok,2,3,1,1,2,3,1,9.759,,,,2,spot,1,0,19.878,39.844
+4a6549396100da8f,DwyerAC98.ltl:7,!a W (!a & b),cola_neg,ok,3,5,1,1,3,5,1,9.756,,,,3,spot,2,0,19.784,39.359
+b1030c25bfc4215b,DwyerAC98.ltl:8,G!a | F(a & Fb),cola_neg,ok,3,6,1,1,3,6,1,9.773,,,,3,spot,2,0,19.761,39.804
+c757321fc59c4358,DwyerAC98.ltl:9,G(!a | b | (!b W (!b & c))),cola_neg,ok,3,6,1,1,3,6,1,9.823,,,,3,spot,3,1,20.187,63.042
+bbc347ca9ed4c438,DwyerAC98.ltl:10,G(!a | b | (!b U (!b & c))),cola_neg,ok,3,6,1,1,3,6,1,9.802,,,,3,spot,3,1,19.935,39.769
+9ffc4925fee594eb,DwyerAC98.ltl:11,!a W (a W (!a W (a W G!a))),cola_neg,ok,6,11,1,1,6,11,1,9.804,,,,6,spot,6,1,19.524,39.745
+73a260d67b62c09e,DwyerAC98.ltl:12,G!a | ((!a & !b) U (a | ((!a & b) U (a | ((!a & !b) U (a | ((!a & b) U (a | (!b U a))))))))),cola_neg,ok,8,19,1,1,8,19,1,9.765,,,,8,spot,7,0,20.045,39.868
+39fcacd5a2625bfd,DwyerAC98.ltl:13,G!a | (!a U (a & (!b W (b W (!b W (b W G!b)))))),cola_neg,ok,7,14,1,1,7,14,1,9.758,,,,7,spot,7,1,20.039,40.365
+27e2c5303de73c11,DwyerAC98.ltl:14,G(!a | G!b | ((!b & !c) U (b | ((!b & c) U (b | ((!b & !c) U (b | ((!b & c) U (b | (!c U b)))))))))),cola_neg,ok,8,21,1,1,8,21,1,9.905,,,,8,spot,8,1,20.631,40.973
+79b024063cd53a16,DwyerAC98.ltl:15,G(!a | ((!b & !c) U (c | ((b & !c) U (c | ((!b & !c) U (c | ((b & !c) U (c | (!b W c) | Gb))))))))),cola_neg,ok,24,91,6,1,24,91,6,20.142,,,,7,spot,24,1,19.284,40.893
+ab8f46084b4fa0fc,DwyerAC98.ltl:16,Ga,cola_neg,ok,2,3,1,1,2,3,1,9.916,,,,2,spot,2,1,19.129,40.736
+cc854b1116503ee6,DwyerAC98.ltl:17,G!a | (b U a),cola_neg,ok,4,7,1,1,4,7,1,9.716,,,,4,spot,3,0,21.111,54.17
+a7449a6ffd513e25,DwyerAC98.ltl:18,G(!a | Gb),cola_neg,ok,3,6,1,1,3,6,1,9.765,,,,3,spot,3,1,19.871,39.605
+2eb6d1aceaa9db53,DwyerAC98.ltl:19,G(!a | b | G!b | (c U b)),cola_neg,ok,4,9,1,1,4,9,1,9.872,,,,4,spot,4,1,19.743,39.862
+3126d1f1cbb098b5,DwyerAC98.ltl:20,G(!a | b | (c W b)),cola_neg,ok,3,7,1,1,3,7,1,9.825,,,,3,spot,3,1,20.212,40.05
+d7ee5ccbe59cce73,DwyerAC98.ltl:21,!a W b,cola_neg,ok,3,5,1,1,3,5,1,9.975,,,,3,spot,2,0,20.111,40.364
+76945dff41bb85b6,DwyerAC98.ltl:22,G!a | (!b U (a | c)),cola_neg,ok,4,7,1,1,4,7,1,9.938,,,,4,spot,3,0,19.33,40.614
+679ab30da280a6ee,DwyerAC98.ltl:23,G!a | F(a & (!b W c)),cola_neg,ok,4,11,1,1,4,11,1,9.973,,,,4,spot,3,0,20.048,40.288
+55f828d32b2aec95,DwyerAC98.ltl:24,G(!a | b | G!b | (!c U (b | d))),cola_neg,ok,4,9,1,1,4,9,1,9.779,,,,4,spot,4,1,19.929,39.909
+8acafd812e8aa837,DwyerAC98.ltl:25,G(!a | b | (!c W (b | d))),cola_neg,ok,3,7,1,1,3,7,1,9.795,,,,3,spot,3,1,19.927,40.041
+9879d46010f18da9,DwyerAC98.ltl:26;Liberouter04.ltl:10;Pelanek07.ltl:1;SomenziB00.ltl:15,G(!a | Fb),cola_neg,ok,2,4,1,1,2,4,1,9.843,,,,2,spot,2,1,20.041,40.162
+33d8fbea6de9ff60,DwyerAC98.ltl:27,G!a | ((!b | (!a U (!a & c))) U a),cola_neg,ok,4,8,1,1,4,8,1,9.84,,,,4,spot,3,0,20.055,39.645
+2e0eb5c812db6d2a,DwyerAC98.ltl:28,G(!a | G(!b | Fc)),cola_neg,ok,3,7,1,1,3,7,1,10.134,,,,3,spot,3,1,20.394,40.323
+f7b5a577dff2803f,DwyerAC98.ltl:29,G(!a | b | G!b | ((!c | (!b U (!b & d))) U b)),cola_neg,ok,4,10,1,1,4,10,1,9.889,,,,4,spot,4,1,19.844,41.426
+ecd24e613adaf66f,DwyerAC98.ltl:30,G(!a | b | ((!c | (!b U (!b & d))) W b)),cola_neg,ok,4,10,1,1,4,10,1,38.572,,,,4,spot,4,1,20.01,40.051
+e6b129f38a62f926,DwyerAC98.ltl:31,G!a | (!a U (!a & b & X(!a U c))),cola_neg,ok,4,8,1,1,4,8,1,9.83,,,,4,spot,3,0,20.002,40.044
+6c59346586ee8f29,DwyerAC98.ltl:32,G!a | (!b U (a | (!b & c & X(!b U d)))),cola_neg,ok,5,11,1,1,5,11,1,9.976,,,,5,spot,4,0,20.17,40.222
+8a29e9dfa4c5ae39,DwyerAC98.ltl:33,G!a | (!a U (!a | G!b | (!b U (!b & c & X(!b U d))))),cola_neg,ok,5,12,1,1,5,12,1,9.791,,,,5,spot,4,0,20.26,40.139
+ac54d4e89fe7569a,DwyerAC98.ltl:34,G(!a | G!b | (!c U (b | (!c & d & X(!c U e))))),cola_neg,ok,5,15,1,1,5,15,1,9.811,,,,5,spot,5,1,19.856,39.961
+7910727a6e29e385,DwyerAC98.ltl:35,G(!a | G!b | (!b U (c | (!b & d & X(!b U e))))),cola_neg,ok,4,13,1,1,4,13,1,9.861,,,,4,spot,4,1,20.543,40.279
+b81b4b3ba35e8e0d,DwyerAC98.ltl:36,(!a U b) | G(!a | XG!c),cola_neg,ok,4,7,1,1,4,7,1,9.792,,,,4,spot,3,0,19.476,40.416
+4ae6be136238db27,DwyerAC98.ltl:37,G!a | ((a | !b | X(a R (a | !c))) U (a | d)),cola_neg,ok,5,10,1,1,5,10,1,9.899,,,,5,spot,4,0,20.216,40.777
+d7355a1a969f3a81,DwyerAC98.ltl:38,G!a | (!a U (a & ((!b U c) | G(!b | XG!d)))),cola_neg,ok,5,11,1,1,5,11,1,10.057,,,,5,spot,4,0,20.064,40.023
+e95c4ef9b1694d67,DwyerAC98.ltl:39,G(!a | G!b | ((b | !c | X(b R (b | !d))) U (b | e))),cola_neg,ok,5,12,1,1,5,12,1,9.971,,,,5,spot,5,1,20.185,40.481
+35d3fe2c4e9263cd,DwyerAC98.ltl:40,G(!a | ((b | !c | X(b R (b | !d))) U (b | e)) | G(!c | XG!d)),cola_neg,ok,4,10,1,1,4,10,1,9.808,,,,4,spot,4,1,20.058,39.702
+9ec3e172d979518e,DwyerAC98.ltl:41,G(!a | XG!b | XF(b & Fc)),cola_neg,ok,4,14,1,1,4,14,1,9.761,,,,4,spot,4,1,19.867,40.614
+d1119c5caaad63ae,DwyerAC98.ltl:42,G!a | ((!b | X(!a U (c & Fd)) | X(a R !c)) U a),cola_neg,ok,6,24,1,1,6,24,1,10.074,,,,6,spot,5,0,20.571,40.254
+9d3afa270e78db0f,DwyerAC98.ltl:43,G(!a | G(!b | XG!c | X(!c U (c & Fd)))),cola_neg,ok,5,17,1,1,5,17,1,9.884,,,,5,spot,5,1,20.203,67.745
+8c4595fd5a27c2d4,DwyerAC98.ltl:44,G(!a | G!b | ((!c | X(!b U (d & Fe)) | X(b R !d)) U b)),cola_neg,ok,8,42,1,1,8,42,1,10.051,,,,8,spot,8,1,19.446,40.478
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),cola_neg,ok,6,30,1,1,6,30,1,9.807,,,,17,spot,6,1,19.462,39.72
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),cola_neg,ok,4,14,1,1,4,14,1,9.751,,,,6,spot,4,1,19.739,40.093
+529f9e75f39faef7,DwyerAC98.ltl:47,G!a | ((!b | (!a U (!a & c & X(!a U d)))) U a),cola_neg,ok,5,14,1,1,5,14,1,9.988,,,,5,spot,4,0,20.32,39.828
+03ef1399a87a315d,DwyerAC98.ltl:48,G(!a | G(!b | (c & XFd))),cola_neg,ok,4,12,1,1,4,12,1,9.879,,,,4,spot,4,1,19.422,39.896
+264e0b39698549ca,DwyerAC98.ltl:49,G(!a | G!b | ((!c | (!b U (!b & d & X(!b U e)))) U b)),cola_neg,ok,5,17,1,1,5,17,1,9.824,,,,5,spot,5,1,19.991,39.964
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),cola_neg,ok,691,11191,19,1,691,11191,19,291.665,,,,12,spot,691,1,40.377,80.644
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),cola_neg,ok,4,16,1,1,4,16,1,9.9,,,,6,spot,4,1,19.837,39.013
+4b607054323f1074,DwyerAC98.ltl:52,G!a | ((!b | (!a U (!a & c & !d & X((!a & !d) U e)))) U a),cola_neg,ok,5,14,1,1,5,14,1,9.816,,,,5,spot,4,0,19.603,39.906
+9306fe1b2c28ab61,DwyerAC98.ltl:53,G(!a | G(!b | (c & !d & X(!d U e)))),cola_neg,ok,4,12,1,1,4,12,1,9.807,,,,4,spot,4,1,19.941,40.035
+59aa7b4eb7604471,DwyerAC98.ltl:54,G(!a | G!b | ((!c | (!b U (!b & d & !e & X((!b & !e) U f)))) U b)),cola_neg,ok,5,17,1,1,5,17,1,9.785,,,,5,spot,5,1,55.575,40.023
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),cola_neg,ok,1788,34508,19,1,1788,34508,19,891.303,,,,13,spot,1788,1,80.6,120.08
+60b60699e29e4998,EtessamiH00.ltl:1,a U (b & Gc),cola_neg,ok,4,11,1,1,4,11,1,9.862,,,,4,spot,4,1,19.833,39.378
+1b544cce42d5de75,EtessamiH00.ltl:2,a U (b & X(c U d)),cola_neg,ok,5,14,1,1,5,14,1,9.847,,,,5,spot,4,0,20.213,40.275
+84d6b8d4dae50cf6,EtessamiH00.ltl:3,a U (b & X(c & F(d & XF(e & XF(f & XFg))))),cola_neg,ok,9,23,1,1,9,23,1,9.152,,,,9,spot,8,0,19.824,39.909
+418c9bb5aaa65762,EtessamiH00.ltl:4,F(a & XGb),cola_neg,ok,2,5,1,1,2,5,1,9.785,,,,2,spot,2,1,20.245,39.842
+56d9cae76f5efef6,EtessamiH00.ltl:5,F(a & X(b & XFc)),cola_neg,ok,4,8,1,1,4,8,1,9.847,,,,4,spot,3,0,20.069,40.131
+4ce51c0b25ef77c3,EtessamiH00.ltl:6,F(a & X(b U c)),cola_neg,ok,3,6,1,1,3,6,1,9.862,,,,3,spot,2,0,20.112,63.322
+e210e35d45f049a7,EtessamiH00.ltl:7,FGa | GFb,cola_neg,ok,1,3,2,1,1,3,2,10.161,,,,1,spot,1,1,19.875,39.887
+e0ec3163f6fcf72a,EtessamiH00.ltl:8,G(!a | (b U c)),cola_neg,ok,3,7,1,1,3,7,1,9.818,,,,3,spot,3,1,19.485,40.49
+c1ec81d31d6360d9,EtessamiH00.ltl:9,G(a & XF(b & XF(c & XFd))),cola_neg,ok,2,10,3,1,2,10,3,9.925,,,,2,spot,2,1,19.757,39.248
+8483a5e66eb9e5ea,EtessamiH00.ltl:10;Parametrised.ltl:24,GFa & GFb & GFc & GFd & GFe,cola_neg,ok,1,32,5,1,1,32,5,9.76,,,,1,spot,1,1,19.661,39.68
+2677adf0d9be4cb1,EtessamiH00.ltl:11,(a U (b U c)) | (b U (c U a)) | (c U (a U b)),cola_neg,ok,3,4,1,1,3,4,1,9.822,,,,3,spot,2,0,20.027,39.683
+2789d05d7c8d0641,EtessamiH00.ltl:12,G(!a | (b U (Gc | Gd))),cola_neg,ok,486,6474,11,1,486,6474,11,129.955,,,,6,spot,486,1,40.181,40.302
+5fb4747bb3b9e25b,Liberouter04.ltl:1,G(Fa & F!a),cola_neg,ok,1,2,2,1,1,2,2,9.935,,,,1,spot,1,1,19.957,39.571
+cfb9e789e92a9cae,Liberouter04.ltl:2,GFa & GF!a,cola_neg,ok,1,2,2,1,1,2,2,9.805,,,,1,spot,1,1,19.979,40.141
+244d6c2248dfc5c5,Liberouter04.ltl:3,GF((a & X!a) | (!a & Xa) | (b & X!b) | (!b & Xb)),cola_neg,ok,4,16,1,1,4,16,1,9.869,,,,4,spot,4,1,19.658,40.209
+e80b71f3cd5162c3,Liberouter04.ltl:4,GF((a & X!a) | (!a & Xa) | (b & X!b) | (!b & Xb) | (c & X!c) | (!c & Xc) | (d & X!d) | (!d & Xd)),cola_neg,ok,16,256,1,1,16,256,1,9.476,,,,16,spot,16,1,19.74,40.218
+6805df0556c3b23c,Liberouter04.ltl:6,G((!a | F!a) & (a | Fa)),cola_neg,ok,1,2,2,1,1,2,2,9.786,,,,1,spot,1,1,20.021,39.796
+64bae9ba1f54a0e5,Liberouter04.ltl:7,G(!a | F(a & b)),cola_neg,ok,2,4,1,1,2,4,1,9.851,,,,2,spot,2,1,20.008,40.009
+a3358f1f581f8d59,Liberouter04.ltl:8,G(!a | F(a | !b | !c | !d | Fe)),cola_neg,ok,1,1,1,1,1,1,1,9.789,,,,1,spot,1,0,45.808,40.205
+0182346bb088af0a,Liberouter04.ltl:9,G(!a | F!b),cola_neg,ok,2,4,1,1,2,4,1,9.471,,,,2,spot,2,1,19.382,41.27
+46c3e3e63d6bb2e3,Liberouter04.ltl:11,G(!a | F(!b | Fc)),cola_neg,ok,2,4,1,1,2,4,1,9.856,,,,2,spot,2,1,20.111,39.868
+4aa561bd1a6c4bfa,Liberouter04.ltl:12,G(!a | F(!b | !c | Fd)),cola_neg,ok,2,4,1,1,2,4,1,9.357,,,,2,spot,2,1,19.197,39.774
+767110bb5219c37f,Liberouter04.ltl:13,G((!a | Fb) & (!c | Fd) & (!e | Ff) & (!g | Fh)),cola_neg,ok,65,1040,1,1,65,1040,1,35.402,,,,16,spot,65,1,20.088,39.983
+e3eb2d9b5f971855,Liberouter04.ltl:14,G(!a & !b),cola_neg,ok,2,3,1,1,2,3,1,9.759,,,,2,spot,2,1,19.831,39.372
+b07e88b570e69e55,Liberouter04.ltl:15;Liberouter04.ltl:17,G(!a | !b),cola_neg,ok,2,3,1,1,2,3,1,9.932,,,,2,spot,2,1,19.858,40.279
+f122c55ab6ebac23,Liberouter04.ltl:16,G(!a | b),cola_neg,ok,2,3,1,1,2,3,1,9.97,,,,2,spot,2,1,18.919,40.214
+d84c54c0e51e410f,Liberouter04.ltl:18,G(a | (b & !c) | (!b & c)),cola_neg,ok,2,3,1,1,2,3,1,9.166,,,,2,spot,2,1,19.907,39.722
+6cc360c6914a6457,Liberouter04.ltl:19,G(a | b | (!c & !d & !e)),cola_neg,ok,2,3,1,1,2,3,1,9.868,,,,2,spot,2,1,19.952,39.886
+0e172564cf47dc11,Liberouter04.ltl:20,G(!a | !b | c | !d | !e),cola_neg,ok,2,3,1,1,2,3,1,9.939,,,,2,spot,2,1,20.088,39.512
+a7dab8b09265184e,Liberouter04.ltl:21,G(a | !b | c | d | e | F(!f & !g & !h & !i)),cola_neg,ok,2,4,1,1,2,4,1,9.834,,,,2,spot,2,1,20.13,40.086
+d8bb954d926c82b1,Liberouter04.ltl:22,G(!a | !b | c | d | e | F(f & !g & !h & !i)),cola_neg,ok,2,4,1,1,2,4,1,9.27,,,,2,spot,2,1,19.968,39.665
+3051f3fe74e26edb,Liberouter04.ltl:23;Liberouter04.ltl:24,G(a | !b | !c | !d | !e | !f),cola_neg,ok,2,3,1,1,2,3,1,9.87,,,,2,spot,2,1,20.058,40.302
+e1001febe275c9c6,Liberouter04.ltl:25,G(!a | !b | c | d | !e | !f),cola_neg,ok,2,3,1,1,2,3,1,24.472,,,,2,spot,2,1,20.023,41.091
+82461575563b7d89,Liberouter04.ltl:26,G(a | (!b & c) | (b & !c) | (!d & !e & !f & !g)),cola_neg,ok,2,3,1,1,2,3,1,9.771,,,,2,spot,2,1,20.419,40.034
+90c5457e5cbb78f0,Liberouter04.ltl:27,G(!a | !b | c | d | e | !f | !g),cola_neg,ok,2,3,1,1,2,3,1,8.923,,,,2,spot,2,1,20.023,40.119
+864e9ff4d99faa80,Liberouter04.ltl:28,G(!a | !b | c | d | e | f | !g | !h),cola_neg,ok,2,3,1,1,2,3,1,9.243,,,,2,spot,2,1,19.906,39.228
+704a2b3999c4a013,Liberouter04.ltl:29,G(!a | !b | c | X!c | X(d | X(!b | d))),cola_neg,ok,4,9,1,1,4,9,1,9.744,,,,4,spot,4,1,20.143,39.147
+4b11ce2f62dc99ee,Liberouter04.ltl:30,G(!a | !b | c | X!c | X(X!b | (c U (!c U (c U (!b | d)))))),cola_neg,ok,6,18,1,1,6,18,1,9.794,,,,6,spot,6,1,19.881,39.812
+bfda554eb60bbc09,Liberouter04.ltl:31,X(X!a | (b U (!b U (b U (!a | c))))) | F(!a | b | !d | X!b),cola_neg,ok,1,1,1,1,1,1,1,9.828,,,,1,spot,1,0,19.268,38.811
+e4e9c6c3ac6db881,Liberouter04.ltl:32,G(!a | (b U (!b U (!c | d)))),cola_neg,ok,4,10,1,1,4,10,1,10.053,,,,4,spot,4,1,19.787,39.782
+bc58989b5be22c67,Liberouter04.ltl:33,G(!a | (b U (!b U (c | d)))),cola_neg,ok,4,10,1,1,4,10,1,9.575,,,,4,spot,4,1,19.397,40.487
+182ae3be38164b3f,Liberouter04.ltl:34,G(a | !b | Xc),cola_neg,ok,3,6,1,1,3,6,1,9.938,,,,3,spot,3,1,20.033,39.949
+f717f817134ae7cb,Liberouter04.ltl:35,G(!a | X(a | b)),cola_neg,ok,3,6,1,1,3,6,1,9.959,,,,3,spot,3,1,19.556,40.242
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),cola_neg,ok,34,337,1,1,34,337,1,19.645,,,,50,spot,34,1,20.1,41.681
+317195df82a4a5ba,Liberouter04.ltl:37,G(!a | b | !c | X!b | X!a | Xd),cola_neg,ok,3,6,1,1,3,6,1,9.728,,,,3,spot,3,1,19.864,39.991
+0861d9465fecdad4,Liberouter04.ltl:38,G(!a | X(!a U b)),cola_neg,ok,3,7,1,1,3,7,1,9.839,,,,3,spot,3,1,20.298,39.859
+ee2ad384c6103208,Liberouter04.ltl:39,G(a | X!a | X((a U b) | Ga)),cola_neg,ok,4,10,1,1,4,10,1,33.385,,,,4,spot,4,1,19.854,40.788
+f3d451f91bc3ba74,Liberouter04.ltl:40,G(a | X!a | X(a U (a & !b & X(a & b)))),cola_neg,ok,5,12,1,1,5,12,1,10.059,,,,6,spot,5,1,20.157,39.648
+c9a27b6c15d79755,Liberouter04.ltl:41,G(a | X!a | X(a U (a & !b & X(a & b & (a U (a & !b & X(a & b))))))),cola_neg,ok,7,18,1,1,7,18,1,9.893,,,,8,spot,7,1,19.713,40.303
+d36f25b8a750adcd,Liberouter04.ltl:42,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b))))))),cola_neg,ok,7,18,1,1,7,18,1,9.908,,,,8,spot,7,1,19.038,39.659
+1de10d467b2cb443,Liberouter04.ltl:43,G(!a | Xa | X(!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b & (!a U (!a & !b & X(!a & b)))))))))),cola_neg,ok,9,24,1,1,9,24,1,9.038,,,,10,spot,9,1,19.877,39.754
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),cola_neg,ok,7,21,1,1,7,21,1,9.703,,,,9,spot,7,1,19.975,40.078
+bc41ed854cba0f3f,Liberouter04.ltl:45,G(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X(!a | X!a))))))))))),cola_neg,ok,13,25,1,1,13,25,1,9.835,,,,13,spot,13,1,19.923,40.264
+480e47613ade0489,Liberouter04.ltl:46,G((!a & Xa) | (b & Xb) | (!b & X!b)),cola_neg,ok,6,19,1,1,6,19,1,9.341,,,,6,spot,6,1,20.025,39.645
+927cd57047f44cf2,Liberouter04.ltl:47,G((!a & Xa) | ((!b | Xb) & (b | X!b))),cola_neg,ok,6,19,1,1,6,19,1,9.588,,,,6,spot,6,1,20.195,39.921
+9911c0250875fcb4,Liberouter04.ltl:48,!a U G((!b | !c) & (!d | !e) & (!c | !d) & (!c | !e) & (!b | !e) & (!b | !d)),cola_neg,ok,3,7,1,1,3,7,1,9.808,,,,3,spot,3,1,20.182,39.747
+53fd9ff7990323b2,Liberouter04.ltl:49,!a U b,cola_neg,ok,3,5,1,1,3,5,1,9.846,,,,3,spot,2,0,19.767,39.258
+23e3d9bf5c928f0a,Liberouter04.ltl:50,(a U b) | Ga,cola_neg,ok,3,5,1,1,3,5,1,9.804,,,,3,spot,2,0,19.996,39.663
+9bfca293cd919324,Liberouter04.ltl:51,a & XG!a,cola_neg,ok,3,5,1,1,3,5,1,9.859,,,,3,spot,3,1,19.878,39.964
+e1146600db1b4b12,Liberouter04.ltl:52,XG(!a | G!b | (X!b U c)),cola_neg,ok,5,11,1,1,5,11,1,9.804,,,,5,spot,5,1,20.171,39.845
+49bcbb560cd1b79d,Liberouter04.ltl:53,XG(!a | b | G!b | (!b U c)),cola_neg,ok,4,7,1,1,4,7,1,44.791,,,,4,spot,4,1,20.58,40.726
+0bc9d6a00c0ec0f8,Liberouter04.ltl:54,XG(!a | !b | (b U c) | Gb),cola_neg,ok,4,7,1,1,4,7,1,9.79,,,,4,spot,4,1,20.038,39.854
+1813cc529903a4c6,Liberouter04.ltl:55,Xa & G(a | X!a | XXa),cola_neg,ok,6,11,1,1,6,11,1,9.833,,,,6,spot,6,1,19.929,39.837
+53c50e82c537bb01,Parametrised-Hardness.ltl:1,a & X(b | c | d) & (!d U (d & X((b | c) & XGa))) & F(a & X(!a & (((b & F(d & Fb)) | (c & F(d & Fc))) U a))) & G((!b & !c) | X(a & X(b | c | d | Ga))) & G((!b & !c) | (!a & !d)) & G(!a | !d) & G(!b | !c),cola_neg,ok,13,31,1,1,13,31,1,19.795,,,,13,spot,13,1,19.888,40.075
+132b3878df992f3f,Parametrised-Hardness.ltl:2,a & X(b | c | d) & G(!a | !d) & (!d U (d & X((b | c) & XXGa))) & F(a & X(!a & (((b & F(d & Fb)) | (c & F(d & Fc)) | (e & F(d & Fe)) | (f & F(d & Ff))) U a))) & G((!b & !c) | X(e | f)) & G((!e & !f) | X(a & X(b | c | d | Ga))) & G((!a & !d) | (!b & !c & !e & !f)) & G((!b | !c) & (!e | !f)),cola_neg,translation-timeout,,,,,,,,,,,translation exceeded 30 seconds,83,delag,,,,
+aed1ff1ab67c64c0,Parametrised-Hardness.ltl:3,a & X(b | c) & (!b U (b & X(c & XXGa))) & G(!c | X((d | e) & X(a & X(b | c | Ga)))) & F(a & X(!a & ((!c | X((d & F(b & F(c & Xd))) | (e & F(b & F(c & Xe))))) U a))) & G((!c | !d) & (!a | !b) & (!a | !c) & (!a | !d) & (!b | !c) & (!b | !d) & (!d | !e) & (!a | !e) & (!b | !e) & (!c | !e)),cola_neg,ok,20,45,1,1,20,45,1,77.454,,,,20,spot,20,1,19.681,40.016
+2e77a18c2cca44c0,Parametrised-Hardness.ltl:4,a & X(b | c) & (!b U (b & X(c & XXXXGa))) & G(!c | X((d | e) & Xf)) & G(!f | X((d | e) & X(a & X(b | c | Ga)))) & F(a & X(!a & (((!c | X((d & F(b & F(c & Xd))) | (e & F(b & F(c & Xe))))) & (!f | X((d & F(b & F(f & Xd))) | (e & F(b & F(f & Xe)))))) U a))) & G((!c | !d) & (!a | !b) & (!a | !c) & (!a | !d) & (!b | !c) & (!b | !d) & (!d | !e) & (!a | !e) & (!b | !e) & (!c | !e) & (!d | !f) & (!e | !f) & (!a | !f) & (!b | !f) & (!c | !f)),cola_neg,translation-timeout,,,,,,,,,,,translation exceeded 30 seconds,148,delag,,,,
+5d22387807a846f9,Parametrised-Hardness.ltl:5,G((!c | !d) & (!a | !b) & (!a | !c) & (!a | !d) & (!b | !c) & (!b | !d)) & (!a U (a & X((b | c) & XGd))) & F(d & XXd & ((Xb & G(!a | Xb)) | (Xc & G(!a | Xc)))),cola_neg,ok,16,52,1,1,16,52,1,184.435,,,,16,spot,16,1,19.99,40.311
+00933a5579a09223,Parametrised-Hardness.ltl:6,G((!c | !d) & (!a | !b) & (!a | !c) & (!a | !d) & (!b | !c) & (!b | !d)) & (!b U (b & X((c | d) & X((c | d) & XGa)))) & F(a & ((Xc & G(!b | Xc)) | (Xd & G(!b | Xd))) & XXXa & ((XXc & G(!b | XXc)) | (XXd & G(!b | XXd)))),cola_neg,translation-timeout,,,,,,,,,,,translation exceeded 30 seconds,107,spot,,,,
+9c50b109125ecff1,Parametrised-Hardness.ltl:7,(FGa & GFb) | FGc | GFd,cola_neg,ok,1,7,4,1,1,7,4,9.839,,,,1,spot,1,1,20.14,40.069
+b34084ec74fdfe24,Parametrised-Hardness.ltl:8,(FGa & GFb) | (FGc & GFd & (FGe | GFf)),cola_neg,ok,1,21,6,1,1,21,6,9.931,,,,1,spot,1,1,38.277,40.061
+c95431c75fe47347,Parametrised-Hardness.ltl:9,(FGa & GFb) | (((FGc & GFd) | FGe | GFf) & (FGg | GFh)),cola_neg,ok,1,63,8,1,1,63,8,9.8,,,,1,spot,1,1,20.078,39.556
+b89d6da934eb6c3e,Parametrised-Hardness.ltl:10,FGa & GFb & (FGc | GFd),cola_neg,ok,1,7,4,1,1,7,4,9.843,,,,1,spot,1,1,19.88,39.323
+2785983c22a99eda,Parametrised-Hardness.ltl:11,((FGa & GFb) | FGc | GFd) & (FGe | GFf),cola_neg,ok,1,21,6,1,1,21,6,9.725,,,,1,spot,1,1,19.927,39.689
+e75238fb296ad88a,Parametrised-Hardness.ltl:12,((FGa & GFb) | (FGc & GFd & (FGe | GFf))) & (FGg | GFh),cola_neg,ok,1,63,8,1,1,63,8,9.85,,,,1,spot,1,1,19.884,39.71
+3f771d014ff89adb,Parametrised-Hardness.ltl:13,!a & b & G(!b | Xb) & G(a | !b | (Xa & X((!b & ((a & Xa) | (!a & X!a))) U b))) & G(!a | !b | (X!a & X((a & !b & X!a) U (b | (!a & !b & Xa & X((!b & ((a & Xa) | (!a & X!a))) U b)))))),cola_neg,ok,3,5,1,1,3,5,1,9.737,,,,3,spot,3,1,20.082,40.031
+c3a36cb898074687,Parametrised-Hardness.ltl:14,!a & b & X!a & G(!b | (XXb & X!b)) & G(a | !b | (XXa & X((!b & ((a & XXa) | (!a & XX!a))) U b))) & G(!a | !b | (XX!a & X((a & !b & XX!a) U (b | (!a & !b & XXa & X((!b & ((a & XXa) | (!a & XX!a))) U b)))))),cola_neg,ok,9,17,1,1,9,17,1,9.886,,,,9,spot,9,1,19.86,39.424
+16b1044cbafbad4d,Parametrised-Hardness.ltl:15,!a & b & G(!b | Xb) & G(a | !b | (!c & Xa)) & G(!a | !b | (c & X!a)) & G(c | Xb | (X!c & ((Xa & XXa) | (X!a & XX!a)))) & G(!c | ((Xa | (XXa & X!c)) & (X!a | (Xc & XX!a)))),cola_neg,ok,3,5,1,1,3,5,1,9.754,,,,3,spot,3,1,20.947,40.914
+9e47e92bdbcc7394,Parametrised-Hardness.ltl:16,!a & b & X!a & G(!b | (XXb & X!b)) & G(a | !b | (!c & XXa)) & G(!a | !b | (c & XX!a)) & G(c | Xb | (X!c & ((Xa & XXXa) | (X!a & XXX!a)))) & G(!c | ((Xa | (X!c & XXXa)) & (X!a | (Xc & XXX!a)))),cola_neg,ok,9,17,1,1,9,17,1,9.967,,,,9,spot,9,1,19.996,39.727
+72910c8626420245,Parametrised-Hardness.ltl:17,!a & b & G(!b | Xb) & G(a | !b | (!c & Xa)) & G(!a | !b | (c & X!a)) & G(c | Xb | X(!c & ((a & Xa) | (!a & X!a)))) & G(!c | X((a | (!c & Xa)) & (!a | (c & X!a)))),cola_neg,ok,3,5,1,1,3,5,1,9.968,,,,3,spot,3,1,19.22,40.54
+e5b17ad91d8a9298,Parametrised-Hardness.ltl:18,!a & b & X!a & G(a | !b | (!c & XXa)) & G(!a | !b | (c & XX!a)) & G(!b | X(!b & Xb)) & G(c | Xb | X(!c & ((a & XXa) | (!a & XX!a)))) & G(!c | X((a | (!c & XXa)) & (!a | (c & XX!a)))),cola_neg,ok,9,17,1,1,9,17,1,9.867,,,,9,spot,9,1,19.997,39.929
+21f53db2ddd6028e,Parametrised-Hardness.ltl:19,!a & b & G(!b | Xb) & G(a | !b | X(a & ((!b & ((a & Xa) | (!a & X!a))) U b))) & G(!a | !b | X(!a & ((a & !b & X!a) U (b | (!a & !b & X(a & ((!b & ((a & Xa) | (!a & X!a))) U b))))))),cola_neg,ok,3,5,1,1,3,5,1,9.96,,,,3,spot,3,1,19.851,39.848
+7f344fcd6239269b,Parametrised-Hardness.ltl:20,!a & b & X!a & G(!b | X(!b & Xb)) & G(a | !b | X(Xa & ((!b & ((a & XXa) | (!a & XX!a))) U b))) & G(!a | !b | X(X!a & ((a & !b & XX!a) U (b | (!a & !b & X(Xa & ((!b & ((a & XXa) | (!a & XX!a))) U b))))))),cola_neg,ok,9,17,1,1,9,17,1,9.345,,,,9,spot,9,1,19.217,39.954
+22103fd8b77ffbd8,Parametrised.ltl:1,(a U b) U c,cola_neg,ok,5,14,1,1,5,14,1,11.014,,,,5,spot,4,0,19.945,39.751
+69afbc6b67a99593,Parametrised.ltl:2,((a U b) U c) U d,cola_neg,ok,9,42,1,1,9,42,1,9.776,,,,9,spot,8,0,21.569,62.634
+926ebf81e28ab5cf,Parametrised.ltl:3,(((a U b) U c) U d) U e,cola_neg,ok,17,132,1,1,17,132,1,9.868,,,,17,spot,16,0,19.749,39.872
+917b036f29d4f293,Parametrised.ltl:4,(a R b) R c,cola_neg,ok,5,14,1,1,5,14,1,9.761,,,,5,spot,4,0,19.893,39.971
+bb4a9fe479736582,Parametrised.ltl:5,((a R b) R c) R d,cola_neg,ok,9,42,1,1,9,42,1,9.905,,,,9,spot,8,0,19.819,39.97
+b36fa258be5b3153,Parametrised.ltl:6,(((a R b) R c) R d) R e,cola_neg,ok,17,132,1,1,17,132,1,9.714,,,,17,spot,16,0,21.387,39.676
+4e9d4a1910a72815,Parametrised.ltl:7;SomenziB00.ltl:2,a U (b U c),cola_neg,ok,4,9,1,1,4,9,1,9.897,,,,4,spot,3,0,20.118,39.919
+19f8e506a5154975,Parametrised.ltl:8,a U (b U (c U d)),cola_neg,ok,5,14,1,1,5,14,1,9.271,,,,5,spot,4,0,19.767,40.008
+94f4f119ef22e3d9,Parametrised.ltl:9,a U (b U (c U (d U e))),cola_neg,ok,6,20,1,1,6,20,1,9.862,,,,6,spot,5,0,20.656,40.89
+ebff45a24dabd4c5,Parametrised.ltl:10,a R (b R c),cola_neg,ok,4,9,1,1,4,9,1,9.838,,,,4,spot,3,0,19.686,39.859
+991139c7649a005d,Parametrised.ltl:11,a R (b R (c R d)),cola_neg,ok,5,14,1,1,5,14,1,9.761,,,,5,spot,4,0,19.961,39.777
+1ae54fe4413cccd3,Parametrised.ltl:12,a R (b R (c R (d R e))),cola_neg,ok,6,20,1,1,6,20,1,9.85,,,,6,spot,5,0,20.029,40.018
+166875440c1e3556,Parametrised.ltl:13,G(!a | (a U b)),cola_neg,ok,3,6,1,1,3,6,1,9.724,,,,3,spot,3,1,20.366,39.733
+35a34afce9e752da,Parametrised.ltl:14,G(!a | (a U (b & (b U c)))),cola_neg,ok,5,19,1,1,5,19,1,10.002,,,,5,spot,5,1,19.988,39.889
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),cola_neg,ok,11,78,1,1,11,78,1,9.91,,,,13,spot,11,1,20.062,39.793
+8a4b7a662e84ae86,Parametrised.ltl:16,(Fa | Gb) & (Fb | Gc),cola_neg,ok,8,27,1,1,8,27,1,9.809,,,,8,spot,7,0,39.039,38.902
+e9c7d45e2ab73528,Parametrised.ltl:17,(Fa | Gb) & (Fb | Gc) & (Fc | Gd),cola_neg,ok,18,93,1,1,18,93,1,9.733,,,,18,spot,17,0,19.82,40.08
+31608fda3ce086da,Parametrised.ltl:18,(Fa | Gb) & (Fb | Gc) & (Fc | Gd) & (Fd | Ge),cola_neg,ok,42,330,1,1,42,330,1,9.791,,,,42,spot,41,0,19.921,40.217
+c7dbe96bd162e4e6,Parametrised.ltl:19,FGa & FGb & FGc,cola_neg,ok,1,2,1,1,1,2,1,9.941,,,,1,spot,1,1,19.871,40.43
+67e4022de9ce6200,Parametrised.ltl:20,FGa & FGb & FGc & FGd,cola_neg,ok,1,2,1,1,1,2,1,9.954,,,,1,spot,1,1,20.043,39.936
+7d4ba7b75c29a15f,Parametrised.ltl:21,FGa & FGb & FGc & FGd & FGe,cola_neg,ok,1,2,1,1,1,2,1,9.877,,,,1,spot,1,1,20.179,39.94
+76ba807e71e9495d,Parametrised.ltl:22,GFa & GFb & GFc,cola_neg,ok,1,8,3,1,1,8,3,9.881,,,,1,spot,1,1,20.004,39.913
+2458d4b4c0ad5ccf,Parametrised.ltl:23,GFa & GFb & GFc & GFd,cola_neg,ok,1,16,4,1,1,16,4,10.14,,,,1,spot,1,1,20.462,40.173
+e28a01ea5d2f65b2,Parametrised.ltl:25,FGa | FGb | FGc,cola_neg,ok,1,8,3,1,1,8,3,9.907,,,,1,spot,1,1,20.009,39.154
+79eb37b3deb6b866,Parametrised.ltl:26,FGa | FGb | FGc | FGd,cola_neg,ok,1,16,4,1,1,16,4,9.904,,,,1,spot,1,1,19.943,39.942
+cf83d59f3b559f30,Parametrised.ltl:27,FGa | FGb | FGc | FGd | FGe,cola_neg,ok,1,32,5,1,1,32,5,9.75,,,,1,spot,1,1,19.86,39.98
+21c40483d80982fd,Parametrised.ltl:28,GFa | GFb | GFc,cola_neg,ok,1,2,1,1,1,2,1,9.82,,,,1,spot,1,1,19.937,39.944
+19758638835820de,Parametrised.ltl:29,GFa | GFb | GFc | GFd,cola_neg,ok,1,2,1,1,1,2,1,9.866,,,,1,spot,1,1,19.958,39.836
+545e807f14ebe172,Parametrised.ltl:30,GFa | GFb | GFc | GFd | GFe,cola_neg,ok,1,2,1,1,1,2,1,9.762,,,,1,spot,1,1,20.447,40.034
+ed38bf3c3fe47312,Parametrised.ltl:31;Pelanek07.ltl:2,GFa | FG!b | FG!c,cola_neg,ok,1,5,3,1,1,5,3,9.206,,,,1,spot,1,1,52.811,40.07
+ce024d6837c650f8,Parametrised.ltl:32,GFa | FG!b | FG!c | FG!d,cola_neg,ok,1,9,4,1,1,9,4,10.349,,,,1,spot,1,1,20.069,40.353
+8860c0c2374fae12,Parametrised.ltl:33,GFa | FG!b | FG!c | FG!d | FG!e,cola_neg,ok,1,17,5,1,1,17,5,9.774,,,,1,spot,1,1,19.89,39.882
+98915e7ae6cdb3a1,Parametrised.ltl:34,(GFa & GFb & GFc) | ((FG!a | FG!b) & FG!c),cola_neg,ok,1,8,3,1,1,8,3,9.78,,,,1,spot,1,1,19.772,39.628
+82b2d63283a4dbb8,Parametrised.ltl:35,(GFa & GFb & GFc & GFd) | ((FG!a | FG!b | FG!d) & FG!c),cola_neg,ok,1,16,4,1,1,16,4,9.847,,,,1,spot,1,1,19.885,38.756
+d73c37af78448c14,Parametrised.ltl:36,(GFa & GFb & GFc & GFd & GFe) | ((FG!a | FG!b | FG!d | FG!e) & FG!c),cola_neg,ok,1,32,5,1,1,32,5,9.776,,,,1,spot,1,1,19.91,39.937
+7b7756541634cab6,Parametrised.ltl:37,(FGa | GFb) & (FGc | GFa),cola_neg,ok,1,6,4,1,1,6,4,9.838,,,,1,spot,1,1,20.11,40.776
+6e5bd2cc9e9dc880,Parametrised.ltl:38,(FGa | GFb) & (FGc | GFa) & (FGd | GFc),cola_neg,ok,1,12,6,1,1,12,6,9.879,,,,1,spot,1,1,19.959,40.242
+6992cd6a0f74e3fe,Parametrised.ltl:39,(FGa | GFb) & (FGc | GFa) & (FGd | GFc) & (FGe | GFd),cola_neg,ok,1,24,8,1,1,24,8,9.777,,,,1,spot,1,1,19.984,39.852
+814d71516f483a5b,Parametrised.ltl:40,GF((a & XXa) | (!a & XX!a)),cola_neg,ok,4,8,1,1,4,8,1,9.904,,,,4,spot,4,1,19.756,39.873
+1bd632ca326e712e,Parametrised.ltl:41,GF((a & XXXa) | (!a & XXX!a)),cola_neg,ok,8,16,1,1,8,16,1,9.73,,,,8,spot,8,1,20.316,40.066
+0c080dc5d8bc28c9,Parametrised.ltl:42,GF((a & XXXXa) | (!a & XXXX!a)),cola_neg,ok,16,32,1,1,16,32,1,9.873,,,,16,spot,16,1,19.878,38.981
+f225699ca2d5215f,Parametrised.ltl:43,FG(a | b) | FG(!a | Xb),cola_neg,ok,2,7,2,1,2,7,2,9.852,,,,2,spot,2,1,20.254,39.776
+0a2ade29cc939066,Parametrised.ltl:44,FG(a | b) | FG(!a | Xb) | FG(a | XXb),cola_neg,ok,4,15,3,1,4,15,3,10.077,,,,4,spot,4,1,20.149,39.732
+e045bce0dfc3b913,Parametrised.ltl:45,FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb),cola_neg,ok,8,31,4,1,8,31,4,88.773,,,,8,spot,8,1,20.151,40.899
+acb2cd8c1c4f9623,Pelanek07.ltl:3,G(!a | (b & (c U d))),cola_neg,ok,3,7,1,1,3,7,1,10.027,,,,3,spot,3,1,32.18,40.403
+779b86860d362ab1,Pelanek07.ltl:4,F(a | b),cola_neg,ok,2,3,1,1,2,3,1,9.871,,,,2,spot,1,0,19.872,40.12
+4604c481c5f91f6b,Pelanek07.ltl:5,GF(a | b),cola_neg,ok,1,2,1,1,1,2,1,9.933,,,,1,spot,1,1,20.04,39.225
+a1f7971bcdfeecb3,Pelanek07.ltl:6,(a U b) | Ga | (!c R !d),cola_neg,ok,5,13,1,1,5,13,1,10.044,,,,5,spot,4,0,19.836,39.955
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),cola_neg,ok,31,143,9,1,31,143,9,19.951,,,,9,spot,31,1,20.365,40.588
+5feb390fea84309c,Pelanek07.ltl:8,G(!a | (b R !c)),cola_neg,ok,3,7,1,1,3,7,1,9.932,,,,3,spot,3,1,19.457,39.945
+4cf14ab0a4ba278a,Pelanek07.ltl:9,G(a | Fa),cola_neg,ok,1,2,1,1,1,2,1,9.775,,,,1,spot,1,1,19.903,39.895
+ee5f3fdf3cb9a61a,Pelanek07.ltl:10,G(!a | F(b | c)),cola_neg,ok,2,4,1,1,2,4,1,46.481,,,,2,spot,2,1,20.091,40.224
+8f1992620f8382c9,Pelanek07.ltl:11,((a | b) R !c) & G(!d | ((a | b) R !c)),cola_neg,ok,3,7,1,1,3,7,1,10.041,,,,3,spot,3,1,19.865,39.934
+3d181ecceb71594d,Pelanek07.ltl:12,Fa | G!b,cola_neg,ok,3,6,1,1,3,6,1,10.033,,,,3,spot,2,0,20.143,39.882
+16d380a502932d0f,Pelanek07.ltl:13,G(!a | G!b | (!c U b)),cola_neg,ok,4,9,1,1,4,9,1,10.063,,,,4,spot,4,1,20.017,39.675
+e275e457e286d3ec,Pelanek07.ltl:14,G(!a | (b R (b | !c))),cola_neg,ok,3,7,1,1,3,7,1,9.984,,,,3,spot,3,1,20.015,40.216
+358ffb70a56ee560,Pelanek07.ltl:15,G(!a | !b | (!b R (a | !b))),cola_neg,ok,3,6,1,1,3,6,1,9.889,,,,3,spot,3,1,19.927,38.918
+eccdf4bec61ad35f,Pelanek07.ltl:16,G(!a | F(b & c)),cola_neg,ok,2,4,1,1,2,4,1,9.799,,,,2,spot,2,1,20.596,40.73
+2763ac3e667e7b1f,Pelanek07.ltl:17,G(!a | (!b U (b U (b & c)))),cola_neg,ok,4,10,1,1,4,10,1,10.101,,,,4,spot,4,1,20.679,41.122
+ec9450fb5d61b777,Pelanek07.ltl:18,G(!a | (!b U (b U (!b U (b U (b & c)))))),cola_neg,ok,6,16,1,1,6,16,1,9.777,,,,6,spot,6,1,19.958,40.331
+adff80ba34f8e6ab,Pelanek07.ltl:19;SomenziB00.ltl:4,GFa | FG!b,cola_neg,ok,1,3,2,1,1,3,2,9.951,,,,1,spot,1,1,18.247,37.972
+bad6313fec2e29b8,Pelanek07.ltl:20,GF(a | b) & GF(b | c),cola_neg,ok,1,4,2,1,1,4,2,9.913,,,,1,spot,1,1,19.896,39.317
+fe95fa3f867fc9da,SickertEJK16.ltl:1,GF(Fa | Gb | FG(a | Xb)),cola_neg,ok,2,5,2,1,2,5,2,10.189,,,,2,spot,2,1,20.445,42.287
+f56ea42ef244bb5e,SickertEJK16.ltl:2,FG(Ga | F!b | GF(a & Xb)),cola_neg,ok,1,2,1,1,1,2,1,9.956,,,,1,spot,1,1,20.266,40.602
+42320479f42cc894,SickertEJK16.ltl:3,GF(Fa | GXb | FG(a | XXb)),cola_neg,ok,4,10,2,1,4,10,2,9.739,,,,3,spot,4,1,19.916,39.607
+5b672e490c0f63d4,SomenziB00.ltl:1,a U b,cola_neg,ok,3,5,1,1,3,5,1,9.9,,,,3,spot,2,0,19.236,39.953
+83c726ff1dc2d5a1,SomenziB00.ltl:3,!a R (!b R !c),cola_neg,ok,4,9,1,1,4,9,1,9.795,,,,4,spot,3,0,20.131,40.305
+17b1fb5f43cde323,SomenziB00.ltl:5,Fa U Gb,cola_neg,ok,2,5,1,1,2,5,1,9.81,,,,2,spot,2,1,19.872,39.586
+982c1e13f5e308ed,SomenziB00.ltl:6,Ga U b,cola_neg,ok,5,10,1,1,5,10,1,9.775,,,,5,spot,4,0,20.075,39.59
+b882cd00f5a760c2,SomenziB00.ltl:7,(Fa & G!b) | (Fb & G!a),cola_neg,ok,4,9,1,1,4,9,1,9.81,,,,4,spot,4,1,20.448,39.797
+911ea8d344fcb472,SomenziB00.ltl:8,GFa & FG!b,cola_neg,ok,1,3,2,1,1,3,2,9.872,,,,1,spot,1,1,20.01,39.735
+28463575de2a6adf,SomenziB00.ltl:9,(GFa & FG!b) | (GFb & FG!a),cola_neg,ok,1,4,2,1,1,4,2,9.835,,,,1,spot,1,1,19.961,39.632
+66b18544b3bcfec5,SomenziB00.ltl:10,a R (a | b),cola_neg,ok,3,5,1,1,3,5,1,9.937,,,,3,spot,2,0,19.843,40.353
+605730c6387bbaf2,SomenziB00.ltl:11,(Xa U Xb) | X(!a R !b),cola_neg,ok,1,1,1,1,1,1,1,9.782,,,,1,spot,1,0,20.286,40.437
+081f0b6790cf44ef,SomenziB00.ltl:12,(Xa U b) | X(!a R (!a | !b)),cola_neg,ok,1,1,1,1,1,1,1,10.275,,,,1,spot,1,0,19.415,39.467
+b35331043f0cb1d5,SomenziB00.ltl:13,((Xa U b) | X(!a R (!a | !b))) & G(!a | Fb),cola_neg,ok,2,4,1,1,2,4,1,8.933,,,,2,spot,2,1,20.036,59.774
+a1b08fa375379756,SomenziB00.ltl:14,((Xa U Xb) | X(!a R !b)) & G(!a | Fb),cola_neg,ok,2,4,1,1,2,4,1,10.007,,,,2,spot,2,1,19.706,39.966
+112478fd1f65185a,SomenziB00.ltl:16,F(a & X(!b U !c)),cola_neg,ok,3,6,1,1,3,6,1,9.827,,,,3,spot,2,0,19.957,40.016
+2eaf432a0dc1c462,SomenziB00.ltl:17,GF!a & GF!b,cola_neg,ok,1,4,2,1,1,4,2,9.676,,,,1,spot,1,1,19.694,39.368
+9598477bc65b7d2d,SomenziB00.ltl:18,G(Fa & Fb),cola_neg,ok,1,4,2,1,1,4,2,9.755,,,,1,spot,1,1,19.942,39.347
+d1a7496ea3d8f51f,SomenziB00.ltl:19,Fa & F!a,cola_neg,ok,4,7,1,1,4,7,1,9.809,,,,4,spot,3,0,19.94,39.912
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),cola_neg,ok,6,14,2,1,6,14,2,9.972,,,,10,spot,5,0,19.391,40.024
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),cola_neg,ok,5,15,1,1,5,15,1,9.848,,,,5,spot,5,1,19.917,39.229
+6de3eda596aae215,SomenziB00.ltl:22,Ga | Gb | (G(a | FGc) & G(b | FG!c)),cola_neg,ok,4,9,1,1,4,9,1,9.897,,,,4,spot,4,1,20.104,40.095
+96ad39097c01de3a,SomenziB00.ltl:23,F!a & F!b & (F(!a & FG!c) | F(!b & FGc)),cola_neg,ok,5,15,1,1,5,15,1,9.746,,,,5,spot,5,1,19.977,39.5
+b1835e81087c2984,SomenziB00.ltl:24,F!a & F!b & (F(!a & GF!c) | F(!b & GFc)),cola_neg,ok,4,9,1,1,4,9,1,10.057,,,,4,spot,3,0,19.919,40.176
+64d0ae94469d567c,SomenziB00.ltl:25,G(a | XGb) & G(c | XG!b),cola_neg,ok,4,9,1,1,4,9,1,9.791,,,,4,spot,4,1,19.479,39.731
+e22f6f251ac1f9bc,SomenziB00.ltl:26,G(a | (Xb & X!b)),cola_neg,ok,2,3,1,1,2,3,1,9.592,,,,2,spot,2,1,19.838,40.002
+a965cfe0cacabfae,SomenziB00.ltl:27,a | (b U a),cola_neg,ok,3,5,1,1,3,5,1,10.006,,,,3,spot,2,0,19.978,39.889

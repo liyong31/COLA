@@ -1,0 +1,133 @@
+case,sources,formula,variant,status,input_states,input_edges,input_colours,input_deterministic,input_equivalent,backend_attempted,states,edges,colours,frontend_ms,backend_ms,detail
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),eks20_full_ranks,ok,7,21,2,0,1,1,4,18,4,348.378,9.886,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),eks20_gba,ok,7,21,2,0,1,1,4,18,4,348.211,10.02,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),eks20_no_acceptance_simplifier,ok,7,21,2,0,1,1,4,18,4,348.422,9.907,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),eks20_no_formula_simplifier,ok,10,31,2,0,1,1,4,18,8,347.995,9.978,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),eks20_portfolio,ok,7,21,2,0,1,1,4,18,4,348.074,9.998,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),sejk16_full_ranks,ok,7,21,2,0,1,1,4,18,4,351.707,9.945,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),sejk16_gba,ok,7,21,2,0,1,1,4,18,4,293.069,9.96,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),sejk16_no_acceptance_simplifier,ok,7,21,2,0,1,1,4,18,4,338.365,9.882,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),sejk16_no_formula_simplifier,ok,7,21,2,0,1,1,4,18,4,292.354,10.019,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),sejk16_portfolio,ok,7,21,2,0,1,1,4,18,4,297.525,9.932,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),eks20_full_ranks,acceptance-capacity,41,267,2,0,1,1,,,,346.797,292.34,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),eks20_gba,acceptance-capacity,41,267,2,0,1,1,,,,401.113,289.079,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),eks20_no_acceptance_simplifier,acceptance-capacity,41,267,2,0,1,1,,,,344.987,242.096,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),eks20_no_formula_simplifier,acceptance-capacity,41,267,2,0,1,1,,,,347.784,347.519,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),eks20_portfolio,acceptance-capacity,41,267,2,0,1,1,,,,347.828,297.81,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),sejk16_full_ranks,ok,19,103,1,0,1,1,17,115,6,353.602,20.094,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),sejk16_gba,ok,19,103,1,0,1,1,17,115,6,345.147,20.189,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),sejk16_no_acceptance_simplifier,ok,19,103,1,0,1,1,17,115,6,348.608,20.107,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),sejk16_no_formula_simplifier,ok,19,103,1,0,1,1,17,115,6,347.066,20.167,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),sejk16_portfolio,ok,19,103,1,0,1,1,17,115,6,346.206,19.803,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),eks20_full_ranks,ok,22,213,1,0,1,1,13,117,3,345.597,20.016,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),eks20_gba,ok,22,213,1,0,1,1,13,117,3,350.319,20.292,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),eks20_no_acceptance_simplifier,ok,22,213,1,0,1,1,13,117,3,350.268,20.023,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),eks20_no_formula_simplifier,ok,22,213,1,0,1,1,13,117,3,350.275,20.025,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),eks20_portfolio,ok,13,88,1,1,1,0,14,101,1,292.184,9.962,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),sejk16_full_ranks,ok,20,178,1,0,1,1,16,122,4,293.351,20.076,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),sejk16_gba,ok,20,178,1,0,1,1,16,122,4,296.126,18.764,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),sejk16_no_acceptance_simplifier,ok,20,178,1,0,1,1,16,122,4,352.622,19.861,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),sejk16_no_formula_simplifier,ok,20,178,1,0,1,1,16,122,4,293.771,20.056,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),sejk16_portfolio,ok,13,88,1,1,1,0,14,101,1,292.037,10.023,
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),eks20_full_ranks,acceptance-capacity,55,414,2,0,1,1,,,,347.686,622.783,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),eks20_gba,acceptance-capacity,55,414,2,0,1,1,,,,397.156,834.015,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),eks20_no_acceptance_simplifier,acceptance-capacity,55,414,2,0,1,1,,,,349.534,682.531,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),eks20_no_formula_simplifier,acceptance-capacity,55,414,2,0,1,1,,,,349.61,728.623,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),eks20_portfolio,acceptance-capacity,55,414,2,0,1,1,,,,393.877,831.138,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),sejk16_full_ranks,ok,19,107,1,0,1,1,19,145,6,344.645,20.091,
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),sejk16_gba,ok,19,107,1,0,1,1,19,145,6,349.708,20.021,
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),sejk16_no_acceptance_simplifier,ok,19,107,1,0,1,1,19,145,6,347.527,20.074,
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),sejk16_no_formula_simplifier,ok,19,107,1,0,1,1,19,145,6,294.294,19.577,
+be6da71e25bba7e8,DwyerAC98.ltl:55,G(!a | ((!b | (!c U (!c & d & !e & X((!c & !e) U f)))) U (c | G(!b | (d & !e & X(!e U f)))))),sejk16_portfolio,ok,19,107,1,0,1,1,19,145,6,348.52,19.308,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),eks20_full_ranks,ok,5,18,2,0,1,1,3,19,4,342.775,10.071,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),eks20_gba,ok,5,18,2,0,1,1,3,19,4,348.129,9.584,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),eks20_no_acceptance_simplifier,ok,5,18,2,0,1,1,3,19,4,343.358,10.049,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),eks20_no_formula_simplifier,ok,5,18,2,0,1,1,3,19,4,359.535,10.079,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),eks20_portfolio,ok,4,14,1,1,1,0,4,14,1,289.385,10.085,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),sejk16_full_ranks,ok,8,33,1,0,1,1,5,17,1,290.871,9.948,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),sejk16_gba,ok,8,33,1,0,1,1,5,17,1,291.069,10.016,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),sejk16_no_acceptance_simplifier,ok,8,33,1,0,1,1,5,17,1,294.39,10.026,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),sejk16_no_formula_simplifier,ok,8,33,1,0,1,1,5,17,1,296.785,9.886,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),sejk16_portfolio,ok,4,14,1,1,1,0,4,14,1,287.522,10.033,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),eks20_full_ranks,acceptance-capacity,27,282,3,0,1,1,,,,412.78,129.68,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),eks20_gba,ok,27,282,3,0,1,1,28,782,13,351.343,241.013,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),eks20_no_acceptance_simplifier,ok,27,282,3,0,1,1,28,782,13,347.182,182.094,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),eks20_no_formula_simplifier,ok,27,282,3,0,1,1,28,782,13,348.206,186.267,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),eks20_portfolio,ok,27,282,3,0,1,1,28,782,13,403.957,319.756,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),sejk16_full_ranks,acceptance-capacity,40,305,1,0,1,1,,,,352.348,187.219,"many acceptance sets used.  The limit is 32.
+
+If you do not mind a slowdown, you could try recompiling Spot with a larger limit.
+See the --enable-max-accsets=N configure option.
+
+If you believe Spot could be improved to solve your problem
+using the current limit, please email <spot@lrde.epita.fr>."
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),sejk16_gba,ok,40,305,1,0,1,1,276,4612,14,402.918,180.469,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),sejk16_no_acceptance_simplifier,ok,40,305,1,0,1,1,276,4612,14,351.777,186.43,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),sejk16_no_formula_simplifier,ok,40,305,1,0,1,1,276,4612,14,347.617,187.33,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),sejk16_portfolio,ok,40,305,1,0,1,1,276,4612,14,340.594,238.177,

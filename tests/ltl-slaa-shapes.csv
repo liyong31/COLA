@@ -1,0 +1,897 @@
+case,sources,formula,polarity,variant,flags,status,slaa_states,slaa_edges,slaa_colours,tela_states,tela_edges,tela_colours,tela_deterministic,sccs,weak_sccs,deterministic_sccs,hard_sccs,states,edges,colours,generic_states,generic_status,cola_states,ltl3tela_states,elapsed_ms,detail
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.585,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.08,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.827,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.067,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.168,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.649,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,12,36,30,19,99,1,0,19,19,0,0,34,353,1,,,50,34,40.108,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,12,44,16,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.15,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,12,48,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.486,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,130,ok,50,34,20.044,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.289,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,19.696,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.239,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,18.684,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.758,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.273,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,21.1,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,19.883,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.054,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.164,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.741,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,38.779,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,12,37,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,20.442,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,12,59,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,40.588,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.206,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,20.059,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,21.476,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,19.592,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,12,36,1,19,99,1,0,19,19,0,0,34,353,1,,,50,34,19.662,
+2390fff7a43455f0,Liberouter04.ltl:36,G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | (X!e & X((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) U e))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,12,44,1,34,113,1,0,2,1,0,1,,,,82,ok,50,34,19.505,"input-sccs: 2
+input-weak-sccs: 1
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,9.846,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,baseline,-D0 -b0 -n0 -l0 -t0,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.367,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,9.849,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.164,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,11.614,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.761,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,7,20,8,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.293,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,5,12,4,4,7,2,0,4,3,1,0,5,22,4,,,5,4,9.739,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,6,14,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,9.361,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.389,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,6,12,1,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.872,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,8,15,1,5,10,4,0,4,3,1,0,8,36,6,,,5,4,9.877,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,8,16,1,6,19,1,0,6,6,0,0,5,15,1,,,5,4,9.961,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,8,15,1,5,10,4,0,4,3,1,0,8,36,6,,,5,4,10.179,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,9.867,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,9.94,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,9.941,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,9.999,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,8,25,6,13,52,5,0,13,11,2,0,4,10,2,,,5,4,10.262,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,7,16,4,7,20,4,0,7,4,3,0,5,16,10,,,5,4,10.273,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,7,20,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.234,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,5,12,4,4,7,2,0,4,3,1,0,5,22,4,,,5,4,9.54,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.4,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.08,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,6,12,5,8,31,2,0,8,6,2,0,4,10,3,,,5,4,10.273,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.362,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.655,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,10.605,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,6,12,5,8,31,4,0,8,6,2,0,4,10,2,,,5,4,10.145,
+2f498f3476d84120,SomenziB00.ltl:21,Ga | Gb | (G(a | GFc) & G(b | GF!c)),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,5,9,4,6,13,4,0,6,3,3,0,8,41,10,,,5,4,19.174,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,10.137,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,18.843,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.711,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.203,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,10.027,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,23.879,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,7,23,9,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.482,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,7,21,7,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.04,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,7,32,2,11,38,3,0,9,7,0,2,,,,12,ok,12,11,9.675,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 0
+input-hard-sccs: 2
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,7,22,4,12,62,8,0,6,4,0,2,,,,86,ok,12,11,38.744,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 0
+input-hard-sccs: 2
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,7,23,1,11,38,3,0,9,7,1,1,,,,13,ok,12,11,10.148,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,7,21,1,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.451,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,7,23,1,11,38,3,0,9,7,1,1,,,,16,ok,12,11,10.135,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,7,21,1,12,63,8,0,6,4,1,1,,,,29,ok,12,11,19.422,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.55,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.071,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.891,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,22.331,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,10.768,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,18.67,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.943,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,19.916,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,10.293,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.278,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,7,23,2,8,24,1,0,8,7,1,0,12,72,3,,,12,11,10.016,
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,7,21,4,7,26,1,0,3,1,1,1,,,,12,ok,12,11,18.905,"input-sccs: 3
+input-weak-sccs: 1
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.663,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,20.187,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,7,23,2,11,38,3,0,9,7,1,1,,,,13,ok,12,11,9.953,"input-sccs: 9
+input-weak-sccs: 7
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+49cf1fe33c1dad4a,DwyerAC98.ltl:50,G(!a | ((!b | (!c U (!c & d & X(!c U e)))) U (c | G(!b | (d & XFe))))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,7,21,4,12,63,8,0,6,4,1,1,,,,49,ok,12,11,39.485,"input-sccs: 6
+input-weak-sccs: 4
+input-deterministic-sccs: 1
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.687,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.03,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.893,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.828,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,10.251,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.875,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,10.084,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.158,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,5,31,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.881,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,5,15,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.989,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,10.154,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,5,14,1,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.507,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.651,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,5,14,1,5,23,6,0,1,0,0,1,,,,40,ok,13,11,9.948,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.916,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.728,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,13.026,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.002,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,10.512,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.987,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,20.396,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.861,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,10.036,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.564,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.834,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,5,14,3,5,23,3,0,1,0,0,1,,,,20,ok,13,11,11.928,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.805,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,10.341,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,5,17,1,8,35,1,0,5,5,0,0,10,74,1,,,13,11,9.932,
+5d33eedf410a0c15,Parametrised.ltl:15,G(!a | (a U (b & (b U (c & (c U d)))))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,5,14,3,5,23,6,0,1,0,0,1,,,,39,ok,13,11,9.306,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.109,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,9.963,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.411,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.362,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,9.951,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,19.792,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,7,15,6,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.332,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.709,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,7,20,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.048,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,7,16,2,14,69,4,0,10,9,0,1,,,,6,ok,10,6,23.955,"input-sccs: 10
+input-weak-sccs: 9
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,7,15,1,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.991,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,7,15,1,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.357,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,7,15,1,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.047,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,7,15,1,14,71,4,0,9,8,0,1,,,,6,ok,10,6,19.889,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.742,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,9.943,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,9.829,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.596,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.402,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.206,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,9.698,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.187,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.064,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,9.44,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,9.992,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,7,15,2,5,9,1,0,5,5,0,0,6,13,1,,,10,6,9.86,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.767,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.157,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,7,15,3,4,9,1,0,3,3,0,0,6,13,1,,,10,6,10.238,
+5efdf92ac413c3a2,SomenziB00.ltl:20,(a & Xb) R X(((c U d) R a) U (c R a)),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,7,15,2,14,71,4,0,9,8,0,1,,,,6,ok,10,6,10.055,"input-sccs: 9
+input-weak-sccs: 8
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.925,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,9.681,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.638,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,9.916,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.938,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.442,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.843,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.155,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,5,17,2,6,14,3,0,5,4,0,1,,,,5,ok,9,5,9.765,"input-sccs: 5
+input-weak-sccs: 4
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,5,15,2,4,12,4,0,1,0,0,1,,,,101,ok,9,5,10.243,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,5,10,1,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.476,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,5,14,1,4,12,4,0,1,0,0,1,,,,13,ok,9,5,10.006,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,5,10,1,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.196,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,5,14,1,4,12,4,0,1,0,0,1,,,,13,ok,9,5,11.386,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.066,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,11.195,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.012,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.268,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.595,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.881,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.321,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.479,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.204,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.473,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.058,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,5,14,2,4,11,2,0,1,0,0,1,,,,5,ok,9,5,10.397,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,9.821,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,10.394,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,5,10,2,5,10,1,0,5,5,0,0,5,13,1,,,9,5,10.462,
+6579b4099b70345a,Pelanek07.ltl:7,G(!a | (!b U (b U (!b & (c R !b))))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,5,14,2,4,12,4,0,1,0,0,1,,,,18,ok,9,5,23.563,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.078,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.549,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.684,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.341,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,9.887,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.071,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,5,9,4,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.057,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,5,9,7,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.106,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.571,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,13,ok,9,7,9.925,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,11.086,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.358,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,9.884,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.048,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.436,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,9.751,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,9.371,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.044,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.602,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.366,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,11.305,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.513,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,6,11,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.134,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,6,11,1,6,15,1,0,1,0,0,1,,,,9,ok,9,7,9.993,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.831,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,12,ok,9,7,10.093,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,10.498,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,9.634,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,5,9,1,7,13,1,0,7,7,0,0,7,21,1,,,9,7,9.948,
+bd023c3b886bbe56,Liberouter04.ltl:44,G(a | X!a | X((a | X!a) U (!b & Xb))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,5,9,1,6,16,1,0,1,0,0,1,,,,14,ok,9,7,10.021,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,11.786,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.595,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,10.953,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.921,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.149,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.283,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,4,8,5,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.976,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.412,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,4,10,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.693,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,35,ok,6,4,9.989,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.799,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,4,8,1,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.239,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.966,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,4,8,1,4,14,4,0,1,0,0,1,,,,39,ok,6,4,9.789,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.78,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,8.946,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,10.054,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.1,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,10.625,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,9.791,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.813,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.111,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.999,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,8.799,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,9.814,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,4,8,2,4,14,2,0,1,0,0,1,,,,13,ok,6,4,9.714,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,8.938,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,9.934,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,4,8,1,3,7,1,0,2,2,0,0,4,16,1,,,6,4,10.364,
+bdb8a2475cefa703,DwyerAC98.ltl:51,G(!a | F(b & !c & X(!c U d))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,25,ok,6,4,10.517,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.75,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.951,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.804,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.054,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.681,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.887,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,3,6,4,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.151,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.44,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.945,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,33,ok,6,4,10.278,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.521,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,4,8,1,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.813,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.858,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,4,8,1,4,14,4,0,1,0,0,1,,,,37,ok,6,4,6.157,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.065,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.325,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.891,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.369,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.345,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.807,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.142,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.038,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.03,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,9.986,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,9.847,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,4,8,2,4,14,2,0,1,0,0,1,,,,12,ok,6,4,10.091,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.173,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.57,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,3,6,1,3,6,1,0,3,3,0,0,4,14,1,,,6,4,10.026,
+d1193c48d4fe2cba,DwyerAC98.ltl:46,G(!a | F(b & XFc)),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,4,8,2,4,14,4,0,1,0,0,1,,,,21,ok,6,4,10.214,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,baseline,-D0 -b0 -n0 -l0 -t0,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,11.007,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,baseline,-D0 -b0 -n0 -l0 -t0,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,11.167,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.06,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,basic_dominance,-D0 -b0 -n0 -l0 -t0 -d1,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,9.859,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,g_single,-D0 -b0 -n0 -l0 -t0 -G1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,9.983,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,g_single,-D0 -b0 -n0 -l0 -t0 -G1,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,9.628,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,9.569,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,merge_disjunction,-D0 -b0 -n0 -l0 -t0 -O1,non-elevator,6,16,6,8,49,4,0,1,0,0,1,,,,113,ok,17,6,17.921,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,11.59,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_dominance,-D0 -b0 -n0 -l0 -t0 -d0,non-elevator,6,25,2,8,49,4,0,1,0,0,1,,,,8241,ok,17,6,21.942,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,ok,6,13,1,4,8,1,0,4,4,0,0,6,30,1,,,17,6,9.959,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_g_merge,-D0 -b0 -n0 -l0 -t0 -G0,non-elevator,6,16,1,8,49,4,0,1,0,0,1,,,,113,ok,17,6,10.078,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,ok,6,13,1,4,8,1,0,4,4,0,0,6,30,1,,,17,6,18.762,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_merging,-D0 -b0 -n0 -l0 -t0 -F0 -G0 -c0,non-elevator,6,16,1,8,49,4,0,1,0,0,1,,,,113,ok,17,6,53.634,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,9.987,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_na_equivalence,-D0 -b0 -n0 -l0 -t0 -e0,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,10.629,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,9.997,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_reduction,-D0 -b0 -n0 -l0 -t0 -c0,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,9.825,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,ok,7,15,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.471,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,no_simplification,-D0 -b0 -n0 -l0 -t0 -s0,non-elevator,7,25,3,14,115,6,0,2,0,0,2,,,,380,ok,17,6,58.385,"input-sccs: 2
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 2
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.588,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,single_initial,-D0 -b0 -n0 -l0 -t0 -i1,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,10.156,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,single_x,-D0 -b0 -n0 -l0 -t0 -X1,ok,7,16,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.807,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,single_x,-D0 -b0 -n0 -l0 -t0 -X1,non-elevator,7,18,2,10,57,4,0,1,0,0,1,,,,300,ok,17,6,9.946,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.234,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,tgba_acceptance,-D0 -b0 -n0 -l0 -t0 -t1,non-elevator,6,16,2,8,49,2,0,1,0,0,1,,,,26,ok,17,6,10.161,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,10.047,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,u_min_na,-D0 -b0 -n0 -l0 -t0 -F1,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,10.09,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),negative,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,ok,6,13,3,4,8,1,0,4,4,0,0,6,30,1,,,17,6,12.023,
+eb8d0b47cd70f12a,DwyerAC98.ltl:45,G(!a | ((!b | X(!c U (d & Fe)) | X(c R !d)) U (c | G(!b | X(!c U (d & Fe)) | X(c R !d))))),positive,u_no_alternating_loop,-D0 -b0 -n0 -l0 -t0 -F3,non-elevator,6,16,2,8,49,4,0,1,0,0,1,,,,113,ok,17,6,10.118,"input-sccs: 1
+input-weak-sccs: 0
+input-deterministic-sccs: 0
+input-hard-sccs: 1
+input-equivalent: 1"

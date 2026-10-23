@@ -1,0 +1,22 @@
+{
+  "base_commit": "cc2dc27634fd187758051275ad2a0175468991dd",
+  "sha256": {
+    "build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "/Users/liyong/Desktop/verify/COLA/tests/diagnose-ltl3tela-pipeline.py": "809865b9461fc63776edb1c11cf153ee4f52e357f8dcb35d7e08aab4831615f4"
+  },
+  "variants": {
+    "default": [
+      "-D1",
+      "-x1"
+    ],
+    "isolated_slaa": [
+      "-D1",
+      "-b0",
+      "-n0",
+      "-l0",
+      "-x1"
+    ]
+  },
+  "timeout_seconds": 30,
+  "workers": 2
+}

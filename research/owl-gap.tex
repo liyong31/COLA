@@ -1,0 +1,37 @@
+\subsection{Pruning between independent SCC constructions}
+Each SCC retains its own ranked-run construction and shifted original
+Emerson--Lei acceptance. A separate certified coverage step removes a run
+$q$ only if its language is included in the union of retained runs in
+strictly lower SCCs. SCC numbers use reverse topological order.
+Processing SCCs in increasing order ensures that covering runs are retained;
+local rank numbers are never compared between SCCs.
+
+For an accepted suffix, a language-union certificate supplies an accepting
+continuation from one covering run. Every subsequent cross-SCC replacement
+or proper SCC transition strictly decreases the SCC number. Thus an accepting
+witness cannot be replaced infinitely often. After the last replacement,
+the existing local construction preserves its accepting continuation.
+Within-SCC coverage retains its older-run rule and rank discontinuation
+acceptance is unchanged. Unknown annotations cannot justify deletion.
+This is a sufficient, deliberately conservative coverage policy.
+
+Identical-input ablations cover 1816 outputs over both polarities and both
+OWL algorithm families. Positive paired successes contain six improvements,
+443 ties and no increases, saving 88 states. Negative paired successes
+contain eleven improvements, 428 ties and six increases, saving 220 states.
+A negative SEJK16 acceptance-capacity failure also recovers. These counts
+exclude explicit resource failures from paired state totals.
+Fewer tracked runs do not imply fewer reachable macrostates: negative EKS20
+Hardness~1 grows from 22 to 29 states, and Hardness~3 from 24 to 60.
+The optional LTL route therefore compares the pruned and original SCC
+constructions on the same input and retains the smaller checked result.
+
+OWL's safety scheduler is a different optimisation. For
+$FGa\lor FGb\lor FGc\lor FGd\lor FGe$, the exported accepting singleton
+languages $Ga,Gb,Gc,Gd,Ge$ are incomparable. Our weak subset bookkeeping
+produces 32 states, while OWL schedules one safety guess at a time and
+produces five. The gap persists when OWL's polarity and fragment portfolios
+are disabled. Coverage alone cannot delete these incomparable guesses;
+a sound scheduler needs an additional restartability/fairness certificate.
+The implementation does not yet supply that certificate, nor a global
+singly exponential language-basis bound across independent SCCs.
