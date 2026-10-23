@@ -32,7 +32,7 @@ def main():
         frontend.chmod(0o700)
         for portfolio in [(), ('--slaa-portfolio', '--ldgba-portfolio')]:
             for formula, flags, route in cases:
-                result = subprocess.run([ltld, '--stats', '--slaa-tool=' + str(frontend),
+                result = subprocess.run([ltld, '--stats', '--specialized-first', '--slaa-tool=' + str(frontend),
                     '--ldgba-tool=' + str(frontend), *portfolio, *flags, '-f', formula],
                     text=True, capture_output=True, check=True, timeout=30)
                 assert not marker.exists(), (formula, result.stderr)

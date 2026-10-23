@@ -1,0 +1,51 @@
+{
+  "base_commit": "82cda4f0778e2b54ea4ee36015e4596db5c3f304",
+  "configs": {
+    "default": [],
+    "strict_portfolio": [
+      "--specialized-first",
+      "--slaa-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela",
+      "--slaa-portfolio",
+      "--colour-elevator",
+      "--ldgba-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl",
+      "--ldgba-pruning",
+      "--ldgba-portfolio",
+      "--ldgba-cross-scc"
+    ],
+    "portfolio": [
+      "--slaa-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela",
+      "--slaa-portfolio",
+      "--colour-elevator",
+      "--ldgba-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl",
+      "--ldgba-pruning",
+      "--ldgba-portfolio",
+      "--ldgba-cross-scc"
+    ],
+    "finite_witness_portfolio": [
+      "--finite-witness",
+      "--slaa-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela",
+      "--slaa-portfolio",
+      "--colour-elevator",
+      "--ldgba-tool=/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl",
+      "--ldgba-pruning",
+      "--ldgba-portfolio",
+      "--ldgba-cross-scc"
+    ]
+  },
+  "sha256": {
+    "/Users/liyong/Desktop/verify/COLA/build-local/external/ltl3tela-master/ltl3tela": "fbf43793c5f601279610d48d577867dc65831527ad2eab46295a5efa1dea5220",
+    "/Users/liyong/Desktop/verify/COLA/build-local/external/owl-21.0/bin/owl": "8fd1111a564e2751d3bea11996852af4b7ab8b015a45cd11f3807fdccbaefd42",
+    "/Users/liyong/Desktop/verify/COLA/tests/benchmark-smaller-states.py": "2ed240e2711799213da4eeda7138cb85f4e89280e723694c70bf3249369f49f9",
+    "tests/compare-ltl-sizes.py": "78f51c6d38fd4b842f94d971e7a8ff3ab12b41994161b6080e6621ebd6247258",
+    "src/ltl2dela.cpp": "b9d4a4eafe0db31926693e44d6c41b2c33afd2072b34f4dd9781ea46d0ffb168",
+    "src/ltl2dela.hpp": "716c2704a9be8b4968d559f7dec91852da9ca3b244a30287d9902d0d34778a2b",
+    "src/ltl2dela_main.cpp": "c86c216ec60af0608fa906fd6e979fa9a24c75de953118de27589903b34691db",
+    "/Users/liyong/Desktop/verify/COLA/build-local/smaller-states/ltl2dela": "4552b4f3971d8d201ab1e37569a11bb75d72fea420ef005a01d36eccb3525ec3",
+    "/Users/liyong/Desktop/verify/COLA/build-local/smaller-states/libcola.0.dylib": "45e286da90fe8dbd5d223e48bada31b48370961447d77dd7691bee2966fa4b6f"
+  },
+  "timeout_seconds": 30,
+  "workers": 2,
+  "primary_size": "Complete reachable output states, without further minimization.",
+  "secondary_size": "Identical Spot low generic deterministic normalization followed by completion.",
+  "timing_scope": "Concurrent single translation process wall time; descriptive, not a runtime ranking."
+}

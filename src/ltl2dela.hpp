@@ -32,6 +32,8 @@ namespace cola
     bool use_delta2 = true;
     bool use_recurrence_compiler = true;
     bool use_specialized_fragments = true;
+    // Keep exact direct monitors first; broader candidates compete by size.
+    bool strict_specialized_priority = false;
     bool use_dba = true;
     unsigned dba_state_limit = 512;
     unsigned dba_cycle_limit = 4096;
@@ -313,6 +315,7 @@ namespace cola
     spot::twa_graph_ptr compile_finite_witness(spot::formula f);
     spot::twa_graph_ptr compile_specialized(spot::formula f);
     spot::twa_graph_ptr try_dba(spot::formula f, spot::twa_graph_ptr ba);
+    spot::twa_graph_ptr prefer_smaller(spot::formula f, spot::twa_graph_ptr direct);
     spot::twa_graph_ptr make_finite_witness_monitor(spot::formula body,
                                                  bool persistence);
 

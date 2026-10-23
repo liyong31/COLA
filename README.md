@@ -112,22 +112,21 @@ COLA's total from 1036 to 993 states (LTL3TELA: 991). Negative translation
 alone has severe regressions and three timeouts on the full corpus; this is
 an experimental comparison, not a change to translator defaults.
 
-Specialized constructions now have strict priority. Recurrence and finite-witness
-monitors, recognized GF/FG and other fragments, X-advice, checked DBA recognition,
-and available profile decompositions run before external generic frontends.
-Each refined child repeats these checks. SLAA/LDGBA candidates are admitted only
-for remaining residuals, even when polarity portfolios are enabled. Explicit
-`--no-specialized` / `--no-dba` switches remain useful for construction ablations.
-The [priority regression report](tests/specialized-priority-report.md) records
-681 checked outputs and the resulting residual coverage. The portfolio totals
-below describe earlier routing and remain historical measurements.
+Dedicated recurrence, finite-witness and GF/FG monitors keep priority. For
+broader recognized fragments, checked DBA results and X-advice, configured
+SLAA/LDGBA candidates now compete by complete reachable states, then acceptance
+sets and edges. Exact ties retain the existing result. A complete one-state
+result skips competition because it cannot be improved in state count.
+`--specialized-first` restores strict early returns when avoiding frontend work
+matters more than output size. External tools remain optional and explicitly
+configured; no-tool behavior is unchanged.
 
-The [matched before/after experiment](tests/routing-effect-report.md) measures
-this priority change directly: all 1816 outputs pass language checks. Default
-states stay at 1388; the configured portfolio changes from 1336 to 1387 states,
-while external calls fall from 788 to 26. Thus strict priority avoids substantial
-frontend work but sacrifices some size improvements. The report keeps this
-tradeoff separate from the earlier baseline comparisons and algorithm rankings.
+The [size-oriented report](tests/smaller-states-report.md) records the current
+policy and its checked comparison. The earlier [strict-priority controls](tests/specialized-priority-report.md)
+and [matched routing experiment](tests/routing-effect-report.md) remain
+historical measurements: strict priority changed portfolio states from 1336 to
+1387 while reducing external calls from 788 to 26. The current policy prioritizes
+smaller outputs. These portfolio configurations do not rank primitive algorithms.
 
 The [SLAA/TELA milestone](tests/ltl-slaa-report.md) adds an opt-in residual
 candidate that preserves generic acceptance and uses COLA's native elevator
@@ -153,7 +152,7 @@ rules or local SCC semi-determinisation.
 
 Add `--slaa-portfolio` to try both SLAA polarities and compare eligible
 residual elevator results with alternative constructions. Successful X-advice
-constructions now return before these generic candidates. Negative results
+constructions participate in size selection unless `--specialized-first` is set. Negative results
 are completed before acceptance is complemented and checked against the
 original language. On 222 matched literature formulas, this mode totals
 985 states versus positive SLAA mode 1035 and LTL3TELA 991; all 681 outputs

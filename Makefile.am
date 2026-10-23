@@ -76,7 +76,7 @@ tests_tela_elevator_driver_SOURCES = tests/tela-elevator-driver.cpp
 tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
 TESTS += tests/slaa-route.py
-TESTS += tests/ldgba-route.py tests/specialized-priority.py
+TESTS += tests/ldgba-route.py tests/specialized-priority.py tests/smaller-states.py
 check_PROGRAMS += tests/owl-annotations
 tests_owl_annotations_SOURCES = tests/owl-annotations.cpp
 tests_owl_annotations_LDADD = $(ltl2dela_LDADD)
@@ -199,3 +199,10 @@ EXTRA_DIST += tests/build-routing-ablation.py tests/benchmark-routing-effect.py 
   tests/routing-effect-report.md tests/routing-effect-results.csv \
   tests/routing-effect-results.json tests/routing-effect-serial.csv \
   tests/routing-effect-serial.json
+
+EXTRA_DIST += tests/smaller-states.py tests/smaller-state-cases/dwyer45.hoa \
+  tests/smaller-state-cases/pelanek7.hoa tests/benchmark-smaller-states.py \
+  tests/smaller-states-results.csv tests/smaller-states-results.json \
+  tests/smaller-states-report.md
+
+EXTRA_DIST += tests/finite-witness-smaller-states.csv tests/finite-witness-smaller-states.json
