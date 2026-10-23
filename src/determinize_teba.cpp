@@ -15,6 +15,7 @@
 
 //#include "optimizer.hpp"
 #include "cola.hpp"
+#include "owl_annotations.hpp"
 #include "simulation.hpp"
 #include "types.hpp"
 //#include "struct.hpp"
@@ -370,6 +371,7 @@ namespace cola
     std::vector<spot::formula> state_annotations_;
     bool use_formula_annotations_;
     spot::tl_simplifier annotation_simplifier_;
+    std::unique_ptr<owl_language_oracle> owl_oracle_;
 
     // Fixed semantic order for states in deterministic accepting SCCs.
     // Existing runs keep their historical labels; this order is consulted
@@ -467,12 +469,16 @@ namespace cola
     bool
     exact_language_dominance(unsigned p, unsigned q)
     {
-      if (p == q || om_.get(USE_EXACT_STATE_LANGUAGES) <= 0)
+      if (p == q)
         return false;
 
       unsigned scc = si_.scc_of(p);
       if (scc != si_.scc_of(q))
         return false;
+
+      if (owl_oracle_ && owl_oracle_->covers(q, {p}))
+        { ++owl_oracle_->stats.pair_proofs; return true; }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
 
       unsigned limit = static_cast<unsigned>(
         std::max(0, om_.get(EXACT_STATE_LANG_SCC_LIMIT, 8)));
@@ -520,8 +526,17 @@ namespace cola
     bool
     exact_union_covers(const std::vector<label>& ordered, unsigned pos)
     {
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || pos == 0)
+      if (pos == 0)
         return false;
+
+      if (owl_oracle_)
+        {
+          std::vector<unsigned> older;
+          for (unsigned j = 0; j < pos; ++j) older.push_back(ordered[j].first);
+          if (owl_oracle_->covers(ordered[pos].first, older))
+            { ++owl_oracle_->stats.union_proofs; return true; }
+        }
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0) return false;
 
       unsigned target_state = ordered[pos].first;
       unsigned target_scc = si_.scc_of(target_state);
@@ -616,7 +631,7 @@ namespace cola
     void
     exact_union_cover_prune(std::vector<label>& nodes)
     {
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 || nodes.size() <= 1)
+      if ((om_.get(USE_EXACT_STATE_LANGUAGES) <= 0 && !owl_oracle_) || nodes.size() <= 1)
         return;
 
       // Kretinsky-style ordered union subsumption: never remove the smallest
@@ -1146,7 +1161,7 @@ namespace cola
       // Exact ordered union-language pruning is optional and bounded.
       // It is independent of simulation and therefore can still strengthen
       // macrostates when simulation is disabled or inconclusive.
-      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0)
+      if (om_.get(USE_EXACT_STATE_LANGUAGES) > 0 || owl_oracle_)
         for (auto& nodes: succ.detscc_labels_)
           exact_union_cover_prune(nodes);
 
@@ -1539,6 +1554,8 @@ namespace cola
           use_formula_annotations_(om.get(USE_FORMULA_ANNOTATIONS) > 0
                                    && state_annotations_.size() == aut->num_states()),
           annotation_simplifier_(aut->get_dict()),
+          owl_oracle_(om.get(USE_OWL_ANNOTATIONS) > 0
+                      ? std::make_unique<owl_language_oracle>(aut) : nullptr),
           semantic_order_rank_(nb_states_),
           annotation_coverage_(nb_states_, 0),
           state_language_automata_(nb_states_),
@@ -1897,6 +1914,9 @@ namespace cola
       }
       
       simplify_acceptance_here(res_);
+      if (owl_oracle_)
+        res_->set_named_prop("cola-owl-annotation-stats",
+                             new owl_annotation_stats(owl_oracle_->stats));
       // spot::print_hoa(std::cout, res_);
       return res_;
     }

@@ -1,5 +1,6 @@
 // Experimental raw TELA boundary. No LTL routing or fallback can mask errors.
 #include "cola.hpp"
+#include "owl_annotations.hpp"
 #include "colour_choice.hpp"
 #include "cobuchi_weak.hpp"
 #include <spot/parseaut/public.hh>
@@ -17,6 +18,7 @@ int main(int argc, char** argv)
   bool integrated = false, compact = false, colours = false, preprocess = false, weak = false;
   bool local_colours = false;
   bool ldgba_pruning = false;
+  bool owl_annotations = false, annotation_only = false;
   for (int i = 3; i < argc; ++i)
     if (std::string(argv[i]) == "--integrated") integrated = true;
     else if (std::string(argv[i]) == "--compact-ranks") compact = true;
@@ -26,6 +28,8 @@ int main(int argc, char** argv)
     else if (std::string(argv[i]) == "--cobuchi-weak") weak = true;
     else if (std::string(argv[i]) == "--local-colours") local_colours = true;
     else if (std::string(argv[i]) == "--ldgba-pruning") ldgba_pruning = true;
+    else if (std::string(argv[i]) == "--owl-annotations") owl_annotations = true;
+    else if (std::string(argv[i]) == "--annotation-only") owl_annotations = annotation_only = true;
     else return 1;
   if (preprocess && !colours && !weak) colours = true;
   try
@@ -90,6 +94,8 @@ int main(int argc, char** argv)
       options.set(USE_SCC_INFO, integrated);
       options.set(USE_OBSERVED_RANKS, compact);
       options.set(USE_LOCAL_COLOURS, local_colours);
+      options.set(USE_OWL_ANNOTATIONS, owl_annotations);
+      if (annotation_only) options.set(USE_EXACT_STATE_LANGUAGES, 0);
       if (ldgba_pruning)
         {
           options.set(EXACT_STATE_LANG_SCC_LIMIT, 256);
@@ -97,6 +103,12 @@ int main(int argc, char** argv)
           options.set(EXACT_CONTAINMENT_BUDGET, 512);
         }
       auto output = deterministic ? input : cola::determinize_televator(input, options);
+      if (auto s = output->get_named_prop<cola::owl_annotation_stats>("cola-owl-annotation-stats"))
+        std::cerr << "annotation-decoded: " << s->decoded
+                  << "\nannotation-certified: " << s->certified
+                  << "\nannotation-rejected: " << s->rejected
+                  << "\nannotation-pair-proofs: " << s->pair_proofs
+                  << "\nannotation-union-proofs: " << s->union_proofs << '\n';
       spot::print_hoa(std::cout, output);
       if (!spot::is_deterministic(output) || !spot::are_equivalent(input, output)) return 4;
       return 0;

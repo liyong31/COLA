@@ -102,6 +102,6 @@ namespace cola
   {
     if (construction != "SEJK16" && construction != "EKS20") return nullptr;
     return external_frontend(f, dict, tool, timeout_ms, state_limit,
-                             {"ltl2ldgba", "-t", construction, "--skip-translation-portfolio"});
+                             {"ltl2ldgba", "-t", construction, "--skip-translation-portfolio", "--state-labels"});
   }
 }

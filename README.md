@@ -170,10 +170,20 @@ result is completed before complementing acceptance and checked against the
 positive formula. Both polarities share the existing call budget. Neither option
 is enabled by default. See the [pruning ablations](tests/ltl-ldgba-pruning-report.md).
 
-These bounded graph-level optimisations do not establish the TACAS 2017
-double-exponential LTL bound: that argument additionally requires a certified
-deterministic prefix, an exponential language basis and complete basis coverage
-pruning. OWL's semantic annotations do not survive the current HOA boundary.
+OWL is now invoked with `--state-labels`. The LDGBA determiniser reconstructs
+SEJK16/EKS20 accepting-state languages from those names and independently checks
+each formula against the input automaton rooted at that state. Certified formulas
+prove pairwise dominance and full older-prefix union coverage using Boolean BDDs
+over temporal atoms. These proofs bypass the bounded exact-query allowance;
+missing, malformed or unverified annotations leave the existing checks in place.
+Use `--no-ldgba-annotations` to disable this mechanism for an ablation. The original
+Emerson–Lei acceptance and rank-discontinuation construction are retained.
+
+This supplies checked formula-based pruning, but does not yet establish the
+TACAS 2017 double-exponential LTL bound: initial determinism, a singly exponential
+total basis/width bound across SCCs and weak-component bookkeeping remain to be
+certified. Spot's `match_states()` overapproximations still only guide ordering.
+See the [annotation experiment](tests/owl-annotations-report.md).
 The route compares final completed sizes, keeps established results on ties,
 and preserves direct-monitor priority. The combined portfolio totals 984
 states on the same 222-formula cohort, versus SLAA portfolio 985 and

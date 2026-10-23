@@ -456,3 +456,53 @@ The Dwyer 23 regression fails on the pre-fix binary and passes after the fix.
 The LDGBA suite now has 30 checks. The final polarity benchmark and summariser
 also require zero rejected language candidates, rather than only a correct
 fallback output. All final campaigns were rerun after this correction.
+
+
+## Certified OWL state-language annotations
+
+The optional OWL LDGBA frontend now always requests `--state-labels`.
+`src/owl_annotations.*` decodes the measured OWL 21 SEJK16/EKS20 B-state
+representations, including indexed fixed-point APs versus native-name monitor
+formulas, nested records, quoted AP names and unspaced p0Up1/U/W/R/M tokens.
+Each reconstructed formula is independently checked against the automaton
+rooted at that state. Unsupported/malformed/inequivalent descriptions stay
+unknown; no deletion trusts an unverified label. At most the first 256 state
+indices are certified, matching the default admission limit.
+
+`USE_OWL_ANNOTATIONS` enables the existing elevator backend's annotation oracle.
+It proves exact pair dominance for static ordering and full older-prefix union
+coverage via Boolean BDDs over maximal temporal subformulas. These checks run
+before and independently of the bounded automaton-inclusion budget. Only younger
+runs are removed; original shifted acceptance/discontinuation is unchanged.
+`--no-ldgba-annotations` disables this default-on mechanism for the LDGBA route.
+Generic callers must explicitly set the backend option. Spot match_states()
+overapproximations remain ordering hints and never become deletion certificates.
+
+The 1816 raw outputs compare identical labelled inputs off/on for both positive
+and negative formulas. All 3329 decoded annotations certify; zero rejections.
+There are 7406 pair-proof uses and 10182 union pruning events. Positive EKS20
+improves Parametrised42 66->42 and Liberouter43 76->34. Negative Parametrised45
+improves SEJK16 88->62 and EKS20 47->14. No paired successful result grows.
+Negative Hardness5 SEJK16 recovers a ten-second backend timeout (1158 states).
+Timeouts, capacity and input-budget failures remain explicit; timings are only
+diagnostic and campaigns can overlap.
+
+All 454 integrated outputs pass with zero LDGBA validation failures; totals tie
+the prior polarity version: LDGBA-only 1337 and combined1336/all227 (984/common222).
+The full finite-witness rerun passes 387 outputs plus585 budget/bypass checks.
+All eleven make-check suites pass, including26 new annotation regressions that
+exercise genuine joint coverage, actual pruning with all exact checking budgets
+disabled, forged labels, AP-name collisions and tokenisation. Final smoke passes.
+The interrupted initial decoder-development measurements were discarded.
+
+Reproduction/data: tests/benchmark-owl-annotations.py,
+tests/summarize-owl-annotations.py and tests/owl-annotations-report.md. The raw
+manifest includes all new source hashes; source/binary hashes and artifact/CSV
+consistency were verified. Do not rebuild during a measurement campaign.
+
+The formula annotation and safe full-prefix Boolean pruning are now implemented.
+Remaining TACAS proof obligations concern initial determinism, a singly exponential
+bound on total basis/width and weak bookkeeping across SCCs, and the interaction
+with independent SCC rank resets. Boolean abstraction is not arbitrary LTL
+implication. The conditional counting statement is updated accordingly; do not
+keep claiming that the HOA path carries no annotations.

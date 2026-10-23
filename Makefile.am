@@ -48,6 +48,8 @@ src_libcola_la_SOURCES =			\
   src/ltl2dela.cpp				\
   src/slaa_frontend.cpp                 \
   src/slaa_frontend.hpp                 \
+  src/owl_annotations.cpp               \
+  src/owl_annotations.hpp               \
   src/colour_choice.cpp                 \
   src/colour_choice.hpp                 \
   src/cobuchi_weak.cpp                  \
@@ -75,6 +77,10 @@ tests_tela_elevator_driver_LDADD = $(ltl2dela_LDADD)
 TESTS = tests/elevator-acceptance tests/specialized-fragments tests/generic-elevator
 TESTS += tests/slaa-route.py
 TESTS += tests/ldgba-route.py
+check_PROGRAMS += tests/owl-annotations
+tests_owl_annotations_SOURCES = tests/owl-annotations.cpp
+tests_owl_annotations_LDADD = $(ltl2dela_LDADD)
+TESTS += tests/owl-annotations
 check_PROGRAMS += tests/colour-choice
 tests_colour_choice_SOURCES = tests/colour-choice.cpp
 tests_colour_choice_LDADD = $(ltl2dela_LDADD)
@@ -167,3 +173,9 @@ EXTRA_DIST += tests/summarize-ldgba-pruning.py tests/ltl-ldgba-pruning-report.md
   tests/finite-witness-ldgba-pruning-regressions.json
 EXTRA_DIST += research/ldgba-experiments.tex
 EXTRA_DIST += tests/ltl-ldgba-pruning-default.csv tests/ltl-ldgba-pruning-default.json
+EXTRA_DIST += tests/benchmark-owl-annotations.py tests/summarize-owl-annotations.py \
+  tests/owl-annotations-results.csv tests/owl-annotations-results.json \
+  tests/owl-annotations-negative-results.csv tests/owl-annotations-negative-results.json \
+  tests/owl-annotations-integrated.csv tests/owl-annotations-integrated.json \
+  tests/owl-annotations-report.md research/owl-annotations.tex \
+  tests/finite-witness-owl-annotations.csv tests/finite-witness-owl-annotations.json

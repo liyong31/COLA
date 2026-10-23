@@ -45,6 +45,7 @@ static const char *NUM_TRANS_PRUNING = "num-trans-pruning";
 static const char *MSTATE_REARRANGE = "rank-rearrange";
 static const char *MAX_NUM_SIMULATION = "max-num-simulation";
 static const char *USE_FORMULA_ANNOTATIONS = "use-formula-annotations";
+static const char *USE_OWL_ANNOTATIONS = "use-owl-annotations";
 static const char *USE_EXACT_STATE_LANGUAGES = "use-exact-state-languages";
 static const char *USE_OBSERVED_RANKS = "use-observed-ranks";
 static const char *USE_LOCAL_COLOURS = "use-local-colours";

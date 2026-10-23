@@ -3,6 +3,7 @@
 // Profile-guided LTL -> deterministic Emerson-Lei translation.
 
 #include "ltl2dela.hpp"
+#include "owl_annotations.hpp"
 #include "slaa_frontend.hpp"
 
 #include <spot/tl/print.hh>
@@ -274,6 +275,10 @@ namespace cola
         << "  LDGBA backend attempts: " << ldgba_backend_attempts << '\n'
         << "  LDGBA validation failures: " << ldgba_validation_failures << '\n'
         << "  LDGBA candidates: " << ldgba_candidates << '\n'
+        << "  LDGBA annotations certified: " << ldgba_annotations_certified << '\n'
+        << "  LDGBA annotations rejected: " << ldgba_annotations_rejected << '\n'
+        << "  LDGBA annotation pair proofs: " << ldgba_annotation_pair_proofs << '\n'
+        << "  LDGBA annotation union proofs: " << ldgba_annotation_union_proofs << '\n'
         << "  LDGBA components: " << ldgba_components << '\n'
         << "  LDGBA cache hits: " << ldgba_cache_hits << '\n'
         << "  LDGBA budget skips: " << ldgba_budget_skips << '\n'
@@ -1680,6 +1685,7 @@ namespace cola
             om.set(USE_DELAYED_SIMULATION, 0);
             om.set(USE_STUTTER, 0);
             om.set(USE_OBSERVED_RANKS, 1);
+            om.set(USE_OWL_ANNOTATIONS, options_.ldgba_annotations);
             if (options_.ldgba_pruning)
               {
                 om.set(USE_LOCAL_COLOURS, 1);
@@ -1690,6 +1696,13 @@ namespace cola
             bool deterministic = spot::is_deterministic(input);
             if (!deterministic) ++stats_.ldgba_backend_attempts;
             auto result = deterministic ? input : cola::determinize_televator(input, om);
+            if (auto a = result->get_named_prop<owl_annotation_stats>("cola-owl-annotation-stats"))
+              {
+                stats_.ldgba_annotations_certified += a->certified;
+                stats_.ldgba_annotations_rejected += a->rejected;
+                stats_.ldgba_annotation_pair_proofs += a->pair_proofs;
+                stats_.ldgba_annotation_union_proofs += a->union_proofs;
+              }
             result = normalize_deterministic(result);
             if (!spot::is_deterministic(result) || !spot::are_equivalent(result, input))
               { ++stats_.ldgba_validation_failures; continue; }

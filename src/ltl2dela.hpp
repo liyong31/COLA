@@ -49,6 +49,7 @@ namespace cola
     std::string ldgba_construction = "both";
     bool ldgba_pruning = false;
     bool ldgba_portfolio = false;
+    bool ldgba_annotations = true;
     unsigned ldgba_timeout_ms = 5000;
     unsigned ldgba_state_limit = 256;
     unsigned ldgba_attempt_limit = 8;
@@ -139,6 +140,10 @@ namespace cola
     unsigned ldgba_backend_attempts = 0;
     unsigned ldgba_validation_failures = 0;
     unsigned ldgba_candidates = 0;
+    unsigned ldgba_annotations_certified = 0;
+    unsigned ldgba_annotations_rejected = 0;
+    unsigned ldgba_annotation_pair_proofs = 0;
+    unsigned ldgba_annotation_union_proofs = 0;
     unsigned ldgba_components = 0;
     unsigned ldgba_cache_hits = 0;
     unsigned ldgba_budget_skips = 0;

@@ -31,6 +31,7 @@ def main():
 
         correct = ("assert sys.argv[1] == 'ltl2ldgba' and sys.argv[2] == '-t'\n"
                    "assert '--skip-translation-portfolio' in sys.argv\n"
+                   "assert '--state-labels' in sys.argv\n"
                    "os.execvp('ltl2tgba', ['ltl2tgba','-D','-f',sys.argv[-1]])")
         check(correct, {'LDGBA candidates': 1, 'LDGBA validation failures': 0})
         check(correct, {'LDGBA candidates': 2, 'LDGBA validation failures': 0},

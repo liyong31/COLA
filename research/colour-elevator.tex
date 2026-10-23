@@ -310,10 +310,23 @@ already invalidate the desired bound. Likewise independent SCC bases need
 a bound on their total width, rather than only a per-SCC bound.
 
 The implemented fixed query budgets do not certify these hypotheses.
-The HOA boundary exports neither exact state-language formulas nor their
-basis support, and elevator admission does not certify initial determinism.
-Spot's matching annotations are only overapproximations and cannot justify
-deletion by themselves. A complexity-preserving annotated boundary must
+The checked OWL boundary now requests labelled HOA, reconstructs accepting-state
+languages and certifies each against the automaton rooted at that state.
+Write $\ell_q$ for a certified formula for state $q$. Its Boolean abstraction
+replaces maximal temporal subformulas by fresh propositional variables.
+If the resulting BDDs prove
+$\ell_q\Rightarrow\bigvee_{p\in P}\ell_p$ for older retained runs $P$,
+the corresponding language inclusion follows: every word induces a truth
+valuation of these variables. This enables sound pairwise ordering and
+full-prefix union pruning without consuming the exact-query budget.
+Unverified states cannot be deleted on the strength of their names.
+
+This supplies exact language annotations and complete Boolean coverage for
+the represented formulas within each ranked SCC. It does not itself bound
+the temporal-atom vocabulary or total rank width singly exponentially in LTL
+length, and elevator admission does not certify initial determinism.
+Spot's matching annotations remain overapproximations used only for ordering.
+A complexity-preserving annotated boundary must additionally
 retain the deterministic prefix and closed accepting region, provide
 certified basis coverage, and prove the interaction of coverage with SCC
 rank resets and weak components. Generalised B\"uchi acceptance need not be

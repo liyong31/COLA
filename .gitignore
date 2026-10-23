@@ -3,6 +3,8 @@ __pycache__
 formulae/tmp.ltl
 lcr-*
 owl-*
+!tests/owl-annotations*
+!research/owl-annotations.tex
 *.o
 seminator
 *.log
